@@ -22,292 +22,308 @@
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
   .app { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
-
-  /* Header */
-  .header { display: flex; align-items: center; margin-bottom: 1.5rem; }
-  .header h1 { font-size: 1.25rem; font-weight: 700; }
-
-  /* List */
-  .recipe-list { display: flex; flex-direction: column; gap: 0.75rem; }
-  .empty-state { text-align: center; color: var(--text3); padding: 3rem 1rem; }
-
-  /* Card */
-  .recipe-card {
-    background: var(--bg); border-radius: var(--radius-lg);
-    border: 1px solid var(--border); padding: 1rem 1.25rem;
-    cursor: pointer; display: flex; align-items: flex-start; gap: 0.875rem;
-    transition: border-color 0.12s, box-shadow 0.12s;
+  .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .list-header h1 { font-size: 20px; font-weight: 500; color: var(--text); }
+  .recipe-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 0.9rem 1.1rem; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 1rem; transition: background 0.1s; }
+  .recipe-card:hover { background: var(--bg2); }
+  .recipe-emoji { font-size: 30px; line-height: 1; flex-shrink: 0; }
+  .recipe-info { flex: 1; min-width: 0; }
+  .recipe-info h2 { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .recipe-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .recipe-arrow { color: var(--text3); font-size: 18px; flex-shrink: 0; }
+  .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--info); cursor: pointer; margin-bottom: 1.25rem; background: none; border: none; padding: 0; font-family: inherit; }
+  .hero { width: 100%; height: 100px; border-radius: var(--radius-lg); background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 56px; line-height: 1; margin-bottom: 1.1rem; }
+  .detail-titlerow { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 4px; }
+  .detail-title { font-size: 20px; font-weight: 500; color: var(--text); }
+  .serv-ctrl { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .serv-btn { width: 26px; height: 26px; border-radius: 50%; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: inherit; }
+  .serv-val { font-size: 13px; font-weight: 500; color: var(--text); min-width: 16px; text-align: center; }
+  .source { font-size: 12px; color: var(--text2); margin-bottom: 1rem; }
+  .source a { color: var(--info); text-decoration: none; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.1rem; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: var(--radius); background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); }
+  .macros { display: grid; grid-template-columns: repeat(4,1fr); gap: 7px; margin-bottom: 1.5rem; }
+  .mac { background: var(--bg2); border-radius: var(--radius); padding: 0.65rem; text-align: center; }
+  .mac-val { font-size: 16px; font-weight: 500; color: var(--text); display: block; }
+  .mac-lbl { font-size: 10px; color: var(--text2); margin-top: 2px; display: block; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .sec-title { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); margin-bottom: 0.65rem; }
+  .ing-grp { margin-bottom: 0.9rem; }
+  .ing-grp-name { font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 0.3rem; padding-bottom: 0.25rem; border-bottom: 0.5px solid var(--border); }
+  .ing-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text); padding: 3px 0; border-bottom: 0.5px solid var(--border); }
+  .ing-row:last-child { border-bottom: none; }
+  .ing-amt { color: var(--text2); white-space: nowrap; margin-left: 8px; }
+  .step { display: flex; gap: 9px; margin-bottom: 0.8rem; }
+  .step-num { width: 19px; height: 19px; min-width: 19px; border-radius: 50%; background: var(--bg2); border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: var(--text2); margin-top: 1px; }
+  .step-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 1px; }
+  .step-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .tip-box { background: var(--bg2); border-radius: var(--radius); padding: 0.65rem 0.85rem; }
+  .tip-title { font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .tip-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .hidden { display: none !important; }
+  @media (max-width: 520px) {
+    .two-col { grid-template-columns: 1fr; }
+    .tips-grid { grid-template-columns: 1fr; }
+    .macros { grid-template-columns: repeat(2,1fr); }
   }
-  .recipe-card:hover { border-color: var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-  .card-emoji { font-size: 2rem; line-height: 1; flex-shrink: 0; }
-  .card-body { flex: 1; min-width: 0; }
-  .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
-  .card-source { font-size: 0.8125rem; color: var(--text2); margin-bottom: 0.5rem; }
-  .badges { display: flex; flex-wrap: wrap; gap: 0.375rem; }
-  .badge { font-size: 0.75rem; background: var(--bg2); color: var(--text2); border-radius: 99px; padding: 0.2em 0.65em; white-space: nowrap; }
-
-  /* Back */
-  .back-btn { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; color: var(--info); cursor: pointer; background: none; border: none; padding: 0; margin-bottom: 1.25rem; }
-  .back-btn:hover { text-decoration: underline; }
-
-  /* Detail header */
-  .detail-header { margin-bottom: 1.5rem; }
-  .detail-emoji { font-size: 3rem; margin-bottom: 0.5rem; }
-  .detail-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.375rem; }
-  .detail-source { font-size: 0.875rem; color: var(--text2); margin-bottom: 0.75rem; }
-  .detail-source a { color: var(--info); }
-  .detail-badges { display: flex; flex-wrap: wrap; gap: 0.375rem; }
-
-  /* Macros */
-  .macros-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin: 1rem 0 1.5rem; display: flex; }
-  .macro { flex: 1; text-align: center; }
-  .macro + .macro { border-left: 1px solid var(--border); }
-  .macro-val { font-size: 1.125rem; font-weight: 700; }
-  .macro-label { font-size: 0.6875rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem; }
-
-  /* Section */
-  .section { margin-bottom: 1.75rem; }
-  .section-title { font-size: 0.6875rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
-
-  /* Scale */
-  .scale-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
-  .scale-btn { width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--border2); background: var(--bg); font-size: 1.1rem; cursor: pointer; color: var(--text); }
-  .scale-btn:hover { background: var(--bg2); }
-  .scale-val { font-size: 0.875rem; color: var(--text2); min-width: 4rem; text-align: center; }
-
-  /* Ingredients */
-  .ingredients-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-  .ing-group-name { font-size: 0.6875rem; font-weight: 700; color: var(--text3); padding: 0.5rem 1rem 0.25rem; background: var(--bg2); border-top: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.06em; }
-  .ing-group-name:first-child { border-top: none; }
-  .ingredient { display: flex; justify-content: space-between; align-items: baseline; padding: 0.5rem 1rem; border-top: 1px solid var(--border); font-size: 0.9375rem; }
-  .ing-name { color: var(--text); }
-  .ing-amount { color: var(--text2); font-size: 0.875rem; margin-left: 0.5rem; white-space: nowrap; }
-
-  /* Steps */
-  .step { display: flex; gap: 1rem; margin-bottom: 1rem; }
-  .step-num { width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--text); color: var(--bg); font-size: 0.75rem; font-weight: 700; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-  .step-body { flex: 1; }
-  .step-title { font-weight: 600; margin-bottom: 0.25rem; font-size: 0.9375rem; }
-  .step-text { color: var(--text2); font-size: 0.9rem; line-height: 1.55; }
-
-  /* Tips */
-  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-  @media (max-width: 480px) { .tips-grid { grid-template-columns: 1fr; } }
-  .tip-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.875rem 1rem; }
-  .tip-title { font-size: 0.6875rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.375rem; }
-  .tip-text { font-size: 0.875rem; color: var(--text2); line-height: 1.5; }
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div class="app">
+  <div id="view-list">
+    <div class="list-header"><h1>Recept</h1></div>
+    <div id="recipe-list"></div>
+  </div>
+  <div id="view-detail" class="hidden">
+    <button class="back-btn" id="back-btn">← Alla recept</button>
+    <div id="detail-content"></div>
+  </div>
+</div>
 <script>
-const RECIPES = [];
+const RECIPES = [
+  {id:'buffalo-chicken-crust-pizza',emoji:'🍕',title:'Buffalo Chicken Crust Pizza',source:'@basicswithbails på Instagram',sourceUrl:'https://www.instagram.com/p/DVZU-G0klZu/',badges:['1 pizza','200°C → 220°C','ca 45 min','låg kolhydrat'],macros:{kcal:1380,prot:144,carb:24,fat:72},groups:[{name:'Botten',ingredients:[{name:'malet kycklingbröst',amount:450,unit:'g'},{name:'ägg (stora)',amount:2,unit:'st'},{name:'parmesanost, riven',amount:50,unit:'g'},{name:'vitlökspulver',amount:1,unit:'tsk'},{name:'italiensk örtkrydda',amount:1,unit:'tsk'},{name:'salt',amount:0.5,unit:'tsk'},{name:'svartpeppar',amount:0.5,unit:'tsk'}]},{name:'Toppings',ingredients:[{name:'buffalosås',amount:120,unit:'g'},{name:'stark pizzasås',amount:80,unit:'g'},{name:'mozzarella, riven',amount:110,unit:'g'},{name:'rödlök, tunt skivad',amount:60,unit:'g'},{name:'bananpeppar (picklade)',amount:90,unit:'g'},{name:'bacon, förstekt',amount:3,unit:'strimlor'}]},{name:'Finish',ingredients:[{name:'salladslök, skivad',amount:30,unit:'g'},{name:'blue cheese-dressing eller ranch',amount:2,unit:'msk'},{name:'extra buffalosås',amount:1,unit:'msk'}]}],steps:[{title:'Ugn på',text:'200°C över-/undervärme. Klä plåt med bakplåtspapper.'},{title:'Blanda bottendeg',text:'Blanda alla botteningredienser till en homogen massa utan klumpar.'},{title:'Forma botten',text:'Bred ut till tunn, jämn cirkel eller rektangel, ca 5–6mm.'},{title:'Förgräddning',text:'Grädda 25 min tills gyllene och fast. Vila 5 min.'},{title:'Höj ugnen',text:'Höj till 220°C.'},{title:'Toppa',text:'Bred ut såser. Fördela mozzarella, rödlök, bananpeppar och smulade bacon.'},{title:'Slutgräddning',text:'Grädda 10 min. Broila 1–2 min för mer färg.'},{title:'Färdigställ',text:'Toppa med salladslök, blue cheese-dressing och extra buffalosås.'}],tips:[{title:'Seattle',text:'Skippa buffalosåsen på en sektion — ersätt med vanlig pizzasås och mild ost.'},{title:'Textur',text:'Mal kycklingbröst själv i matberedare — bättre bindning.'},{title:'Variationer',text:'Byt buffalosås mot bbq-sås. Funkar med kycklinglår.'},{title:'Förberedelse',text:'Botten kan förgräddas dagen innan.'}]},
+  {id:'dumpling-lasagna',emoji:'🥟',title:'Dumpling Lasagna',source:'@thecontrarianmoney på Instagram',sourceUrl:'https://www.instagram.com/p/DVhEiMfEnuf/',badges:['4 portioner','190°C / 35 min','asiatisk fusion'],macros:{kcal:2200,prot:88,carb:140,fat:130},groups:[{name:'Fyllning',ingredients:[{name:'malet fläskkött',amount:450,unit:'g'},{name:'salladslök, tunt skivad',amount:40,unit:'g'},{name:'färsk ingefära, riven',amount:1,unit:'msk'},{name:'vitlöksklyftor, hackade',amount:4,unit:'st'},{name:'ostronsås',amount:1,unit:'msk'},{name:'svartpeppar',amount:1,unit:'tsk'},{name:'chili crisp',amount:2,unit:'msk'},{name:'soja',amount:3,unit:'msk'},{name:'sesamolja',amount:1.5,unit:'tsk'},{name:'risvinäger',amount:1,unit:'msk'}]},{name:'Lasagna',ingredients:[{name:'wonton-wrappers',amount:25,unit:'st'},{name:'kycklingbuljong',amount:60,unit:'g'}]},{name:'Topping',ingredients:[{name:'soja',amount:2,unit:'msk'},{name:'chili crisp',amount:1,unit:'msk'},{name:'salladslök, skivad',amount:20,unit:'g'},{name:'sesamfrön',amount:1,unit:'msk'}]}],steps:[{title:'Blanda fyllning',text:'Blanda fläskkött, salladslök, ingefära, vitlök, ostronsås, chili crisp, peppar, soja, sesamolja och risvinäger.'},{title:'Blöt wrappers',text:'Ha vatten i en skål. Doppa varje wrapper precis innan.'},{title:'Varva lager',text:'Börja med wrappers i botten, lager av kött, fortsätt varva.'},{title:'Tillsätt buljong',text:'Häll kycklingbuljongen jämnt över.'},{title:'Tillagning',text:'Ångkoka 20–23 min, eller ugn 190°C i 30–35 min med folie i vattenbad.'},{title:'Servera',text:'Ringla soja och chili crisp. Strö på salladslök och sesamfrön.'}],tips:[{title:'Seattle',text:'Minska chili crisp eller uteslut det.'},{title:'Saltvarning',text:'Ostronsås + soja är salt — inget extra behövs.'},{title:'Variationer',text:'Funkar med malet kyckling. Hackad kål ger mer volym.'},{title:'Namn',text:'Gyozagna är det rätta namnet.'}]},
+  {id:'edamame-spread',emoji:'🫛',title:'Creamy Jalapeño-Basil Edamame Spread',source:'@mishkamakesfood på Instagram',sourceUrl:'https://www.instagram.com/p/DXhaNpNBeRO/',badges:['7–8 portioner','under 10 min','meal prep'],macros:{kcal:1190,prot:56,carb:84,fat:70},groups:[{name:'Spread',ingredients:[{name:'fryst edamame (blancherad)',amount:455,unit:'g'},{name:'fryst hackad grönkål',amount:190,unit:'g'},{name:'färsk basilika (packad)',amount:30,unit:'g'},{name:'vitlöksklyftor',amount:2,unit:'st'},{name:'jalapeño, kärnor borttagna',amount:1.5,unit:'st'},{name:'vit misopasta',amount:2,unit:'tsk'},{name:'citron, zest + juice',amount:1,unit:'st'},{name:'olivolja',amount:60,unit:'g'},{name:'salt',amount:1,unit:'tsk'}]}],steps:[{title:'Lägg i matberedaren',text:'Lägg allt och en rejäl nypa salt.'},{title:'Mixa',text:'Starta långsamt, öka gradvis. Tillsätt vatten eller olivolja om för tjockt.'},{title:'Smaka av',text:'Justera med citronsaft eller salt.'},{title:'Förvara',text:'Lufttät behållare, citronsaft över ytan. Håller 5 dagar.'}],tips:[{title:'Seattle',text:'Uteslut jalapeño eller byt mot mild paprika.'},{title:'Servera med',text:'Chips, riskex, rostat bröd. Chili crisp + stekt ägg är kanonkombinationen.'},{title:'Variationer',text:'Med pecorino och mindre miso — nästan ett pesto.'},{title:'Utan miso',text:'Extra salt + worcestershiresås, eller uteslut helt.'}]},
+  {id:'smashed-cucumber',emoji:'🥒',title:'Smashed Cucumber med Ume & Chili Crunch',source:'@acooknamedmatt på Instagram',sourceUrl:'https://www.instagram.com/p/DXhgu4ggSZD/',badges:['2 portioner','under 15 min','tillbehör'],macros:{kcal:180,prot:4,carb:12,fat:13},groups:[{name:'Gurka',ingredients:[{name:'gurka (stor)',amount:1,unit:'st'},{name:'flingsalt',amount:1,unit:'msk'}]},{name:'Dressing',ingredients:[{name:'ume-pickle (umeboshi-juice)',amount:2,unit:'msk'},{name:'vitlöksklyfta, riven',amount:1,unit:'st'},{name:'chili crunch',amount:1,unit:'msk'},{name:'sesamolja',amount:1,unit:'tsk'},{name:'risvinäger',amount:1,unit:'tsk'}]},{name:'Finish',ingredients:[{name:'salladslök, tunt skivad',amount:2,unit:'st'},{name:'sesamfrön',amount:1,unit:'tsk'}]}],steps:[{title:'Smasha',text:'Smasha gurkan med sidan av en stor kniv. Dela i 3–4 cm bitar.'},{title:'Salta och vila',text:'Strö på flingsalt, vila 10 min.'},{title:'Skölj och torka',text:'Skölj av och torka lätt.'},{title:'Dressing',text:'Blanda ume-pickle, vitlök, chili crunch, sesamolja och risvinäger.'},{title:'Servera',text:'Vänd gurka i dressingen. Toppa med salladslök och sesamfrön.'}],tips:[{title:'Seattle',text:'Uteslut chili crunch, ersätt med neutral sesamdressing och honung.'},{title:'Varför smasha?',text:'Mer yta = mer marinad. Ojämna bitar håller dressingen bättre.'},{title:'Ume-pickle',text:'I asiatiska butiker. Substitut: citronsaft + salt.'},{title:'Servera med',text:'Till grillat kött, ris, eller som palate cleanser.'}]},
+  {id:'gochujang-gnocchi',emoji:'🍜',title:'Creamy Gochujang Gnocchi med Sesambiff',source:'@mason_woodruff på Instagram',sourceUrl:'https://www.instagram.com/p/DXhjd5cm0Hc/',badges:['4 portioner','30 min','hög protein'],macros:{kcal:1900,prot:148,carb:232,fat:40},groups:[{name:'Sås',ingredients:[{name:'keso (låg fetthalt)',amount:240,unit:'g'},{name:'gochujang',amount:2,unit:'msk'},{name:'vit misopasta',amount:1,unit:'msk'},{name:'vatten',amount:60,unit:'g'}]},{name:'Sesambiff',ingredients:[{name:'extra mager nötfärs',amount:450,unit:'g'},{name:'coconut aminos',amount:2,unit:'msk'},{name:'balsamicovinäger',amount:2,unit:'msk'},{name:'vatten',amount:2,unit:'msk'},{name:'rostad sesamolja',amount:1,unit:'msk'},{name:'svartpeppar',amount:0.5,unit:'tsk'},{name:'vitlöksklyftor, pressade',amount:4,unit:'st'},{name:'färsk ingefära, riven',amount:2,unit:'tsk'}]},{name:'Gnocchi',ingredients:[{name:'potatisgnocchi',amount:450,unit:'g'}]},{name:'Topping',ingredients:[{name:'salladslök, skivad',amount:2,unit:'st'},{name:'rostat sesamfrön',amount:1,unit:'msk'},{name:'gochugaru',amount:1,unit:'tsk'}]}],steps:[{title:'Koka upp vatten',text:'Saltat vatten för gnocchi.'},{title:'Mixa sås',text:'Mixa keso, gochujang, miso och vatten helt slät.'},{title:'Bryn färsen',text:'Hög värme, bryn utan att röra 2–3 min. Bryt isär och stek klart.'},{title:'Smaksätt',text:'Tillsätt aminos, balsamico, vatten, sesamolja, peppar, vitlök, ingefära. Koka 3–4 min.'},{title:'Koka gnocchi',text:'3–4 min tills de flyter. Spara 1 dl pastavatten.'},{title:'Kombinera',text:'Sås över gnocchi på låg värme, pastavatten för konsistens.'},{title:'Servera',text:'Toppa med sesambiff, salladslök, sesamfrön och gochugaru.'}],tips:[{title:'Seattle',text:'Minska gochujang till 1 msk, uteslut gochugaru.'},{title:'Styrka',text:'2 msk är milt — lägg till mer för mer hetta.'},{title:'Pasta',text:'Funkar med rigatoni, udon eller valfri pasta.'},{title:'Keso',text:'Smakar inte keso alls — skapar en silkeslen, proteinrik sås.'}]},
+  {id:'hot-honey-chicken-sliders',emoji:'🍔',title:'Hot Honey Chicken Sliders',source:'@panaceapalm på Instagram',sourceUrl:'https://www.instagram.com/p/DXcAh2JjYA_/',badges:['6 sliders','190°C / 10–12 min','hög protein'],macros:{kcal:3360,prot:336,carb:198,fat:126},groups:[{name:'Kycklingfyllning',ingredients:[{name:'kycklingbröst',amount:800,unit:'g'},{name:'paprika',amount:1,unit:'msk'},{name:'lökpulver',amount:1,unit:'msk'},{name:'vitlökspulver',amount:1,unit:'msk'},{name:'cayennepeppar',amount:1,unit:'tsk'},{name:'svartpeppar',amount:2,unit:'tsk'},{name:'salt',amount:1,unit:'msk'},{name:'rödlök (halv)',amount:0.5,unit:'st'},{name:'majs',amount:2,unit:'msk'},{name:'lättost 50% cheddar',amount:90,unit:'g'},{name:'oregano',amount:2,unit:'tsk'},{name:'hot sauce',amount:60,unit:'g'},{name:'honung',amount:1,unit:'msk'}]},{name:'Sriracha mayo',ingredients:[{name:'lätt majonnäs',amount:2,unit:'msk'},{name:'sriracha',amount:1,unit:'msk'},{name:'honung',amount:1,unit:'tsk'}]},{name:'Bröd och ost',ingredients:[{name:'brioche hamburgerbröd (mini)',amount:6,unit:'st'},{name:'swiss-ost / leerdamer 50%',amount:100,unit:'g'},{name:'mozzarella',amount:250,unit:'g'},{name:'pickles, skivade',amount:1,unit:'msk'}]},{name:'Vitlökssmör',ingredients:[{name:'lätt smör',amount:1,unit:'msk'},{name:'vitlökspasta',amount:0.5,unit:'tsk'},{name:'persiljeflakes',amount:1,unit:'tsk'}]}],steps:[{title:'Ugn på',text:'190°C. Tillaga och strimla kyckling, blanda med kryddor, lök, majs, ost, oregano, hot sauce och honung.'},{title:'Sriracha mayo',text:'Rör ihop majonnäs, sriracha och honung.'},{title:'Bygg',text:'Mayo på brödbotten. Kycklingfyllning. Swiss-ost och mozzarella över.'},{title:'Grädda',text:'10–12 min tills osten är smält.'},{title:'Vitlökssmör',text:'Pensla på toppen sista 2 min.'},{title:'Servera',text:'Lägg på pickles och servera direkt.'}],tips:[{title:'Seattle',text:'Skippa cayenne, minska hot sauce, mer honung.'},{title:'Förvaring',text:'Folie + mikra 30 sek + airfrya för crispighet.'},{title:'Per slider',text:'560 kcal · 56g protein · 33g kolhydrater · 21g fett.'},{title:'Variationer',text:'Pulled kyckling i bulk. Swiss mot blåmögelost för mer karaktär.'}]},
+  {id:'cottage-cheese-flatbread',emoji:'🫙',title:'Cottage Cheese Flatbread',source:'@_joytothefood_ på Instagram',sourceUrl:'https://www.instagram.com/p/DXRXq8JJ3wU/',badges:['2 portioner','175°C / 30–35 min','hög protein','låg kolhydrat'],macros:{kcal:360,prot:44,carb:10,fat:16},groups:[{name:'Flatbread',ingredients:[{name:'keso (fullfett eller 2%)',amount:240,unit:'g'},{name:'ägg (stora)',amount:2,unit:'st'},{name:'vitlökspulver',amount:0.5,unit:'tsk'},{name:'lökpulver',amount:0.5,unit:'tsk'},{name:'italiensk örtkrydda',amount:0.5,unit:'tsk'},{name:'svartpeppar',amount:1,unit:'pinch'}]},{name:'Fyllning (valfri)',ingredients:[{name:'grekisk yoghurt + pesto',amount:2,unit:'msk'},{name:'kycklingbröst, tillagad',amount:100,unit:'g'},{name:'tomat, skivad',amount:1,unit:'st'},{name:'babyspenat',amount:30,unit:'g'}]}],steps:[{title:'Ugn på',text:'175°C. Bakplåtspapper, lätt olja.'},{title:'Mixa',text:'Mixa keso, ägg och kryddor tills helt slät. Övermixa inte.'},{title:'Forma',text:'Bred ut jämnt med spatel, ca 5mm tjockt.'},{title:'Grädda',text:'30–35 min tills kanterna är gyllenbruna och mitten fast.'},{title:'Kyl HELT',text:'Låt svalna helt — styvnar när den svalnar.'},{title:'Fyll och rulla',text:'Fyllning på ena halvan. Rulla tätt, skär och servera.'}],tips:[{title:'Seattle',text:'Toppa med avokado, mild ost och gurka.'},{title:'Keso-val',text:'Fullfett håller bäst. Lättversion: krama av vätskan först.'},{title:'Variationer',text:'Pizza: toppa efter 30 min, grädda 10 min till.'},{title:'Protein',text:'Keso + ägg ger komplett aminosyraprofil — bra post-workout.'}]},
+  {id:'numbing-chicken-cucumber',emoji:'🌶️',title:'Numbing Chicken & Cucumber Salad',source:'@finntonrY på Instagram',sourceUrl:'https://www.instagram.com/p/DXZtu_SjWGQ/',badges:['2 portioner','590 kcal / portion','kinesisk'],macros:{kcal:1180,prot:102,carb:92,fat:46},groups:[{name:'Pocherad kyckling',ingredients:[{name:'kycklingbröst',amount:450,unit:'g'},{name:'färsk ingefära',amount:20,unit:'g'},{name:'salladslök',amount:2,unit:'st'},{name:'msg',amount:1,unit:'tsk'},{name:'salt',amount:1,unit:'msk'}]},{name:'Gurka',ingredients:[{name:'gurka',amount:2,unit:'st'},{name:'salladslök',amount:3,unit:'st'}]},{name:'Sichuansås',ingredients:[{name:'vitlöksklyftor, hackade',amount:4,unit:'st'},{name:'sichuanpepparkorn',amount:1,unit:'tsk'},{name:'socker',amount:1,unit:'msk'},{name:'sesamolja',amount:2,unit:'tsk'},{name:'kinesisk svart vinäger (Chinkiang)',amount:2,unit:'msk'},{name:'soja',amount:2,unit:'msk'},{name:'mörk soja',amount:1,unit:'msk'},{name:'chili olja',amount:2,unit:'msk'},{name:'pocheringsvätska',amount:6,unit:'msk'}]},{name:'Servering',ingredients:[{name:'koriander',amount:1,unit:'näve'},{name:'sesamfrön',amount:1,unit:'msk'},{name:'kokt kortkornat ris',amount:200,unit:'g'}]}],steps:[{title:'Pochera kyckling',text:'Lägg ingefära, salladslök, msg och salt i vatten. Koka upp, sänk till simmer. Lägg i kyckling, simma 3 min, täck, stäng av, låt stå 10 min.'},{title:'Vila och skär',text:'Ta upp, vila, spara pocheringsvätska. Skiva eller strimla.'},{title:'Gurka',text:'Skiva diagonalt, stapla och skär i tjocka strimlor.'},{title:'Blanda sås',text:'Blanda alla sås-ingredienser och ställ kallt.'},{title:'Lägg upp',text:'Gurka i botten, kyckling ovanpå, häll över såsen.'},{title:'Finish',text:'Koriander, salladslök, sesamfrön. Servera med varm ris.'}],tips:[{title:'Seattle',text:'Uteslut chiliolja och sichuanpeppar — resten är mild.'},{title:'Sichuanpeppar',text:'Ger den bedövande "numbing"-känslan. Mortla och stek 30 sek torrt.'},{title:'Pochering',text:'Residualvärme ger saftig, aldrig torr kyckling. Spara vätskan.'},{title:'Vinäger',text:'Chinkiang (svart risvinäger) är viktig — inte samma som vanlig risvinäger.'}]},
+  {id:'tuna-chili-crisp-salad',emoji:'🐟',title:'Tuna Salad & Chili Crisp',source:'@joeycooksfoods på Instagram',sourceUrl:'https://www.instagram.com/reel/DWzOJp3DsmB/',badges:['2 portioner','under 20 min','hög protein','låg kolhydrat'],macros:{kcal:680,prot:62,carb:28,fat:36},groups:[{name:'Sallad',ingredients:[{name:'ventresca tonfisk, oljeinlagd',amount:225,unit:'g'},{name:'persisk gurka, smashad och grovhackad',amount:240,unit:'g'},{name:'rödlök, tunt skivad',amount:60,unit:'g'},{name:'risvinäger (för att pickla löken)',amount:240,unit:'g'},{name:'ruccola',amount:30,unit:'g'},{name:'färsk koriander, grovhackad',amount:15,unit:'g'},{name:'salt och peppar',amount:1,unit:'pinch'}]},{name:'Panko och sesamfrön',ingredients:[{name:'panko-ströbröd',amount:80,unit:'g'},{name:'sesamfrön',amount:45,unit:'g'},{name:'citronzest',amount:3,unit:'msk'}]},{name:'Dressing',ingredients:[{name:'kelp chili crisp',amount:3,unit:'msk'},{name:'rostad sesamolja',amount:2,unit:'msk'},{name:'citronsaft',amount:1,unit:'st'},{name:'tamari',amount:1,unit:'msk'},{name:'salt och peppar',amount:1,unit:'pinch'}]},{name:'Anrätt',ingredients:[{name:'labneh',amount:80,unit:'g'},{name:'chili crisp (extra, till botten)',amount:1,unit:'msk'}]}],steps:[{title:'Pickla löken',text:'Lägg tunt skivad rödlök i risvinäger, minst 10 min. Dränera innan servering.'},{title:'Rosta panko-mix',text:'Rosta panko i torr panna tills gyllenbrunt. Blanda med sesamfrön och citronzest.'},{title:'Blanda dressing',text:'Blanda kelp chili crisp, sesamolja, citronsaft och tamari.'},{title:'Anrätt tallrik',text:'Blanda labneh med lite chili crisp och bred ut i botten.'},{title:'Bygg salladen',text:'Blanda tonfisk, gurka, picklade lök, ruccola och koriander. Häll över dressingen.'},{title:'Servera',text:'Lägg salladen över labneh-basen. Toppa med panko-sesamfrön-mixet.'}],tips:[{title:'Seattle',text:'Uteslut chili crisp från dressingen — panko-mixet är mild och passar alla.'},{title:'Tonfisk-val',text:'Ventresca = magruppen, fetare och mörare. Bra kvalitets-tonfisk i olja funkar.'},{title:'Labneh-bas',text:'Ersätt med keso eller tjock grekisk yoghurt om du inte hittar labneh.'},{title:'Panko-mix',text:'Gör dubbel sats och förvara torrt — håller en vecka och är gott på det mesta.'}]}
+];
 
-// ── DOM helper ──────────────────────────────────────────────────────────────
-function el(tag, props) {
-  const e = document.createElement(tag);
-  if (props) {
-    for (const [k, v] of Object.entries(props)) {
-      if (k === 'className') e.className = v;
-      else if (k === 'textContent') e.textContent = v;
-      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
-      else e.setAttribute(k, v);
-    }
-  }
-  for (let i = 2; i < arguments.length; i++) {
-    const c = arguments[i];
-    if (c == null) continue;
-    if (typeof c === 'string') e.appendChild(document.createTextNode(c));
-    else e.appendChild(c);
-  }
+var recipes = RECIPES;
+var currentServings = 1;
+var currentId = null;
+
+function fmt(val, unit) {
+  if (unit === 'g') return Math.round(val) + 'g';
+  if (unit === 'msk') return (val % 1 === 0 ? val : val.toFixed(1)) + ' msk';
+  if (unit === 'tsk') { if (val < 0.4) return '¼ tsk'; if (val < 0.7) return '½ tsk'; if (val < 1.4) return '1 tsk'; return Math.round(val) + ' tsk'; }
+  if (unit === 'st') return (val % 1 === 0 ? Math.round(val) : val) + ' st';
+  if (unit === 'pinch') return 'en nypa';
+  if (unit === 'näve') return '1 näve';
+  if (unit === 'strimlor') return Math.round(val) + ' strimlor';
+  return Math.round(val) + ' ' + unit;
+}
+
+function mk(tag, cls) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
   return e;
 }
 
-function txt(s) { return document.createTextNode(s); }
+// ── List ─────────────────────────────────────────────────────────────────────
 
-// ── State ───────────────────────────────────────────────────────────────────
-let scale = 1;
-
-// ── Routing ─────────────────────────────────────────────────────────────────
-function getPath() { return window.location.hash.replace(/^#/, '') || '/'; }
-function navigate(path) { scale = 1; window.location.hash = path; }
-
-window.addEventListener('hashchange', render);
-window.addEventListener('load', render);
-
-// ── Root render ─────────────────────────────────────────────────────────────
-function render() {
-  const path = getPath();
-  const recipe = path !== '/' ? RECIPES.find(function(r) { return r.id === path.slice(1); }) : null;
-  const view = recipe ? renderDetail(recipe) : renderList();
-  const container = el('div', { className: 'app' });
-  container.appendChild(view);
-  document.getElementById('app').replaceChildren(container);
-}
-
-// ── List view ────────────────────────────────────────────────────────────────
 function renderList() {
-  const wrap = document.createDocumentFragment();
-  wrap.appendChild(el('div', { className: 'header' }, el('h1', { textContent: 'Recept' })));
+  var container = document.getElementById('recipe-list');
+  container.replaceChildren();
+  recipes.forEach(function(r) {
+    var card = mk('div', 'recipe-card');
 
-  if (RECIPES.length === 0) {
-    wrap.appendChild(el('p', { className: 'empty-state', textContent: 'Inga recept ännu.' }));
-    return wrap;
-  }
+    var emojiEl = mk('div', 'recipe-emoji');
+    emojiEl.textContent = r.emoji;
+    card.appendChild(emojiEl);
 
-  const list = el('div', { className: 'recipe-list' });
-  RECIPES.forEach(function(r) { list.appendChild(renderCard(r)); });
-  wrap.appendChild(list);
-  return wrap;
+    var info = mk('div', 'recipe-info');
+    var h2 = mk('h2');
+    h2.textContent = r.title;
+    info.appendChild(h2);
+    var meta = mk('div', 'recipe-meta');
+    meta.textContent = r.badges.slice(0, 2).join(' · ');
+    info.appendChild(meta);
+    card.appendChild(info);
+
+    var arrow = mk('div', 'recipe-arrow');
+    arrow.textContent = '›';
+    card.appendChild(arrow);
+
+    card.addEventListener('click', (function(id) {
+      return function() { showDetail(id); };
+    }(r.id)));
+
+    container.appendChild(card);
+  });
 }
 
-function renderCard(r) {
-  const badgeRow = el('div', { className: 'badges' });
-  r.badges.forEach(function(b) { badgeRow.appendChild(el('span', { className: 'badge', textContent: b })); });
-
-  const card = el('div', { className: 'recipe-card', role: 'button', tabindex: '0' },
-    el('div', { className: 'card-emoji', textContent: r.emoji }),
-    el('div', { className: 'card-body' },
-      el('div', { className: 'card-title', textContent: r.title }),
-      el('div', { className: 'card-source', textContent: r.source }),
-      badgeRow
-    )
-  );
-  card.addEventListener('click', function() { navigate('/' + r.id); });
-  card.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') navigate('/' + r.id); });
-  return card;
+function showList() {
+  document.getElementById('view-list').classList.remove('hidden');
+  document.getElementById('view-detail').classList.add('hidden');
+  window.scrollTo(0, 0);
 }
 
-// ── Detail view ──────────────────────────────────────────────────────────────
-function renderDetail(r) {
-  const wrap = document.createDocumentFragment();
+document.getElementById('back-btn').addEventListener('click', showList);
 
-  const back = el('button', { className: 'back-btn', textContent: '← Alla recept' });
-  back.addEventListener('click', function() { navigate('/'); });
-  wrap.appendChild(back);
+// ── Servings ──────────────────────────────────────────────────────────────────
 
-  // Header
-  const sourceLine = el('div', { className: 'detail-source' });
-  if (r.sourceUrl) {
-    const a = el('a', { href: r.sourceUrl, target: '_blank', rel: 'noopener noreferrer' });
-    a.textContent = r.source;
-    sourceLine.appendChild(a);
-  } else {
-    sourceLine.appendChild(txt(r.source));
-  }
+function changeServings(d) {
+  currentServings = Math.max(1, currentServings + d);
+  var r = recipes.find(function(x) { return x.id === currentId; });
+  if (!r) return;
+  document.getElementById('serv-val').textContent = currentServings;
+  document.getElementById('m-kcal').textContent = Math.round(r.macros.kcal * currentServings);
+  document.getElementById('m-prot').textContent = Math.round(r.macros.prot * currentServings) + 'g';
+  document.getElementById('m-carb').textContent = Math.round(r.macros.carb * currentServings) + 'g';
+  document.getElementById('m-fat').textContent = Math.round(r.macros.fat * currentServings) + 'g';
+  document.querySelectorAll('.ing-amt').forEach(function(el) {
+    el.textContent = fmt(parseFloat(el.dataset.base) * currentServings, el.dataset.unit);
+  });
+}
 
-  const badgeRow = el('div', { className: 'detail-badges' });
-  r.badges.forEach(function(b) { badgeRow.appendChild(el('span', { className: 'badge', textContent: b })); });
+// ── Detail ────────────────────────────────────────────────────────────────────
 
-  wrap.appendChild(el('div', { className: 'detail-header' },
-    el('div', { className: 'detail-emoji', textContent: r.emoji }),
-    el('h1', { className: 'detail-title', textContent: r.title }),
-    sourceLine,
-    badgeRow
-  ));
+function showDetail(id) {
+  var r = recipes.find(function(x) { return x.id === id; });
+  if (!r) return;
+  currentId = id;
+  currentServings = 1;
+
+  var c = document.getElementById('detail-content');
+  c.replaceChildren();
+
+  // Hero
+  var hero = mk('div', 'hero');
+  hero.textContent = r.emoji;
+  c.appendChild(hero);
+
+  // Title row + serving control
+  var titleRow = mk('div', 'detail-titlerow');
+  var titleEl = mk('div', 'detail-title');
+  titleEl.textContent = r.title;
+  titleRow.appendChild(titleEl);
+
+  var servCtrl = mk('div', 'serv-ctrl');
+  var minusBtn = mk('button', 'serv-btn');
+  minusBtn.textContent = '−';
+  minusBtn.addEventListener('click', function() { changeServings(-1); });
+  var servValEl = mk('span', 'serv-val');
+  servValEl.id = 'serv-val';
+  servValEl.textContent = '1';
+  var plusBtn = mk('button', 'serv-btn');
+  plusBtn.textContent = '+';
+  plusBtn.addEventListener('click', function() { changeServings(1); });
+  servCtrl.appendChild(minusBtn);
+  servCtrl.appendChild(servValEl);
+  servCtrl.appendChild(plusBtn);
+  titleRow.appendChild(servCtrl);
+  c.appendChild(titleRow);
+
+  // Source
+  var sourceDiv = mk('div', 'source');
+  sourceDiv.appendChild(document.createTextNode('Källa: '));
+  var a = mk('a');
+  a.href = r.sourceUrl;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.textContent = r.source;
+  sourceDiv.appendChild(a);
+  c.appendChild(sourceDiv);
+
+  // Badges
+  var badgesDiv = mk('div', 'badges');
+  r.badges.forEach(function(b) {
+    var badge = mk('span', 'badge');
+    badge.textContent = b;
+    badgesDiv.appendChild(badge);
+  });
+  c.appendChild(badgesDiv);
 
   // Macros
-  if (r.macros) {
-    wrap.appendChild(el('div', { className: 'macros-card' },
-      macroEl(r.macros.kcal, 'kcal'),
-      macroEl(r.macros.prot + 'g', 'Protein'),
-      macroEl(r.macros.carb + 'g', 'Kolhydr.'),
-      macroEl(r.macros.fat + 'g', 'Fett')
-    ));
-  }
-
-  // Ingredients
-  const ingSection = el('div', { className: 'section' },
-    el('div', { className: 'section-title', textContent: 'Ingredienser' })
-  );
-
-  const scaleVal = el('span', { className: 'scale-val', textContent: '1× recept' });
-  const minusBtn = el('button', { className: 'scale-btn', textContent: '−', 'aria-label': 'Minska' });
-  const plusBtn  = el('button', { className: 'scale-btn', textContent: '+', 'aria-label': 'Öka' });
-
-  const ingCard = el('div', { className: 'ingredients-card' });
-
-  function rebuildIngredients() {
-    ingCard.replaceChildren();
-    r.groups.forEach(function(group) {
-      if (group.name) {
-        ingCard.appendChild(el('div', { className: 'ing-group-name', textContent: group.name }));
-      }
-      group.ingredients.forEach(function(ing) {
-        ingCard.appendChild(el('div', { className: 'ingredient' },
-          el('span', { className: 'ing-name', textContent: ing.name }),
-          el('span', { className: 'ing-amount', textContent: fmtAmount(ing.amount * scale, ing.unit) })
-        ));
-      });
-    });
-  }
-
-  minusBtn.addEventListener('click', function() {
-    if (scale > 0.5) {
-      scale = Math.round((scale - 0.5) * 10) / 10;
-      scaleVal.textContent = scale === 1 ? '1× recept' : scale + '×';
-      rebuildIngredients();
-    }
+  var macrosDiv = mk('div', 'macros');
+  [
+    {id: 'm-kcal', val: r.macros.kcal,         lbl: 'kcal'},
+    {id: 'm-prot', val: r.macros.prot + 'g',   lbl: 'protein'},
+    {id: 'm-carb', val: r.macros.carb + 'g',   lbl: 'kolhydrater'},
+    {id: 'm-fat',  val: r.macros.fat  + 'g',   lbl: 'fett'}
+  ].forEach(function(m) {
+    var mac = mk('div', 'mac');
+    var valEl = mk('span', 'mac-val');
+    valEl.id = m.id;
+    valEl.textContent = String(m.val);
+    var lblEl = mk('span', 'mac-lbl');
+    lblEl.textContent = m.lbl;
+    mac.appendChild(valEl);
+    mac.appendChild(lblEl);
+    macrosDiv.appendChild(mac);
   });
-  plusBtn.addEventListener('click', function() {
-    scale = Math.round((scale + 0.5) * 10) / 10;
-    scaleVal.textContent = scale === 1 ? '1× recept' : scale + '×';
-    rebuildIngredients();
-  });
+  c.appendChild(macrosDiv);
 
-  rebuildIngredients();
-  ingSection.appendChild(el('div', { className: 'scale-row' }, minusBtn, scaleVal, plusBtn));
-  ingSection.appendChild(ingCard);
-  wrap.appendChild(ingSection);
+  // Two-column layout
+  var twoCol = mk('div', 'two-col');
 
-  // Steps
-  if (r.steps && r.steps.length) {
-    const stepsSection = el('div', { className: 'section' },
-      el('div', { className: 'section-title', textContent: 'Tillagning' })
-    );
-    r.steps.forEach(function(step, i) {
-      stepsSection.appendChild(el('div', { className: 'step' },
-        el('div', { className: 'step-num', textContent: String(i + 1) }),
-        el('div', { className: 'step-body' },
-          el('div', { className: 'step-title', textContent: step.title }),
-          el('div', { className: 'step-text', textContent: step.text })
-        )
-      ));
+  // Ingredients column
+  var ingCol = mk('div');
+  var ingTitle = mk('div', 'sec-title');
+  ingTitle.textContent = 'Ingredienser';
+  ingCol.appendChild(ingTitle);
+  r.groups.forEach(function(g) {
+    var grp = mk('div', 'ing-grp');
+    var grpName = mk('div', 'ing-grp-name');
+    grpName.textContent = g.name;
+    grp.appendChild(grpName);
+    g.ingredients.forEach(function(ing) {
+      var row = mk('div', 'ing-row');
+      var nameEl = mk('span');
+      nameEl.textContent = ing.name;
+      row.appendChild(nameEl);
+      var amtEl = mk('span', 'ing-amt');
+      amtEl.dataset.base = ing.amount;
+      amtEl.dataset.unit = ing.unit;
+      amtEl.textContent = fmt(ing.amount, ing.unit);
+      row.appendChild(amtEl);
+      grp.appendChild(row);
     });
-    wrap.appendChild(stepsSection);
-  }
+    ingCol.appendChild(grp);
+  });
+  twoCol.appendChild(ingCol);
+
+  // Steps column
+  var stepsCol = mk('div');
+  var stepsTitle = mk('div', 'sec-title');
+  stepsTitle.textContent = 'Gör så här';
+  stepsCol.appendChild(stepsTitle);
+  r.steps.forEach(function(s, i) {
+    var step = mk('div', 'step');
+    var num = mk('div', 'step-num');
+    num.textContent = String(i + 1);
+    step.appendChild(num);
+    var body = mk('div');
+    var stitle = mk('div', 'step-title');
+    stitle.textContent = s.title;
+    var stext = mk('div', 'step-text');
+    stext.textContent = s.text;
+    body.appendChild(stitle);
+    body.appendChild(stext);
+    step.appendChild(body);
+    stepsCol.appendChild(step);
+  });
+  twoCol.appendChild(stepsCol);
+  c.appendChild(twoCol);
 
   // Tips
-  if (r.tips && r.tips.length) {
-    const tipsSection = el('div', { className: 'section' },
-      el('div', { className: 'section-title', textContent: 'Tips' })
-    );
-    const grid = el('div', { className: 'tips-grid' });
-    r.tips.forEach(function(tip) {
-      grid.appendChild(el('div', { className: 'tip-card' },
-        el('div', { className: 'tip-title', textContent: tip.title }),
-        el('div', { className: 'tip-text', textContent: tip.text })
-      ));
-    });
-    tipsSection.appendChild(grid);
-    wrap.appendChild(tipsSection);
-  }
+  var tipsTitle = mk('div', 'sec-title');
+  tipsTitle.textContent = 'Tips & variationer';
+  c.appendChild(tipsTitle);
+  var tipsGrid = mk('div', 'tips-grid');
+  r.tips.forEach(function(t) {
+    var box = mk('div', 'tip-box');
+    var ttitle = mk('div', 'tip-title');
+    ttitle.textContent = t.title;
+    var ttext = mk('div', 'tip-text');
+    ttext.textContent = t.text;
+    box.appendChild(ttitle);
+    box.appendChild(ttext);
+    tipsGrid.appendChild(box);
+  });
+  c.appendChild(tipsGrid);
 
-  return wrap;
+  document.getElementById('view-list').classList.add('hidden');
+  document.getElementById('view-detail').classList.remove('hidden');
+  window.scrollTo(0, 0);
 }
 
-function macroEl(val, label) {
-  return el('div', { className: 'macro' },
-    el('div', { className: 'macro-val', textContent: String(val) }),
-    el('div', { className: 'macro-label', textContent: label })
-  );
-}
-
-function fmtAmount(amount, unit) {
-  if (!amount) return '—';
-  var rounded = amount < 10 ? Math.round(amount * 4) / 4 : Math.round(amount);
-  return rounded + ' ' + unit;
-}
+renderList();
 </script>
 </body>
 </html>
