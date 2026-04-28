@@ -21,17 +21,33 @@
     }
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
-  .app { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
-  .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .app { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
   .list-header h1 { font-size: 20px; font-weight: 500; color: var(--text); }
-  .recipe-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 0.9rem 1.1rem; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 1rem; transition: background 0.1s; }
-  .recipe-card:hover { background: var(--bg2); }
-  .recipe-emoji { font-size: 30px; line-height: 1; flex-shrink: 0; }
-  .recipe-info { flex: 1; min-width: 0; }
-  .recipe-info h2 { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .recipe-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
-  .recipe-arrow { color: var(--text3); font-size: 18px; flex-shrink: 0; }
+  .import-panel { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.15rem; margin-bottom: 1.35rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .import-panel label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2); margin-bottom: 0.35rem; }
+  .import-panel input[type="url"], .import-panel textarea { width: 100%; font-size: 14px; font-family: inherit; padding: 0.55rem 0.65rem; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); margin-bottom: 0.75rem; }
+  .import-panel textarea { resize: vertical; min-height: 100px; line-height: 1.45; }
+  .import-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0.5rem; }
+  .btn { font-size: 13px; font-family: inherit; padding: 0.45rem 0.85rem; border-radius: var(--radius); border: 0.5px solid var(--border2); cursor: pointer; transition: background 0.12s; }
+  .btn.primary { background: var(--info); color: #fff; border-color: var(--info); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn.secondary { background: var(--bg2); color: var(--text); }
+  .btn.secondary:hover { background: var(--bg3); }
+  .import-hint { font-size: 12px; color: var(--text2); line-height: 1.45; margin: 0; }
+  .recipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: stretch; }
+  .recipe-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 0.85rem 1rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.45rem; transition: background 0.12s, box-shadow 0.12s; min-height: 158px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .recipe-card:hover { background: var(--bg2); box-shadow: 0 3px 10px rgba(0,0,0,0.07); }
+  .recipe-emoji { font-size: 36px; line-height: 1; flex-shrink: 0; }
+  .recipe-info { flex: 1; min-width: 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .recipe-info h2 { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
+  .recipe-meta { font-size: 11px; color: var(--text2); margin-top: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .recipe-badge-local { font-size: 9px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--info); margin-top: 2px; }
+  .recipe-arrow { display: none; }
   .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--info); cursor: pointer; margin-bottom: 1.25rem; background: none; border: none; padding: 0; font-family: inherit; }
+  .detail-actions { margin-bottom: 0.75rem; }
+  .btn-danger { font-size: 13px; font-family: inherit; padding: 0.4rem 0.75rem; border-radius: var(--radius); border: 0.5px solid rgba(180,60,50,0.45); background: var(--bg2); color: #b43c32; cursor: pointer; }
+  @media (prefers-color-scheme: dark) { .btn-danger { color: #f5a8a0; border-color: rgba(245,168,160,0.4); } }
   .hero { width: 100%; height: 100px; border-radius: var(--radius-lg); background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 56px; line-height: 1; margin-bottom: 1.1rem; }
   .detail-titlerow { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 4px; }
   .detail-title { font-size: 20px; font-weight: 500; color: var(--text); }
@@ -62,7 +78,11 @@
   .tip-title { font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
   .tip-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
   .hidden { display: none !important; }
+  @media (max-width: 900px) {
+    .recipe-grid { grid-template-columns: repeat(2, 1fr); }
+  }
   @media (max-width: 520px) {
+    .recipe-grid { grid-template-columns: 1fr; }
     .two-col { grid-template-columns: 1fr; }
     .tips-grid { grid-template-columns: 1fr; }
     .macros { grid-template-columns: repeat(2,1fr); }
@@ -73,10 +93,21 @@
 <div class="app">
   <div id="view-list">
     <div class="list-header"><h1>Recept</h1></div>
-    <div id="recipe-list"></div>
+    <section class="import-panel" aria-label="Importera recept från länk">
+      <label for="import-url">Länk till Instagram eller receptsajt</label>
+      <input type="url" id="import-url" placeholder="https://www.instagram.com/p/…" autocomplete="off">
+      <label for="import-text">Caption eller recepttext</label>
+      <textarea id="import-text" placeholder="Klistra in text från inlägget eller sidan. Instagram och många sajter tillåter inte automatisk hämtning i webbläsaren — öppna länken, kopiera texten hit. Du kan också prova ”Hämta text från länk” nedan." rows="7"></textarea>
+      <div class="import-actions">
+        <button type="button" class="btn secondary" id="import-fetch-btn">Hämta text från länk</button>
+        <button type="button" class="btn primary" id="import-add-btn">Lägg till som recept</button>
+      </div>
+      <p class="import-hint" id="import-msg" role="status"></p>
+    </section>
+    <div id="recipe-list" class="recipe-grid"></div>
   </div>
   <div id="view-detail" class="hidden">
-    <button class="back-btn" id="back-btn">← Alla recept</button>
+    <button type="button" class="back-btn" id="back-btn">← Alla recept</button>
     <div id="detail-content"></div>
   </div>
 </div>
@@ -93,7 +124,211 @@ const RECIPES = [
   {id:'tuna-chili-crisp-salad',emoji:'🐟',title:'Tuna Salad & Chili Crisp',source:'@joeycooksfoods på Instagram',sourceUrl:'https://www.instagram.com/reel/DWzOJp3DsmB/',badges:['2 portioner','under 20 min','hög protein','låg kolhydrat'],macros:{kcal:680,prot:62,carb:28,fat:36},groups:[{name:'Sallad',ingredients:[{name:'ventresca tonfisk, oljeinlagd',amount:225,unit:'g'},{name:'persisk gurka, smashad och grovhackad',amount:240,unit:'g'},{name:'rödlök, tunt skivad',amount:60,unit:'g'},{name:'risvinäger (för att pickla löken)',amount:240,unit:'g'},{name:'ruccola',amount:30,unit:'g'},{name:'färsk koriander, grovhackad',amount:15,unit:'g'},{name:'salt och peppar',amount:1,unit:'pinch'}]},{name:'Panko och sesamfrön',ingredients:[{name:'panko-ströbröd',amount:80,unit:'g'},{name:'sesamfrön',amount:45,unit:'g'},{name:'citronzest',amount:3,unit:'msk'}]},{name:'Dressing',ingredients:[{name:'kelp chili crisp',amount:3,unit:'msk'},{name:'rostad sesamolja',amount:2,unit:'msk'},{name:'citronsaft',amount:1,unit:'st'},{name:'tamari',amount:1,unit:'msk'},{name:'salt och peppar',amount:1,unit:'pinch'}]},{name:'Anrätt',ingredients:[{name:'labneh',amount:80,unit:'g'},{name:'chili crisp (extra, till botten)',amount:1,unit:'msk'}]}],steps:[{title:'Pickla löken',text:'Lägg tunt skivad rödlök i risvinäger, minst 10 min. Dränera innan servering.'},{title:'Rosta panko-mix',text:'Rosta panko i torr panna tills gyllenbrunt. Blanda med sesamfrön och citronzest.'},{title:'Blanda dressing',text:'Blanda kelp chili crisp, sesamolja, citronsaft och tamari.'},{title:'Anrätt tallrik',text:'Blanda labneh med lite chili crisp och bred ut i botten.'},{title:'Bygg salladen',text:'Blanda tonfisk, gurka, picklade lök, ruccola och koriander. Häll över dressingen.'},{title:'Servera',text:'Lägg salladen över labneh-basen. Toppa med panko-sesamfrön-mixet.'}],tips:[{title:'Seattle',text:'Uteslut chili crisp från dressingen — panko-mixet är mild och passar alla.'},{title:'Tonfisk-val',text:'Ventresca = magruppen, fetare och mörare. Bra kvalitets-tonfisk i olja funkar.'},{title:'Labneh-bas',text:'Ersätt med keso eller tjock grekisk yoghurt om du inte hittar labneh.'},{title:'Panko-mix',text:'Gör dubbel sats och förvara torrt — håller en vecka och är gott på det mesta.'}]}
 ];
 
-var recipes = RECIPES;
+var CUSTOM_STORAGE_KEY = 'receptapp-custom-v1';
+var JINA_READER = 'https://r.jina.ai/';
+
+function loadCustomRecipesFromStorage() {
+  try {
+    var raw = localStorage.getItem(CUSTOM_STORAGE_KEY);
+    if (!raw) return [];
+    var arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function persistCustomRecipesFromRecipes() {
+  try {
+    var custom = recipes.filter(function(r) { return r._local; });
+    localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(custom));
+  } catch (e) {}
+}
+
+function slugify(str) {
+  var s = str.toLowerCase().replace(/å/g,'a').replace(/ä/g,'a').replace(/ö/g,'o');
+  s = s.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return s.slice(0, 56) || 'recept';
+}
+
+function sourceLabelFromUrl(urlStr) {
+  if (!urlStr || !urlStr.trim()) return 'Importerad källa';
+  try {
+    var u = new URL(urlStr.trim());
+    if (/instagram\.com$/i.test(u.hostname.replace(/^www\./i, ''))) return 'Instagram';
+    return u.hostname.replace(/^www\./i, '');
+  } catch (e) {
+    return 'Importerad källa';
+  }
+}
+
+function extractTitle(text) {
+  var lines = text.replace(/\r/g, '').split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    var L = lines[i].trim();
+    if (!L) continue;
+    L = L.replace(/^#+\s*/, '');
+    if (/^ingredienser|^ingredients|^gör så här|^instructions/i.test(L)) continue;
+    if (L.length > 90) L = L.slice(0, 87) + '…';
+    return L;
+  }
+  return 'Importerat recept';
+}
+
+function parseIngredientLine(line) {
+  line = line.trim().replace(/^[\-\*•]\s*/, '');
+  var m = line.match(/^(\d+(?:[.,]\d+)?)\s+(g|msk|tsk|st)\s+(.+)$/i);
+  if (m) return { amount: parseFloat(m[1].replace(',', '.')), unit: m[2].toLowerCase(), name: m[3].trim().toLowerCase() };
+  m = line.match(/^(\d+(?:[.,]\d+)?)(g|msk|tsk|st)\s+(.+)$/i);
+  if (m) return { amount: parseFloat(m[1].replace(',', '.')), unit: m[2].toLowerCase(), name: m[3].trim().toLowerCase() };
+  m = line.match(/^(\d+(?:[.,]\d+)?)\s+(dl|ml)\s+(.+)$/i);
+  if (m) {
+    var amt = parseFloat(m[1].replace(',', '.'));
+    var u = m[2].toLowerCase();
+    return { amount: u === 'dl' ? amt * 100 : amt, unit: 'g', name: m[3].trim().toLowerCase() };
+  }
+  if (/^en\s+nypa\b/i.test(line)) return { amount: 1, unit: 'pinch', name: line.replace(/^en\s+nypa\s*/i, '').trim().toLowerCase() || 'salt' };
+  return null;
+}
+
+function parseStepsFromLines(lines, startIdx) {
+  var steps = [];
+  var reNum = /^\s*\d+[\.\)]\s*(.+)$/;
+  for (var i = startIdx; i < lines.length; i++) {
+    var L = lines[i].trim();
+    if (!L) continue;
+    var mm = L.match(reNum);
+    if (mm) {
+      var body = mm[1].trim();
+      var dot = body.indexOf('. ');
+      var title, rest;
+      if (dot > 2 && dot < 40) {
+        title = body.slice(0, dot).trim();
+        rest = body.slice(dot + 2).trim();
+      } else {
+        title = 'Steg ' + (steps.length + 1);
+        rest = body;
+      }
+      steps.push({ title: title, text: rest || title });
+    }
+  }
+  if (steps.length === 0) {
+    var chunk = lines.slice(startIdx).join('\n').trim();
+    if (chunk.length > 600) chunk = chunk.slice(0, 597) + '…';
+    if (chunk) steps.push({ title: 'Gör så här', text: chunk });
+  }
+  if (steps.length === 0) steps.push({ title: 'Recept', text: 'Se ingredienslistan och komplettera med originalkällan.' });
+  return steps.slice(0, 24);
+}
+
+function buildRecipeFromImport(urlStr, rawText) {
+  var text = rawText.replace(/\r\n/g, '\n').trim();
+  if (!text || text.length < 6) return { ok: false, error: 'Klistra in caption eller recepttext (minst några rader).' };
+
+  var lines = text.split('\n').map(function(l) { return l.trim(); });
+  var title = extractTitle(text);
+
+  var ingLines = [];
+  var stepStart = lines.length;
+  var i, low;
+  var sawIngHeader = false;
+  for (i = 0; i < lines.length; i++) {
+    low = lines[i].toLowerCase();
+    if (/^ingredienser\b|^ingredients\b/.test(low)) { sawIngHeader = true; continue; }
+    if (/^gör så här\b|^instruktioner\b|^instructions\b|^method\b|^directions\b/.test(low)) {
+      stepStart = i;
+      break;
+    }
+  }
+
+  if (sawIngHeader) {
+    for (var j = 0; j < lines.length; j++) {
+      low = lines[j].toLowerCase();
+      if (/^ingredienser\b|^ingredients\b/.test(low)) {
+        for (var k = j + 1; k < lines.length; k++) {
+          low = lines[k].toLowerCase();
+          if (/^gör så här\b|^instruktioner\b|^instructions\b|^method\b|^directions\b|^steg\b/.test(low)) {
+            stepStart = k;
+            break;
+          }
+          if (lines[k]) ingLines.push(lines[k]);
+        }
+        break;
+      }
+    }
+  } else {
+    for (i = 1; i < lines.length && i < stepStart; i++) {
+      if (!lines[i]) continue;
+      low = lines[i].toLowerCase();
+      if (/^gör så här|^instruktioner|^instructions|^method|^directions/.test(low)) {
+        stepStart = i;
+        break;
+      }
+      if (parseIngredientLine(lines[i]) || /^[\-\*•]/.test(lines[i])) ingLines.push(lines[i]);
+    }
+    if (ingLines.length === 0) {
+      for (i = 1; i < Math.min(lines.length, 40); i++) {
+        if (parseIngredientLine(lines[i])) ingLines.push(lines[i]);
+      }
+    }
+  }
+
+  var ingredients = [];
+  ingLines.forEach(function(line) {
+    var p = parseIngredientLine(line);
+    if (p) ingredients.push(p);
+  });
+
+  if (ingredients.length === 0) {
+    for (i = 0; i < lines.length; i++) {
+      var p2 = parseIngredientLine(lines[i]);
+      if (p2) ingredients.push(p2);
+    }
+  }
+
+  if (ingredients.length === 0) {
+    return { ok: false, error: 'Hittade inga rader med mått (t.ex. 200 g mjöl eller 2 msk olja). Formatera en rad per ingrediens.' };
+  }
+
+  var steps = parseStepsFromLines(lines, stepStart);
+
+  var url = (urlStr && urlStr.trim()) ? urlStr.trim() : '#';
+  var src = sourceLabelFromUrl(urlStr);
+  var id = slugify(title) + '-' + String(Date.now());
+
+  var recipe = {
+    id: id,
+    emoji: '🍽️',
+    title: title,
+    source: src + ' · importerat',
+    sourceUrl: url,
+    badges: ['importerat', 'granska mängder', 'lokalt sparat'],
+    macros: { kcal: 0, prot: 0, carb: 0, fat: 0 },
+    groups: [{ name: 'Ingredienser', ingredients: ingredients }],
+    steps: steps,
+    tips: [
+      { title: 'Seattle', text: 'Mildare variant för barn: minska salt, stark krydda och syra; välj mild ost/grädde där det passar.' },
+      { title: 'Granska', text: 'Automatiskt utläst — kontrollera mängder och enheter mot originalet.' },
+      { title: 'Spara i repot', text: 'När receptet är bra: kopiera innehållet till recept/index.html i GitHub-repot så finns det för alla.' },
+      { title: 'Ta bort', text: 'Öppna receptet och använd Ta bort lokalt om du ångrar importen.' }
+    ],
+    _local: true
+  };
+
+  return { ok: true, recipe: recipe };
+}
+
+function deleteLocalRecipe(id) {
+  try {
+    var custom = loadCustomRecipesFromStorage().filter(function(r) { return r.id !== id; });
+    localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(custom));
+  } catch (e) {}
+  recipes = RECIPES.concat(loadCustomRecipesFromStorage());
+  renderList();
+  showList();
+}
+
+var recipes = RECIPES.concat(loadCustomRecipesFromStorage());
 var currentServings = 1;
 var currentId = null;
 
@@ -133,6 +368,11 @@ function renderList() {
     var meta = mk('div', 'recipe-meta');
     meta.textContent = r.badges.slice(0, 2).join(' · ');
     info.appendChild(meta);
+    if (r._local) {
+      var lb = mk('div', 'recipe-badge-local');
+      lb.textContent = 'Lokalt';
+      info.appendChild(lb);
+    }
     card.appendChild(info);
 
     var arrow = mk('div', 'recipe-arrow');
@@ -195,12 +435,14 @@ function showDetail(id) {
 
   var servCtrl = mk('div', 'serv-ctrl');
   var minusBtn = mk('button', 'serv-btn');
+  minusBtn.type = 'button';
   minusBtn.textContent = '−';
   minusBtn.addEventListener('click', function() { changeServings(-1); });
   var servValEl = mk('span', 'serv-val');
   servValEl.id = 'serv-val';
   servValEl.textContent = '1';
   var plusBtn = mk('button', 'serv-btn');
+  plusBtn.type = 'button';
   plusBtn.textContent = '+';
   plusBtn.addEventListener('click', function() { changeServings(1); });
   servCtrl.appendChild(minusBtn);
@@ -212,13 +454,29 @@ function showDetail(id) {
   // Source
   var sourceDiv = mk('div', 'source');
   sourceDiv.appendChild(document.createTextNode('Källa: '));
-  var a = mk('a');
-  a.href = r.sourceUrl;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
-  a.textContent = r.source;
-  sourceDiv.appendChild(a);
+  if (r.sourceUrl && r.sourceUrl !== '#') {
+    var a = mk('a');
+    a.href = r.sourceUrl;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = r.source;
+    sourceDiv.appendChild(a);
+  } else {
+    sourceDiv.appendChild(document.createTextNode(r.source));
+  }
   c.appendChild(sourceDiv);
+
+  if (r._local) {
+    var delWrap = mk('div', 'detail-actions');
+    var delBtn = mk('button', 'btn-danger');
+    delBtn.type = 'button';
+    delBtn.textContent = 'Ta bort lokalt recept';
+    delBtn.addEventListener('click', function() {
+      if (confirm('Ta bort receptet från denna enhet?')) deleteLocalRecipe(r.id);
+    });
+    delWrap.appendChild(delBtn);
+    c.appendChild(delWrap);
+  }
 
   // Badges
   var badgesDiv = mk('div', 'badges');
@@ -322,6 +580,56 @@ function showDetail(id) {
   document.getElementById('view-detail').classList.remove('hidden');
   window.scrollTo(0, 0);
 }
+
+document.getElementById('import-fetch-btn').addEventListener('click', function() {
+  var msg = document.getElementById('import-msg');
+  var ta = document.getElementById('import-text');
+  var urlEl = document.getElementById('import-url');
+  msg.textContent = '';
+  var url = urlEl.value.trim();
+  if (!url) {
+    msg.textContent = 'Skriv en länk först.';
+    return;
+  }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  urlEl.value = url;
+  msg.textContent = 'Hämtar…';
+  fetch(JINA_READER + url)
+    .then(function(res) {
+      if (!res.ok) throw new Error('bad');
+      return res.text();
+    })
+    .then(function(t) {
+      if (t && t.replace(/\s/g, '').length > 40) {
+        ta.value = t.slice(0, 20000);
+        msg.textContent = 'Text infogad — granska och klicka Lägg till som recept.';
+      } else {
+        msg.textContent = 'Fick lite text tillbaka. Klistra in caption manuellt.';
+      }
+    })
+    .catch(function() {
+      msg.textContent = 'Kunde inte hämta (nätverk eller blockerad källa). Klistra in text manuellt.';
+    });
+});
+
+document.getElementById('import-add-btn').addEventListener('click', function() {
+  var url = document.getElementById('import-url').value.trim();
+  var text = document.getElementById('import-text').value;
+  var msg = document.getElementById('import-msg');
+  msg.textContent = '';
+  var result = buildRecipeFromImport(url, text);
+  if (!result.ok) {
+    msg.textContent = result.error;
+    return;
+  }
+  recipes.push(result.recipe);
+  persistCustomRecipesFromRecipes();
+  document.getElementById('import-url').value = '';
+  document.getElementById('import-text').value = '';
+  msg.textContent = 'Recept tillagt lokalt på denna enhet.';
+  renderList();
+  showDetail(result.recipe.id);
+});
 
 renderList();
 </script>
