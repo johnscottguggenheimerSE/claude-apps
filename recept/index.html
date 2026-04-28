@@ -22,9 +22,292 @@
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
   .app { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+  /* Header */
+  .header { display: flex; align-items: center; margin-bottom: 1.5rem; }
+  .header h1 { font-size: 1.25rem; font-weight: 700; }
+
+  /* List */
+  .recipe-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .empty-state { text-align: center; color: var(--text3); padding: 3rem 1rem; }
+
+  /* Card */
+  .recipe-card {
+    background: var(--bg); border-radius: var(--radius-lg);
+    border: 1px solid var(--border); padding: 1rem 1.25rem;
+    cursor: pointer; display: flex; align-items: flex-start; gap: 0.875rem;
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  .recipe-card:hover { border-color: var(--border2); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card-emoji { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .card-source { font-size: 0.8125rem; color: var(--text2); margin-bottom: 0.5rem; }
+  .badges { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+  .badge { font-size: 0.75rem; background: var(--bg2); color: var(--text2); border-radius: 99px; padding: 0.2em 0.65em; white-space: nowrap; }
+
+  /* Back */
+  .back-btn { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; color: var(--info); cursor: pointer; background: none; border: none; padding: 0; margin-bottom: 1.25rem; }
+  .back-btn:hover { text-decoration: underline; }
+
+  /* Detail header */
+  .detail-header { margin-bottom: 1.5rem; }
+  .detail-emoji { font-size: 3rem; margin-bottom: 0.5rem; }
+  .detail-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.375rem; }
+  .detail-source { font-size: 0.875rem; color: var(--text2); margin-bottom: 0.75rem; }
+  .detail-source a { color: var(--info); }
+  .detail-badges { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+
+  /* Macros */
+  .macros-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin: 1rem 0 1.5rem; display: flex; }
+  .macro { flex: 1; text-align: center; }
+  .macro + .macro { border-left: 1px solid var(--border); }
+  .macro-val { font-size: 1.125rem; font-weight: 700; }
+  .macro-label { font-size: 0.6875rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem; }
+
+  /* Section */
+  .section { margin-bottom: 1.75rem; }
+  .section-title { font-size: 0.6875rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+
+  /* Scale */
+  .scale-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .scale-btn { width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--border2); background: var(--bg); font-size: 1.1rem; cursor: pointer; color: var(--text); }
+  .scale-btn:hover { background: var(--bg2); }
+  .scale-val { font-size: 0.875rem; color: var(--text2); min-width: 4rem; text-align: center; }
+
+  /* Ingredients */
+  .ingredients-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .ing-group-name { font-size: 0.6875rem; font-weight: 700; color: var(--text3); padding: 0.5rem 1rem 0.25rem; background: var(--bg2); border-top: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.06em; }
+  .ing-group-name:first-child { border-top: none; }
+  .ingredient { display: flex; justify-content: space-between; align-items: baseline; padding: 0.5rem 1rem; border-top: 1px solid var(--border); font-size: 0.9375rem; }
+  .ing-name { color: var(--text); }
+  .ing-amount { color: var(--text2); font-size: 0.875rem; margin-left: 0.5rem; white-space: nowrap; }
+
+  /* Steps */
+  .step { display: flex; gap: 1rem; margin-bottom: 1rem; }
+  .step-num { width: 1.75rem; height: 1.75rem; border-radius: 50%; background: var(--text); color: var(--bg); font-size: 0.75rem; font-weight: 700; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .step-body { flex: 1; }
+  .step-title { font-weight: 600; margin-bottom: 0.25rem; font-size: 0.9375rem; }
+  .step-text { color: var(--text2); font-size: 0.9rem; line-height: 1.55; }
+
+  /* Tips */
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 480px) { .tips-grid { grid-template-columns: 1fr; } }
+  .tip-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.875rem 1rem; }
+  .tip-title { font-size: 0.6875rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.375rem; }
+  .tip-text { font-size: 0.875rem; color: var(--text2); line-height: 1.5; }
 </style>
 </head>
 <body>
-<p>Loading...</p>
+<div id="app"></div>
+<script>
+const RECIPES = [];
+
+// ── DOM helper ──────────────────────────────────────────────────────────────
+function el(tag, props) {
+  const e = document.createElement(tag);
+  if (props) {
+    for (const [k, v] of Object.entries(props)) {
+      if (k === 'className') e.className = v;
+      else if (k === 'textContent') e.textContent = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v);
+    }
+  }
+  for (let i = 2; i < arguments.length; i++) {
+    const c = arguments[i];
+    if (c == null) continue;
+    if (typeof c === 'string') e.appendChild(document.createTextNode(c));
+    else e.appendChild(c);
+  }
+  return e;
+}
+
+function txt(s) { return document.createTextNode(s); }
+
+// ── State ───────────────────────────────────────────────────────────────────
+let scale = 1;
+
+// ── Routing ─────────────────────────────────────────────────────────────────
+function getPath() { return window.location.hash.replace(/^#/, '') || '/'; }
+function navigate(path) { scale = 1; window.location.hash = path; }
+
+window.addEventListener('hashchange', render);
+window.addEventListener('load', render);
+
+// ── Root render ─────────────────────────────────────────────────────────────
+function render() {
+  const path = getPath();
+  const recipe = path !== '/' ? RECIPES.find(function(r) { return r.id === path.slice(1); }) : null;
+  const view = recipe ? renderDetail(recipe) : renderList();
+  const container = el('div', { className: 'app' });
+  container.appendChild(view);
+  document.getElementById('app').replaceChildren(container);
+}
+
+// ── List view ────────────────────────────────────────────────────────────────
+function renderList() {
+  const wrap = document.createDocumentFragment();
+  wrap.appendChild(el('div', { className: 'header' }, el('h1', { textContent: 'Recept' })));
+
+  if (RECIPES.length === 0) {
+    wrap.appendChild(el('p', { className: 'empty-state', textContent: 'Inga recept ännu.' }));
+    return wrap;
+  }
+
+  const list = el('div', { className: 'recipe-list' });
+  RECIPES.forEach(function(r) { list.appendChild(renderCard(r)); });
+  wrap.appendChild(list);
+  return wrap;
+}
+
+function renderCard(r) {
+  const badgeRow = el('div', { className: 'badges' });
+  r.badges.forEach(function(b) { badgeRow.appendChild(el('span', { className: 'badge', textContent: b })); });
+
+  const card = el('div', { className: 'recipe-card', role: 'button', tabindex: '0' },
+    el('div', { className: 'card-emoji', textContent: r.emoji }),
+    el('div', { className: 'card-body' },
+      el('div', { className: 'card-title', textContent: r.title }),
+      el('div', { className: 'card-source', textContent: r.source }),
+      badgeRow
+    )
+  );
+  card.addEventListener('click', function() { navigate('/' + r.id); });
+  card.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') navigate('/' + r.id); });
+  return card;
+}
+
+// ── Detail view ──────────────────────────────────────────────────────────────
+function renderDetail(r) {
+  const wrap = document.createDocumentFragment();
+
+  const back = el('button', { className: 'back-btn', textContent: '← Alla recept' });
+  back.addEventListener('click', function() { navigate('/'); });
+  wrap.appendChild(back);
+
+  // Header
+  const sourceLine = el('div', { className: 'detail-source' });
+  if (r.sourceUrl) {
+    const a = el('a', { href: r.sourceUrl, target: '_blank', rel: 'noopener noreferrer' });
+    a.textContent = r.source;
+    sourceLine.appendChild(a);
+  } else {
+    sourceLine.appendChild(txt(r.source));
+  }
+
+  const badgeRow = el('div', { className: 'detail-badges' });
+  r.badges.forEach(function(b) { badgeRow.appendChild(el('span', { className: 'badge', textContent: b })); });
+
+  wrap.appendChild(el('div', { className: 'detail-header' },
+    el('div', { className: 'detail-emoji', textContent: r.emoji }),
+    el('h1', { className: 'detail-title', textContent: r.title }),
+    sourceLine,
+    badgeRow
+  ));
+
+  // Macros
+  if (r.macros) {
+    wrap.appendChild(el('div', { className: 'macros-card' },
+      macroEl(r.macros.kcal, 'kcal'),
+      macroEl(r.macros.prot + 'g', 'Protein'),
+      macroEl(r.macros.carb + 'g', 'Kolhydr.'),
+      macroEl(r.macros.fat + 'g', 'Fett')
+    ));
+  }
+
+  // Ingredients
+  const ingSection = el('div', { className: 'section' },
+    el('div', { className: 'section-title', textContent: 'Ingredienser' })
+  );
+
+  const scaleVal = el('span', { className: 'scale-val', textContent: '1× recept' });
+  const minusBtn = el('button', { className: 'scale-btn', textContent: '−', 'aria-label': 'Minska' });
+  const plusBtn  = el('button', { className: 'scale-btn', textContent: '+', 'aria-label': 'Öka' });
+
+  const ingCard = el('div', { className: 'ingredients-card' });
+
+  function rebuildIngredients() {
+    ingCard.replaceChildren();
+    r.groups.forEach(function(group) {
+      if (group.name) {
+        ingCard.appendChild(el('div', { className: 'ing-group-name', textContent: group.name }));
+      }
+      group.ingredients.forEach(function(ing) {
+        ingCard.appendChild(el('div', { className: 'ingredient' },
+          el('span', { className: 'ing-name', textContent: ing.name }),
+          el('span', { className: 'ing-amount', textContent: fmtAmount(ing.amount * scale, ing.unit) })
+        ));
+      });
+    });
+  }
+
+  minusBtn.addEventListener('click', function() {
+    if (scale > 0.5) {
+      scale = Math.round((scale - 0.5) * 10) / 10;
+      scaleVal.textContent = scale === 1 ? '1× recept' : scale + '×';
+      rebuildIngredients();
+    }
+  });
+  plusBtn.addEventListener('click', function() {
+    scale = Math.round((scale + 0.5) * 10) / 10;
+    scaleVal.textContent = scale === 1 ? '1× recept' : scale + '×';
+    rebuildIngredients();
+  });
+
+  rebuildIngredients();
+  ingSection.appendChild(el('div', { className: 'scale-row' }, minusBtn, scaleVal, plusBtn));
+  ingSection.appendChild(ingCard);
+  wrap.appendChild(ingSection);
+
+  // Steps
+  if (r.steps && r.steps.length) {
+    const stepsSection = el('div', { className: 'section' },
+      el('div', { className: 'section-title', textContent: 'Tillagning' })
+    );
+    r.steps.forEach(function(step, i) {
+      stepsSection.appendChild(el('div', { className: 'step' },
+        el('div', { className: 'step-num', textContent: String(i + 1) }),
+        el('div', { className: 'step-body' },
+          el('div', { className: 'step-title', textContent: step.title }),
+          el('div', { className: 'step-text', textContent: step.text })
+        )
+      ));
+    });
+    wrap.appendChild(stepsSection);
+  }
+
+  // Tips
+  if (r.tips && r.tips.length) {
+    const tipsSection = el('div', { className: 'section' },
+      el('div', { className: 'section-title', textContent: 'Tips' })
+    );
+    const grid = el('div', { className: 'tips-grid' });
+    r.tips.forEach(function(tip) {
+      grid.appendChild(el('div', { className: 'tip-card' },
+        el('div', { className: 'tip-title', textContent: tip.title }),
+        el('div', { className: 'tip-text', textContent: tip.text })
+      ));
+    });
+    tipsSection.appendChild(grid);
+    wrap.appendChild(tipsSection);
+  }
+
+  return wrap;
+}
+
+function macroEl(val, label) {
+  return el('div', { className: 'macro' },
+    el('div', { className: 'macro-val', textContent: String(val) }),
+    el('div', { className: 'macro-label', textContent: label })
+  );
+}
+
+function fmtAmount(amount, unit) {
+  if (!amount) return '—';
+  var rounded = amount < 10 ? Math.round(amount * 4) / 4 : Math.round(amount);
+  return rounded + ' ' + unit;
+}
+</script>
 </body>
 </html>
