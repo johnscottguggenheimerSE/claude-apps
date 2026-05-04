@@ -50,6 +50,9 @@
   .recipe-info h2 { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
   .recipe-meta { font-size: 10px; color: var(--text2); margin-top: 2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .recipe-badge-local { font-size: 9px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--info); margin-top: 2px; }
+  .sync-panel { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 0.9rem 1rem; margin-bottom: 1.1rem; }
+  .sync-panel .json-panel-title { margin-bottom: 0.5rem; }
+  .sync-panel input[type="url"], .sync-panel input[type="password"] { width: 100%; max-width: 100%; font-size: 13px; font-family: inherit; padding: 0.45rem 0.55rem; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); margin-bottom: 0.5rem; }
   .recipe-arrow { display: none; }
   .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--info); cursor: pointer; margin-bottom: 1.25rem; background: none; border: none; padding: 0; font-family: inherit; }
   .detail-actions { margin-bottom: 0.75rem; }
@@ -100,9 +103,21 @@
 <div class="app">
   <div id="view-list">
     <div class="list-header"><h1>Recept</h1></div>
+    <section class="sync-panel" aria-label="Synka import till GitHub">
+      <div class="json-panel-title">Live-deploy (Vercel → GitHub)</div>
+      <p class="import-hint" style="margin-bottom:0.6rem">GitHub Pages kan inte skriva till GitHub från webbläsaren. Importer hamnar i <code>recept/recipes-user.json</code> via en liten <strong>API</strong> på Vercel som committar till samma repo — sedan bygger GitHub Pages om (ofta inom ~1 minut). Sätt upp Vercel enligt <a href="https://github.com/johnscottguggenheimerSE/claude-apps/blob/main/DEPLOY.md#3-live-import-i-receptappen-vercel--samma-repo" target="_blank" rel="noopener">DEPLOY.md §3</a>, fyll i fälten nedan och spara.</p>
+      <label for="sync-endpoint">API-slutpunkt (hela URL:en, t.ex. https://…vercel.app/api/sync-recipe)</label>
+      <input type="url" id="sync-endpoint" placeholder="https://ditt-projekt.vercel.app/api/sync-recipe" autocomplete="off">
+      <label for="sync-key">X-API-Key (samma värde som SYNC_API_SECRET i Vercel)</label>
+      <input type="password" id="sync-key" placeholder="Hemlig nyckel" autocomplete="off">
+      <div class="import-actions">
+        <button type="button" class="btn primary" id="sync-save-btn">Spara i webbläsaren</button>
+      </div>
+      <p class="import-hint" id="sync-save-msg" role="status"></p>
+    </section>
     <section class="json-import-panel" aria-label="Importera recept från JSON">
       <div class="json-panel-title">Receptdata som JSON</div>
-      <p class="import-hint" style="margin-bottom:0.65rem">Med receptlistan öppen: kopiera en <code>.json</code>-fil i Finder och tryck <strong>Cmd+V</strong> (Windows/Linux: <strong>Ctrl+V</strong>) var som helst i appen — ingen behöver klicka i rutan nedan. Du kan också klistra in rå JSON-text på samma sätt. Eller dra fil till rutan. Format: array <code>[&#8230;]</code>, objekt <code>{&#8230;}</code> eller <code>{&quot;recipes&quot;:[&#8230;]}</code> med fält som <code>id</code>, <code>title</code>, <code>groups</code>, <code>steps</code>, <code>tips</code> m.m. Sparas lokalt; för GitHub Pages: lägg receptraden i <code>RECIPES</code> i källfilen och pusha.</p>
+      <p class="import-hint" style="margin-bottom:0.65rem">Med receptlistan öppen: kopiera en <code>.json</code>-fil i Finder och tryck <strong>Cmd+V</strong> (eller klistra rå JSON-text). Kräver att <strong>Live-deploy</strong> ovan är ifyllt — då skickas importen till GitHub och syns på sajten efter att Pages byggt om. Eller dra fil till rutan.</p>
       <div id="json-dropzone" class="json-dropzone" role="button" tabindex="0" aria-label="Släpp JSON-fil här eller välj fil">Släpp .json-fil här eller klicka för att välja</div>
       <input type="file" id="json-file-input" class="hidden" accept=".json,application/json">
       <label for="json-paste">Klistra JSON (valfritt om du laddat fil ovan)</label>
@@ -123,6 +138,7 @@
       </div>
       <p class="import-hint" id="import-msg" role="status"></p>
     </section>
+    <p class="import-hint" id="recipe-load-msg">Laddar recept…</p>
     <div id="recipe-list" class="recipe-grid"></div>
   </div>
   <div id="view-detail" class="hidden">
@@ -143,31 +159,27 @@ const RECIPES = [
   {id:'tuna-chili-crisp-salad',emoji:'🐟',title:'Tuna Salad & Chili Crisp',source:'@joeycooksfoods på Instagram',sourceUrl:'https://www.instagram.com/reel/DWzOJp3DsmB/',badges:['2 portioner','under 20 min','hög protein','låg kolhydrat'],macros:{kcal:680,prot:62,carb:28,fat:36},groups:[{name:'Sallad',ingredients:[{name:'ventresca tonfisk, oljeinlagd',amount:225,unit:'g'},{name:'persisk gurka, smashad och grovhackad',amount:240,unit:'g'},{name:'rödlök, tunt skivad',amount:60,unit:'g'},{name:'risvinäger (för att pickla löken)',amount:240,unit:'g'},{name:'ruccola',amount:30,unit:'g'},{name:'färsk koriander, grovhackad',amount:15,unit:'g'},{name:'salt och peppar',amount:1,unit:'pinch'}]},{name:'Panko och sesamfrön',ingredients:[{name:'panko-ströbröd',amount:80,unit:'g'},{name:'sesamfrön',amount:45,unit:'g'},{name:'citronzest',amount:3,unit:'msk'}]},{name:'Dressing',ingredients:[{name:'kelp chili crisp',amount:3,unit:'msk'},{name:'rostad sesamolja',amount:2,unit:'msk'},{name:'citronsaft',amount:1,unit:'st'},{name:'tamari',amount:1,unit:'msk'},{name:'salt och peppar',amount:1,unit:'pinch'}]},{name:'Anrätt',ingredients:[{name:'labneh',amount:80,unit:'g'},{name:'chili crisp (extra, till botten)',amount:1,unit:'msk'}]}],steps:[{title:'Pickla löken',text:'Lägg tunt skivad rödlök i risvinäger, minst 10 min. Dränera innan servering.'},{title:'Rosta panko-mix',text:'Rosta panko i torr panna tills gyllenbrunt. Blanda med sesamfrön och citronzest.'},{title:'Blanda dressing',text:'Blanda kelp chili crisp, sesamolja, citronsaft och tamari.'},{title:'Anrätt tallrik',text:'Blanda labneh med lite chili crisp och bred ut i botten.'},{title:'Bygg salladen',text:'Blanda tonfisk, gurka, picklade lök, ruccola och koriander. Häll över dressingen.'},{title:'Servera',text:'Lägg salladen över labneh-basen. Toppa med panko-sesamfrön-mixet.'}],tips:[{title:'Seattle',text:'Uteslut chili crisp från dressingen — panko-mixet är mild och passar alla.'},{title:'Tonfisk-val',text:'Ventresca = magruppen, fetare och mörare. Bra kvalitets-tonfisk i olja funkar.'},{title:'Labneh-bas',text:'Ersätt med keso eller tjock grekisk yoghurt om du inte hittar labneh.'},{title:'Panko-mix',text:'Gör dubbel sats och förvara torrt — håller en vecka och är gott på det mesta.'}]}
 ];
 
-var CUSTOM_STORAGE_KEY = 'receptapp-custom-v1';
 var JINA_READER = 'https://r.jina.ai/';
 
-function loadCustomRecipesFromStorage() {
+var LS_SYNC_ENDPOINT = 'receptapp-sync-endpoint';
+var LS_SYNC_KEY = 'receptapp-sync-key';
+
+var userRecipesFromFile = [];
+
+function getSyncConfig() {
   try {
-    var raw = localStorage.getItem(CUSTOM_STORAGE_KEY);
-    if (!raw) return [];
-    var arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
+    return {
+      endpoint: (localStorage.getItem(LS_SYNC_ENDPOINT) || '').trim(),
+      key: (localStorage.getItem(LS_SYNC_KEY) || '').trim()
+    };
   } catch (e) {
-    return [];
+    return { endpoint: '', key: '' };
   }
 }
 
-function persistCustomRecipesFromRecipes() {
-  try {
-    var custom = recipes.filter(function(r) { return r._local; });
-    localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(custom));
-  } catch (e) {}
-}
-
-function mergeRecipesFromSources() {
-  var custom = loadCustomRecipesFromStorage();
-  var list = RECIPES.slice();
-  custom.forEach(function(c) {
+function mergeBuiltinAndUser(builtinArr, userArr) {
+  var list = builtinArr.slice();
+  userArr.forEach(function(c) {
     var i;
     for (i = 0; i < list.length; i++) {
       if (list[i].id === c.id) {
@@ -180,15 +192,79 @@ function mergeRecipesFromSources() {
   return list;
 }
 
-function replaceOrPushRecipe(recipe) {
-  var i;
-  for (i = 0; i < recipes.length; i++) {
-    if (recipes[i].id === recipe.id) {
-      recipes[i] = recipe;
-      return;
+function recipeInUserFile(id) {
+  return userRecipesFromFile.some(function(r) {
+    return r.id === id;
+  });
+}
+
+function stripRecipeForApi(recipe) {
+  var o = {};
+  Object.keys(recipe).forEach(function(k) {
+    if (k !== '_local' && k !== '_synced') o[k] = recipe[k];
+  });
+  return o;
+}
+
+async function refreshRecipesFromServer() {
+  try {
+    var r = await fetch('recipes-user.json?t=' + Date.now(), { cache: 'no-store' });
+    if (r.ok) {
+      var j = await r.json();
+      userRecipesFromFile = Array.isArray(j) ? j : [];
+    } else {
+      userRecipesFromFile = [];
     }
+  } catch (e) {
+    userRecipesFromFile = [];
   }
-  recipes.push(recipe);
+  recipes = mergeBuiltinAndUser(RECIPES, userRecipesFromFile);
+}
+
+async function syncRecipeToServer(recipe) {
+  var cfg = getSyncConfig();
+  if (!cfg.endpoint || !cfg.key) return { ok: false, error: 'Live-deploy saknas — fyll i API-slutpunkt och nyckel ovan.' };
+  try {
+    var res = await fetch(cfg.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': cfg.key
+      },
+      body: JSON.stringify({ recipe: stripRecipeForApi(recipe) })
+    });
+    var data = {};
+    try {
+      data = await res.json();
+    } catch (e2) {}
+    if (!res.ok) return { ok: false, error: data.error || ('HTTP ' + res.status) };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || 'Nätverksfel' };
+  }
+}
+
+async function removeRecipeOnServer(id) {
+  var cfg = getSyncConfig();
+  if (!cfg.endpoint || !cfg.key) return { ok: false, error: 'Live-deploy saknas.' };
+  try {
+    var res = await fetch(cfg.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': cfg.key
+      },
+      body: JSON.stringify({ action: 'remove', id: id })
+    });
+    var data = {};
+    try {
+      data = await res.json();
+    } catch (e2) {}
+    if (!res.ok) return { ok: false, error: data.error || ('HTTP ' + res.status) };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || 'Nätverksfel' };
+  }
 }
 
 function extractRecipesFromParsed(parsed) {
@@ -321,16 +397,20 @@ function normalizeRecipeFromJson(raw) {
       macros: macros,
       groups: groups,
       steps: steps,
-      tips: tips,
-      _local: true
+      tips: tips
     }
   };
 }
 
-function processJsonImportText(text, msgEl) {
+async function processJsonImportText(text, msgEl) {
   var trimmed = text.replace(/^\uFEFF/, '').trim();
   if (!trimmed) {
     msgEl.textContent = 'Klistra in JSON eller välj en fil.';
+    return;
+  }
+  var cfg = getSyncConfig();
+  if (!cfg.endpoint || !cfg.key) {
+    msgEl.textContent = 'Konfigurera Live-deploy ovan (API-slutpunkt och nyckel) innan import.';
     return;
   }
   var parsed;
@@ -347,20 +427,28 @@ function processJsonImportText(text, msgEl) {
   }
   var okCount = 0;
   var errs = [];
-  items.forEach(function(raw, idx) {
-    var res = normalizeRecipeFromJson(raw);
+  var i;
+  for (i = 0; i < items.length; i++) {
+    var res = normalizeRecipeFromJson(items[i]);
     if (!res.ok) {
-      errs.push('#' + (idx + 1) + ' ' + res.error);
+      errs.push('#' + (i + 1) + ' ' + res.error);
+      continue;
+    }
+    msgEl.textContent = 'Synkar… (' + (i + 1) + '/' + items.length + ')';
+    var sync = await syncRecipeToServer(res.recipe);
+    if (!sync.ok) {
+      msgEl.textContent = 'Synk misslyckades: ' + sync.error;
       return;
     }
-    replaceOrPushRecipe(res.recipe);
     okCount++;
-  });
-  persistCustomRecipesFromRecipes();
+  }
+  await refreshRecipesFromServer();
   renderList();
   var parts = [];
-  if (okCount) parts.push(okCount + ' recept importerade (sparade lokalt på denna enhet).');
-  if (errs.length) parts.push('Fel: ' + errs.join(' '));
+  if (okCount) {
+    parts.push(okCount + ' recept sparade i GitHub. GitHub Pages kan ta ~1 minut att uppdatera — ladda om sedan.');
+  }
+  if (errs.length) parts.push('Hoppade över: ' + errs.join(' '));
   msgEl.textContent = parts.join(' ');
 }
 
@@ -521,33 +609,38 @@ function buildRecipeFromImport(urlStr, rawText) {
     title: title,
     source: src + ' · importerat',
     sourceUrl: url,
-    badges: ['importerat', 'granska mängder', 'lokalt sparat'],
+    badges: ['importerat', 'granska mängder', 'via API'],
     macros: { kcal: 0, prot: 0, carb: 0, fat: 0 },
     groups: [{ name: 'Ingredienser', ingredients: ingredients }],
     steps: steps,
     tips: [
       { title: 'Seattle', text: 'Mildare variant för barn: minska salt, stark krydda och syra; välj mild ost/grädde där det passar.' },
       { title: 'Granska', text: 'Automatiskt utläst — kontrollera mängder och enheter mot originalet.' },
-      { title: 'Spara i repot', text: 'När receptet är bra: kopiera innehållet till recept/index.html i GitHub-repot så finns det för alla.' },
-      { title: 'Ta bort', text: 'Öppna receptet och använd Ta bort lokalt om du ångrar importen.' }
-    ],
-    _local: true
+      { title: 'Live-deploy', text: 'Med Live-deploy ifyllt skickas detta recept till GitHub när du lägger till det.' },
+      { title: 'Ta bort', text: 'Efter synk: öppna receptet och använd Ta bort från GitHub om du ångrar.' }
+    ]
   };
 
   return { ok: true, recipe: recipe };
 }
 
-function deleteLocalRecipe(id) {
-  try {
-    var custom = loadCustomRecipesFromStorage().filter(function(r) { return r.id !== id; });
-    localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(custom));
-  } catch (e) {}
-  recipes = mergeRecipesFromSources();
+async function deleteUserRecipe(id) {
+  var cfg = getSyncConfig();
+  if (!cfg.endpoint || !cfg.key) {
+    alert('Konfigurera Live-deploy först.');
+    return;
+  }
+  var rem = await removeRecipeOnServer(id);
+  if (!rem.ok) {
+    alert(rem.error || 'Kunde inte ta bort');
+    return;
+  }
+  await refreshRecipesFromServer();
   renderList();
   showList();
 }
 
-var recipes = mergeRecipesFromSources();
+var recipes = [];
 var currentServings = 1;
 var currentId = null;
 
@@ -587,9 +680,9 @@ function renderList() {
     var meta = mk('div', 'recipe-meta');
     meta.textContent = r.badges.slice(0, 2).join(' · ');
     info.appendChild(meta);
-    if (r._local) {
+    if (recipeInUserFile(r.id)) {
       var lb = mk('div', 'recipe-badge-local');
-      lb.textContent = 'Lokalt';
+      lb.textContent = 'GitHub';
       info.appendChild(lb);
     }
     card.appendChild(info);
@@ -685,13 +778,13 @@ function showDetail(id) {
   }
   c.appendChild(sourceDiv);
 
-  if (r._local) {
+  if (recipeInUserFile(r.id) && getSyncConfig().endpoint && getSyncConfig().key) {
     var delWrap = mk('div', 'detail-actions');
     var delBtn = mk('button', 'btn-danger');
     delBtn.type = 'button';
-    delBtn.textContent = 'Ta bort lokalt recept';
+    delBtn.textContent = 'Ta bort från recept (GitHub)';
     delBtn.addEventListener('click', function() {
-      if (confirm('Ta bort receptet från denna enhet?')) deleteLocalRecipe(r.id);
+      if (confirm('Ta bort receptet från recipes-user.json och vänta på Pages-deploy?')) deleteUserRecipe(r.id);
     });
     delWrap.appendChild(delBtn);
     c.appendChild(delWrap);
@@ -831,21 +924,31 @@ document.getElementById('import-fetch-btn').addEventListener('click', function()
     });
 });
 
-document.getElementById('import-add-btn').addEventListener('click', function() {
+document.getElementById('import-add-btn').addEventListener('click', async function() {
   var url = document.getElementById('import-url').value.trim();
   var text = document.getElementById('import-text').value;
   var msg = document.getElementById('import-msg');
   msg.textContent = '';
+  var cfg = getSyncConfig();
+  if (!cfg.endpoint || !cfg.key) {
+    msg.textContent = 'Konfigurera Live-deploy ovan först.';
+    return;
+  }
   var result = buildRecipeFromImport(url, text);
   if (!result.ok) {
     msg.textContent = result.error;
     return;
   }
-  replaceOrPushRecipe(result.recipe);
-  persistCustomRecipesFromRecipes();
+  msg.textContent = 'Synkar…';
+  var sync = await syncRecipeToServer(result.recipe);
+  if (!sync.ok) {
+    msg.textContent = sync.error || 'Synk misslyckades';
+    return;
+  }
   document.getElementById('import-url').value = '';
   document.getElementById('import-text').value = '';
-  msg.textContent = 'Recept tillagt lokalt på denna enhet.';
+  await refreshRecipesFromServer();
+  msg.textContent = 'Sparat i GitHub. Pages uppdateras om ~1 minut.';
   renderList();
   showDetail(result.recipe.id);
 });
@@ -911,7 +1014,7 @@ document.getElementById('import-add-btn').addEventListener('click', function() {
 
   btn.addEventListener('click', function() {
     jmsg.textContent = '';
-    processJsonImportText(ta.value, jmsg);
+    void processJsonImportText(ta.value, jmsg);
   });
 
   function pasteImportFromFile(f) {
@@ -924,7 +1027,7 @@ document.getElementById('import-add-btn').addEventListener('click', function() {
       var t = String(reader.result || '');
       ta.value = t;
       jmsg.textContent = '';
-      processJsonImportText(t, jmsg);
+      void processJsonImportText(t, jmsg);
     };
     reader.readAsText(f);
     return true;
@@ -974,11 +1077,37 @@ document.getElementById('import-add-btn').addEventListener('click', function() {
     e.preventDefault();
     ta.value = plain;
     jmsg.textContent = '';
-    processJsonImportText(plain, jmsg);
+    void processJsonImportText(plain, jmsg);
   }, false);
 })();
 
-renderList();
+document.getElementById('sync-save-btn').addEventListener('click', function() {
+  var ep = document.getElementById('sync-endpoint');
+  var ky = document.getElementById('sync-key');
+  var m = document.getElementById('sync-save-msg');
+  try {
+    localStorage.setItem(LS_SYNC_ENDPOINT, (ep && ep.value) ? ep.value.trim() : '');
+    localStorage.setItem(LS_SYNC_KEY, (ky && ky.value) ? ky.value.trim() : '');
+    m.textContent = 'Sparat i denna webbläsare.';
+  } catch (e) {
+    m.textContent = 'Kunde inte spara: ' + (e.message || '');
+  }
+});
+
+(function loadSyncFields() {
+  var cfg = getSyncConfig();
+  var ep = document.getElementById('sync-endpoint');
+  var ky = document.getElementById('sync-key');
+  if (ep) ep.value = cfg.endpoint;
+  if (ky) ky.value = cfg.key;
+})();
+
+(async function initApp() {
+  await refreshRecipesFromServer();
+  var lm = document.getElementById('recipe-load-msg');
+  if (lm) lm.classList.add('hidden');
+  renderList();
+})();
 </script>
 </body>
 </html>

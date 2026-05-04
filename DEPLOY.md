@@ -33,7 +33,7 @@ Om du ser **404** första gången: vänta 1–5 minuter och ladda om. Kontroller
 Från den här klonen:
 
 ```bash
-git add recept/index.html CLAUDE.md   # eller vad du ändrat
+git add recept/index.html recept/recipes-user.json api/ CLAUDE.md   # eller vad du ändrat
 git commit -m "Beskriv vad som ändrats"
 git push origin main
 ```
@@ -42,7 +42,30 @@ GitHub Pages bygger om automatiskt efter push (ofta inom ~1 minut).
 
 ---
 
-## 3. Annat GitHub-konto i Cursor / andra projekt
+## 3. Live-import i receptappen (Vercel → samma repo)
+
+Recept som importeras i webbläsaren ska hamna i **`recept/recipes-user.json`** och synas på [receptsidan](https://johnscottguggenheimerse.github.io/claude-apps/recept/) efter nästa Pages-deploy. Eftersom **GitHub Pages är statisk** krävs en liten **serverlös API** (med hemlig GitHub-token i molnet, aldrig i HTML-filen).
+
+1. **Skapa ett Vercel-projekt** kopplat till repot **claude-apps** (samma repo som Pages).
+2. **Miljövariabler** i Vercel → Project → Settings → Environment Variables:
+
+   | Namn | Värde |
+   |------|--------|
+   | `GITHUB_TOKEN` | Fine-grained PAT: **Contents: Read and write** på repot `claude-apps` |
+   | `GITHUB_OWNER` | `johnscottguggenheimerSE` |
+   | `GITHUB_REPO` | `claude-apps` |
+   | `SYNC_API_SECRET` | Valfri lång slumpsträng (samma värde klistrar du in som ”nyckel” i appen) |
+   | `CORS_ORIGIN` | `https://johnscottguggenheimerse.github.io` (valfritt; default är detta) |
+
+3. Efter deploy får du en URL, t.ex. `https://claude-apps-xxx.vercel.app`. API-slutpunkten är **`https://…vercel.app/api/sync-recipe`**.
+4. Öppna receptappen, fäll ut **Live-deploy**, klistra in **hela API-URL:en** och **samma hemliga sträng som `SYNC_API_SECRET`**, spara.
+5. Importera ett recept — Vercel committar till `main`; **GitHub Pages** bygger om (ofta ~1 minut). Uppdatera sidan tills det nya receptet syns.
+
+Källan till API: `api/sync-recipe.js` i repots rot.
+
+---
+
+## 4. Annat GitHub-konto i Cursor / andra projekt
 
 På samma dator kan du ha **jobb-konto** och **johnscottguggenheimerSE** sida vid sida. Viktigaste är att **push till detta repo** använder rätt inloggning.
 
@@ -110,7 +133,7 @@ Andra projekt kan använda standard `github.com` med en annan `IdentityFile` —
 
 ---
 
-## 4. Commit-identitet i bara detta repo
+## 5. Commit-identitet i bara detta repo
 
 Repot har redan lokalt (bra för att inte blanda med jobb-mail):
 
@@ -131,13 +154,15 @@ git config user.email "din-mail-som-på-github"
 
 ---
 
-## 5. Snabb felsökning
+## 6. Snabb felsökning
 
 | Problem | Åtgärd |
 |--------|--------|
 | 404 på Pages | Vänta några minuter; kontrollera **Settings → Pages** att branch är `main` och root `/`. |
 | Push nekas | Kontrollera PAT/SSH och att du är inloggad som **rätt** GitHub-användare för detta repo. |
 | Fel sajt öppnas | Öppna exakt `…/claude-apps/recept/` — appen ligger under undermappen **recept**. |
+| Import synkas inte / CORS | Kontrollera att Vercel är deployad med `api/sync-recipe.js`, att URL slutar på `/api/sync-recipe`, och att `CORS_ORIGIN` matchar din Pages-domän. |
+| Unauthorized från API | `X-API-Key` i appen måste vara **exakt** samma som `SYNC_API_SECRET` i Vercel. |
 
 ---
 
