@@ -102,7 +102,7 @@
     <div class="list-header"><h1>Recept</h1></div>
     <section class="json-import-panel" aria-label="Importera recept från JSON">
       <div class="json-panel-title">Receptdata som JSON</div>
-      <p class="import-hint" style="margin-bottom:0.65rem">Dra en .json-fil till rutan nedan, eller klistra in array <code>[&#8230;]</code> / ett objekt <code>{&#8230;}</code> / <code>{&quot;recipes&quot;:[&#8230;]}</code>. Struktur som i appen: <code>id</code>, <code>emoji</code>, <code>title</code>, <code>source</code>, <code>sourceUrl</code>, <code>badges</code>, <code>macros</code>, <code>groups</code>, <code>steps</code>, <code>tips</code> (fyra tips; första ska heta Seattle). Sparas lokalt i webbläsaren; för att publicera på GitHub: kopiera in receptraden i <code>RECIPES</code> i källfilen och pusha.</p>
+      <p class="import-hint" style="margin-bottom:0.65rem">Med receptlistan öppen: kopiera en <code>.json</code>-fil i Finder och tryck <strong>Cmd+V</strong> (Windows/Linux: <strong>Ctrl+V</strong>) var som helst i appen — ingen behöver klicka i rutan nedan. Du kan också klistra in rå JSON-text på samma sätt. Eller dra fil till rutan. Format: array <code>[&#8230;]</code>, objekt <code>{&#8230;}</code> eller <code>{&quot;recipes&quot;:[&#8230;]}</code> med fält som <code>id</code>, <code>title</code>, <code>groups</code>, <code>steps</code>, <code>tips</code> m.m. Sparas lokalt; för GitHub Pages: lägg receptraden i <code>RECIPES</code> i källfilen och pusha.</p>
       <div id="json-dropzone" class="json-dropzone" role="button" tabindex="0" aria-label="Släpp JSON-fil här eller välj fil">Släpp .json-fil här eller klicka för att välja</div>
       <input type="file" id="json-file-input" class="hidden" accept=".json,application/json">
       <label for="json-paste">Klistra JSON (valfritt om du laddat fil ovan)</label>
@@ -913,6 +913,69 @@ document.getElementById('import-add-btn').addEventListener('click', function() {
     jmsg.textContent = '';
     processJsonImportText(ta.value, jmsg);
   });
+
+  function pasteImportFromFile(f) {
+    if (!f || f.size > 800000) return false;
+    var nameOk = /\.json$/i.test(f.name);
+    var typeOk = f.type === 'application/json' || f.type === 'text/plain' || !f.type;
+    if (!nameOk && !typeOk) return false;
+    var reader = new FileReader();
+    reader.onload = function() {
+      var t = String(reader.result || '');
+      ta.value = t;
+      jmsg.textContent = '';
+      processJsonImportText(t, jmsg);
+    };
+    reader.readAsText(f);
+    return true;
+  }
+
+  document.addEventListener('paste', function(e) {
+    var listView = document.getElementById('view-list');
+    if (!listView || listView.classList.contains('hidden')) return;
+
+    var target = e.target;
+    var tn = target && target.tagName;
+    if (tn === 'INPUT' || tn === 'TEXTAREA') return;
+
+    var cd = e.clipboardData;
+    if (!cd) return;
+
+    var files = cd.files;
+    var k;
+    if (files && files.length > 0) {
+      for (k = 0; k < files.length; k++) {
+        var file = files[k];
+        if (!file) continue;
+        if (pasteImportFromFile(file)) {
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+
+    if (cd.items && cd.items.length) {
+      for (k = 0; k < cd.items.length; k++) {
+        var it = cd.items[k];
+        if (it.kind !== 'file') continue;
+        var asFile = typeof it.getAsFile === 'function' ? it.getAsFile() : null;
+        if (asFile && pasteImportFromFile(asFile)) {
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+
+    var plain = cd.getData('text/plain');
+    if (!plain) return;
+    var tr = plain.replace(/^\uFEFF/, '').trim();
+    if (!tr.length || (tr.charAt(0) !== '{' && tr.charAt(0) !== '[')) return;
+
+    e.preventDefault();
+    ta.value = plain;
+    jmsg.textContent = '';
+    processJsonImportText(plain, jmsg);
+  }, false);
 })();
 
 renderList();
