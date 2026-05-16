@@ -52,7 +52,7 @@ Från mappen `recept/`:
 
 Öppna **http://127.0.0.1:8765/** i webbläsaren.
 
-Nya recept läggs in i `recept/index.html` (arrayen `RECIPES`) via Cursor — inte i appen. Varje recept ska ha fältet **`category`**: `pizza`, `asiatiskt`, `protein`, `sallad`, `tillbehor`, `meal-prep`, `lagg-kolhydrat`.
+Nya recept läggs in i `recept/index.html` (arrayen `RECIPES`) via Cursor — inte i appen. Varje recept ska ha fältet **`category`**: `middag`, `asiatisk`, `sallad`, eller `brod`.
 
 ---
 

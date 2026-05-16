@@ -10,15 +10,19 @@ if (!m) throw new Error('RECIPES not found');
 
 let recipesBlock = m[0];
 const cats = {
-  'buffalo-chicken-crust-pizza': 'pizza',
-  'dumpling-lasagna': 'asiatiskt',
-  'edamame-spread': 'meal-prep',
-  'smashed-cucumber': 'tillbehor',
-  'gochujang-gnocchi': 'asiatiskt',
-  'hot-honey-chicken-sliders': 'protein',
-  'cottage-cheese-flatbread': 'lagg-kolhydrat',
-  'numbing-chicken-cucumber': 'asiatiskt',
-  'tuna-chili-crisp-salad': 'sallad'
+  'buffalo-chicken-crust-pizza': 'middag',
+  'hot-honey-chicken-sliders': 'middag',
+  'cottage-cheese-flatbread': 'middag',
+  'gochujang-gnocchi': 'middag',
+  'dumpling-lasagna': 'asiatisk',
+  'one-pan-dumplings-with-greens': 'asiatisk',
+  'thai-basil-beef-rolls': 'asiatisk',
+  'numbing-chicken-cucumber': 'sallad',
+  'tuna-chili-crisp-salad': 'sallad',
+  'smashed-cucumber': 'sallad',
+  'smashed-pickle-salad': 'sallad',
+  'edamame-spread': 'sallad',
+  'hoagie-brod': 'brod'
 };
 for (const [id, cat] of Object.entries(cats)) {
   recipesBlock = recipesBlock.replace(
@@ -121,15 +125,12 @@ const out = `<!DOCTYPE html>
 <script>
 ${recipesBlock}
 
-const CATEGORY_ORDER = ['pizza', 'asiatiskt', 'protein', 'sallad', 'tillbehor', 'meal-prep', 'lagg-kolhydrat'];
+const CATEGORY_ORDER = ['middag', 'asiatisk', 'sallad', 'brod'];
 const CATEGORY_LABELS = {
-  pizza: 'Pizza',
-  asiatiskt: 'Asiatiskt',
-  protein: 'Protein & kyckling',
-  sallad: 'Sallad',
-  tillbehor: 'Tillbehör',
-  'meal-prep': 'Meal prep',
-  'lagg-kolhydrat': 'Låg kolhydrat'
+  middag: 'Middag',
+  asiatisk: 'Asiatiskt',
+  sallad: 'Sallader & tillbehör',
+  brod: 'Bröd & bakning'
 };
 
 var recipes = RECIPES;
