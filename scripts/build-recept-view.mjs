@@ -12,7 +12,7 @@ let recipesBlock = m[0];
 const cats = {
   'buffalo-chicken-crust-pizza': 'middag',
   'hot-honey-chicken-sliders': 'middag',
-  'cinnamon-sugar-donut-holes': 'middag',
+  'cinnamon-sugar-donut-holes': 'bakning',
   'gochujang-gnocchi': 'middag',
   'dumpling-lasagna': 'asiatisk',
   'one-pan-dumplings-with-greens': 'asiatisk',
@@ -22,7 +22,7 @@ const cats = {
   'smashed-cucumber': 'sallad',
   'smashed-pickle-salad': 'sallad',
   'edamame-spread': 'sallad',
-  'hoagie-brod': 'brod'
+  'hoagie-brod': 'bakning'
 };
 for (const [id, cat] of Object.entries(cats)) {
   recipesBlock = recipesBlock.replace(
@@ -125,12 +125,12 @@ const out = `<!DOCTYPE html>
 <script>
 ${recipesBlock}
 
-const CATEGORY_ORDER = ['middag', 'asiatisk', 'sallad', 'brod'];
+const CATEGORY_ORDER = ['middag', 'asiatisk', 'sallad', 'bakning'];
 const CATEGORY_LABELS = {
   middag: 'Middag',
   asiatisk: 'Asiatiskt',
   sallad: 'Sallader & tillbehör',
-  brod: 'Bröd & bakning'
+  bakning: 'Bakning'
 };
 
 var recipes = RECIPES;
