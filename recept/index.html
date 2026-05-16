@@ -67,11 +67,21 @@
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
   .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--info); cursor: pointer; margin-bottom: 0.85rem; background: none; border: none; padding: 0; font-family: inherit; }
+  .detail-top {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    align-items: stretch; margin-bottom: 1.5rem;
+  }
   .detail-hero {
-    position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 300px;
-    border-radius: var(--radius-lg); margin-bottom: 0.85rem; overflow: hidden;
+    position: relative; width: 100%; min-height: 280px; height: 100%;
+    border-radius: var(--radius-lg); overflow: hidden;
     background-color: var(--bg2); background-size: cover; background-position: center;
   }
+  .detail-summary { display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
+  .detail-summary-title { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; }
+  .detail-meta-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+  .detail-summary .source { margin-bottom: 0; }
+  .detail-summary .badges { margin-bottom: 0; flex: 1; min-width: 0; }
+  .detail-summary .macros { margin-bottom: 0; grid-template-columns: 1fr 1fr; }
   .detail-hero::before {
     content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
     background: linear-gradient(165deg, rgba(0,0,0,0.28) 0%, transparent 42%, transparent 48%, rgba(0,0,0,0.88) 100%);
@@ -97,7 +107,6 @@
     letter-spacing: -0.02em;
     text-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 4px 14px rgba(0,0,0,0.4);
   }
-  .detail-toolbar { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 0.85rem; }
   .serv-ctrl { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
   .serv-btn { width: 26px; height: 26px; border-radius: 50%; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: inherit; }
   .serv-val { font-size: 13px; font-weight: 500; color: var(--text); min-width: 16px; text-align: center; }
@@ -126,6 +135,10 @@
   .tip-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
   .hidden { display: none !important; }
   @media (max-width: 900px) { .recipe-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 720px) {
+    .detail-top { grid-template-columns: 1fr; }
+    .detail-hero { min-height: 220px; aspect-ratio: 16 / 9; height: auto; }
+  }
   @media (max-width: 520px) {
     .recipe-grid { grid-template-columns: 1fr; }
     .two-col { grid-template-columns: 1fr; }
@@ -237,7 +250,8 @@ function cardInfoTag(r) {
   return r.badges.slice(0, 2).join(' · ');
 }
 
-function buildDetailHero(r) {
+function buildDetailHero(r, opts) {
+  opts = opts || {};
   var hero = mk('div', 'detail-hero');
   if (r.image) {
     hero.classList.add('detail-hero--photo');
@@ -251,6 +265,7 @@ function buildDetailHero(r) {
   var tag = mk('span', 'detail-hero-tag');
   tag.textContent = cardInfoTag(r) || categoryLabel(r.category);
   hero.appendChild(tag);
+  if (opts && opts.includeTitle === false) return hero;
   var title = document.createElement('h1');
   title.className = 'detail-hero-title';
   title.textContent = r.title;
@@ -341,8 +356,39 @@ function showDetail(id) {
   currentServings = 1;
   var c = document.getElementById('detail-content');
   c.replaceChildren();
-  c.appendChild(buildDetailHero(r));
-  var toolbar = mk('div', 'detail-toolbar');
+  var top = mk('div', 'detail-top');
+  top.appendChild(buildDetailHero(r, { includeTitle: false }));
+  var summary = mk('div', 'detail-summary');
+  var summaryTitle = document.createElement('h1');
+  summaryTitle.className = 'detail-summary-title';
+  summaryTitle.textContent = r.title;
+  summary.appendChild(summaryTitle);
+  var sourceDiv = mk('div', 'source');
+  sourceDiv.appendChild(document.createTextNode('Källa: '));
+  if (r.sourceUrl && r.sourceUrl !== '#') {
+    var a = mk('a');
+    a.href = r.sourceUrl;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = r.source;
+    sourceDiv.appendChild(a);
+  } else {
+    sourceDiv.appendChild(document.createTextNode(r.source));
+  }
+  summary.appendChild(sourceDiv);
+  var metaRow = mk('div', 'detail-meta-row');
+  var badgesDiv = mk('div', 'badges');
+  if (r.category) {
+    var catBadge = mk('span', 'badge');
+    catBadge.textContent = categoryLabel(r.category);
+    badgesDiv.appendChild(catBadge);
+  }
+  r.badges.forEach(function(b) {
+    var badge = mk('span', 'badge');
+    badge.textContent = b;
+    badgesDiv.appendChild(badge);
+  });
+  metaRow.appendChild(badgesDiv);
   var servCtrl = mk('div', 'serv-ctrl');
   var minusBtn = mk('button', 'serv-btn');
   minusBtn.type = 'button';
@@ -358,33 +404,8 @@ function showDetail(id) {
   servCtrl.appendChild(minusBtn);
   servCtrl.appendChild(servValEl);
   servCtrl.appendChild(plusBtn);
-  toolbar.appendChild(servCtrl);
-  c.appendChild(toolbar);
-  var sourceDiv = mk('div', 'source');
-  sourceDiv.appendChild(document.createTextNode('Källa: '));
-  if (r.sourceUrl && r.sourceUrl !== '#') {
-    var a = mk('a');
-    a.href = r.sourceUrl;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.textContent = r.source;
-    sourceDiv.appendChild(a);
-  } else {
-    sourceDiv.appendChild(document.createTextNode(r.source));
-  }
-  c.appendChild(sourceDiv);
-  var badgesDiv = mk('div', 'badges');
-  if (r.category) {
-    var catBadge = mk('span', 'badge');
-    catBadge.textContent = categoryLabel(r.category);
-    badgesDiv.appendChild(catBadge);
-  }
-  r.badges.forEach(function(b) {
-    var badge = mk('span', 'badge');
-    badge.textContent = b;
-    badgesDiv.appendChild(badge);
-  });
-  c.appendChild(badgesDiv);
+  metaRow.appendChild(servCtrl);
+  summary.appendChild(metaRow);
   var macrosDiv = mk('div', 'macros');
   [
     { id: 'm-kcal', val: r.macros.kcal, lbl: 'kcal' },
@@ -402,7 +423,9 @@ function showDetail(id) {
     mac.appendChild(lblEl);
     macrosDiv.appendChild(mac);
   });
-  c.appendChild(macrosDiv);
+  summary.appendChild(macrosDiv);
+  top.appendChild(summary);
+  c.appendChild(top);
   var twoCol = mk('div', 'two-col');
   var ingCol = mk('div');
   var ingTitle = mk('div', 'sec-title');
