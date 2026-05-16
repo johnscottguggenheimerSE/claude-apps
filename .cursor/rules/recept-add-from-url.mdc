@@ -1,0 +1,27 @@
+---
+description: Lägg till recept från Instagram- eller receptsajt-URL i recept/index.html enligt CLAUDE.md
+globs: recept/index.html
+alwaysApply: false
+---
+
+# Recept — ny post från URL
+
+När användaren klistrar in en **recept-URL** (Instagram-inlägg/reel, blogg, tidningssajt m.m.) och vill ha ett **nytt recept** i denna app:
+
+## Källor att läsa först
+
+- **`CLAUDE.md`** i repots rot — fullständigt format, mått, tips (4 st, Seattle först), familj.
+- Befintliga rader i **`recept/index.html`** i `RECIPES`-arrayen — matcha stil (samma fält, minifierad en-radsrad per recept som övriga poster).
+
+## Arbetsgång
+
+1. **Hämta innehåll:** Använd `WebFetch`/curl eller webbläsarverktyg om sidan kräver JS. **Instagram** ger ofta begränsad HTML — om caption saknas, be användaren klistra in text från appen eller en skärmdump.
+2. **Bygg objektet:** `id` i kebab-case (unikt mot befintliga `id`), rimlig `emoji`, `title`, `source` + `sourceUrl`, `badges`, `macros` för **hela receptet**, `groups` med sektioner, `steps`, **fyra** `tips` med första **Seattle** (mild för Seattle Mae, 7 år).
+3. **Mått:** Endast `g`, `msk`, `tsk`, `st`, ev. `pinch`/`näve`/`strimlor` — **lowercase** på alla ingrediensnamn.
+4. **Infoga:** Lägg till ett nytt element sist i `RECIPES`-arrayen (före avslutande `];`), med samma kodstil som befintliga recept.
+5. **Commit:** `git add recept/index.html && git commit -m "Add [kort receptnamn]" && git push` om användaren vill publicera (GitHub Pages ~30 s).
+
+## Kodpolicy
+
+- **Ingen** `innerHTML` med template literals för användardata — befintlig app använder redan DOM + `textContent`.
+- Ändra bara det som behövs för det nya receptet (normalt endast `recept/index.html`).
