@@ -22,7 +22,8 @@ const cats = {
   'smashed-cucumber': 'sallad',
   'smashed-pickle-salad': 'sallad',
   'edamame-spread': 'sallad',
-  'hoagie-brod': 'bakning'
+  'hoagie-brod': 'bakning',
+  'rice-paper-shrimp-pancake': 'asiatisk'
 };
 for (const [id, cat] of Object.entries(cats)) {
   recipesBlock = recipesBlock.replace(

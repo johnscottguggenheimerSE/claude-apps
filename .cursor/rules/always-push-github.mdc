@@ -1,0 +1,29 @@
+---
+description: Pusha alltid till GitHub efter ändringar i detta repo
+alwaysApply: true
+---
+
+# Alltid pusha till GitHub
+
+Efter du har gjort **meningsfulla ändringar** i detta repo (särskilt `recept/`, bilder, skript):
+
+1. **Committa** med ett tydligt meddelande (användaren behöver inte be om det).
+2. **Pusha** till `origin main` direkt efter lyckad commit.
+
+## Git
+
+- Remote: `git@github.com-johnscott:johnscottguggenheimerSE/claude-apps.git` (SSH-alias `github.com-johnscott`).
+- **Pusha inte** hemligheter (`.env`, nycklar).
+- Kör **inte** force push till `main` utan explicit begäran.
+- Uppdatera **inte** git config.
+
+## Recept-app (GitHub Pages)
+
+Live på: https://johnscottguggenheimerse.github.io/claude-apps/recept/
+
+Efter push: nämn kort att sidan uppdateras inom ~1 minut (hård omladdning på mobil om cache).
+
+## Undantag
+
+- Frågor utan kodändringar — ingen commit/push.
+- Användaren säger uttryckligen att de **inte** vill pusha än.
