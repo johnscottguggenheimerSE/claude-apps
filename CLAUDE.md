@@ -37,6 +37,9 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 ```js
 {
   id: 'kebab-case-id',
+  category: 'middag', // en av: middag | asiatisk | sallad | bakning
+  tags: ['hog-protein', 'snabb', 'kyckling'], // flera filter-taggar; id:n som i TAG_FILTER_ORDER i index.html
+  image: 'images/recept.png', // valfritt; annars emoji-bakgrund
   emoji: '🍕',
   title: 'Receptnamn',
   source: '@kontonamn på Instagram',
@@ -62,6 +65,8 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
   ]
 }
 ```
+
+**Listvy:** Första raden filtrerar på **kategori** (en i taget). Andra raden är **taggar** — flera kan vara valda samtidigt; då visas bara recept som har **alla** valda taggar (i kombination med vald kategori). Nya tagg-id läggs i `TAG_FILTER_ORDER` och `TAG_LABELS` i samma fil.
 
 ---
 
