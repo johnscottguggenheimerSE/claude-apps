@@ -60,16 +60,17 @@
     font-size: 42px; line-height: 1; z-index: 0; opacity: 0.9;
   }
   .recipe-card-tags {
-    position: absolute; top: 8px; left: 8px; right: 8px; z-index: 2;
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px;
+    position: absolute; top: 8px; left: auto; right: 8px; z-index: 2;
+    width: min(58%, calc(100% - 16px));
+    display: grid; grid-template-columns: 1fr; gap: 4px; justify-items: end;
     pointer-events: none;
   }
   .recipe-card-tag {
     font-size: 10px; font-weight: 500; line-height: 1.2; padding: 4px 7px;
     border-radius: 999px; color: #fff; background: rgba(0,0,0,0.62);
     border: 0.5px solid rgba(255,255,255,0.2);
-    text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    min-width: 0;
+    text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    min-width: 0; max-width: 100%;
   }
   .recipe-card-new {
     position: absolute; left: 8px; bottom: 58px; z-index: 3;
@@ -116,15 +117,16 @@
     font-size: 64px; line-height: 1; z-index: 0;
   }
   .detail-hero-tags {
-    position: absolute; top: 12px; left: 12px; right: 12px; z-index: 2;
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px;
+    position: absolute; top: 12px; left: auto; right: 12px; z-index: 2;
+    width: min(52%, calc(100% - 24px));
+    display: grid; grid-template-columns: 1fr; gap: 5px; justify-items: end;
     pointer-events: none;
   }
   .detail-hero-tag {
     font-size: 11px; font-weight: 500; line-height: 1.2; padding: 5px 8px;
     border-radius: 999px; color: #fff; background: rgba(0,0,0,0.62);
-    border: 0.5px solid rgba(255,255,255,0.2); text-align: center;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+    border: 0.5px solid rgba(255,255,255,0.2); text-align: right;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; max-width: 100%;
   }
   .detail-hero-title {
     position: absolute; right: 14px; bottom: 14px; left: 14px; z-index: 2; margin: 0;
@@ -165,10 +167,6 @@
   }
   @media (min-width: 901px) {
     .recipe-grid { grid-template-columns: repeat(3, 1fr); }
-    .recipe-card-tags { left: auto; right: 8px; width: min(58%, calc(100% - 16px)); grid-template-columns: 1fr; }
-    .recipe-card-tag { text-align: right; }
-    .detail-hero-tags { left: auto; right: 12px; width: min(52%, calc(100% - 24px)); grid-template-columns: 1fr; }
-    .detail-hero-tag { text-align: right; }
   }
   @media (max-width: 720px) {
     .detail-top { grid-template-columns: 1fr; }
