@@ -26,8 +26,9 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 2. Hämta sidan och extrahera receptet från captionen eller receptsidan
 3. Bygg ett receptobjekt i samma format som befintliga recept i `recept/index.html`
 4. Lägg till objektet i `RECIPES`-arrayen i `recept/index.html`
-5. `git add recept/index.html && git commit -m "Add [receptnamn]" && git push` (eller `git add .` om fler filer ska med)
-6. GitHub Pages uppdateras automatiskt efter ~30 sekunder
+5. **Nytt!-märke:** Lägg receptets `id` först i arrayen `FEATURED_NEW_IDS` i samma fil (sök i `<script>`) så det visas överst med "Nytt!" tills användaren öppnat receptet (sparad i cookie).
+6. `git add recept/index.html && git commit -m "Add [receptnamn]" && git push` (eller `git add .` om fler filer ska med)
+7. GitHub Pages uppdateras automatiskt efter ~30 sekunder
 
 ---
 

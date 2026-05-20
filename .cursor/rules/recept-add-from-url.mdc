@@ -18,7 +18,7 @@ När användaren klistrar in en **recept-URL** (Instagram-inlägg/reel, blogg, t
 1. **Hämta innehåll:** Använd `WebFetch`/curl eller webbläsarverktyg om sidan kräver JS. **Instagram** ger ofta begränsad HTML — om caption saknas, be användaren klistra in text från appen eller en skärmdump.
 2. **Bygg objektet:** `id` i kebab-case (unikt mot befintliga `id`), rimlig `emoji`, `title`, `source` + `sourceUrl`, `badges`, `macros` för **hela receptet**, `groups` med sektioner, `steps`, **fyra** `tips` med första **Seattle** (mild för Seattle Mae, 7 år).
 3. **Mått:** Endast `g`, `msk`, `tsk`, `st`, ev. `pinch`/`näve`/`strimlor` — **lowercase** på alla ingrediensnamn.
-4. **Infoga:** Lägg till ett nytt element sist i `RECIPES`-arrayen (före avslutande `];`), med samma kodstil som befintliga recept.
+4. **Infoga:** Lägg till ett nytt element sist i `RECIPES`-arrayen (före avslutande `];`), med samma kodstil som befintliga recept. Uppdatera **`FEATURED_NEW_IDS`** i `recept/index.html` om receptet ska markeras "Nytt!" tills det besökts.
 5. **Commit + push:** Lägg till `recept/images/` om ny bild finns. Committa och **pusha alltid** till `origin main` (se regeln `always-push-github`). GitHub Pages ~1 min.
 
 ## Kodpolicy

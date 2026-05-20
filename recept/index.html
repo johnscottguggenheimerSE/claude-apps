@@ -33,7 +33,7 @@
   .recipe-grid { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: stretch; grid-auto-rows: 1fr; }
   .recipe-card {
     position: relative; display: block; width: 100%;
-    min-height: 220px; aspect-ratio: 5 / 6;
+    min-height: 165px; aspect-ratio: 10 / 9;
     border-radius: var(--radius-lg); overflow: hidden;
     cursor: pointer; border: 0.5px solid var(--border);
     background-color: var(--bg2); background-size: cover; background-position: center;
@@ -43,8 +43,8 @@
     touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     text-decoration: none; color: inherit;
   }
-  @supports not (aspect-ratio: 5 / 6) {
-    .recipe-card { height: 0; padding-top: 120%; min-height: 0; }
+  @supports not (aspect-ratio: 10 / 9) {
+    .recipe-card { height: 0; padding-top: 90%; min-height: 0; }
     .recipe-card > * { position: absolute; }
   }
   .recipe-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.14); }
@@ -70,6 +70,14 @@
     border: 0.5px solid rgba(255,255,255,0.2);
     text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     min-width: 0;
+  }
+  .recipe-card-new {
+    position: absolute; left: 8px; bottom: 58px; z-index: 3;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+    padding: 3px 9px; border-radius: 999px;
+    background: var(--info); color: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    pointer-events: none;
   }
   .recipe-card-title {
     position: absolute; right: 14px; bottom: 14px; left: 14px; z-index: 2;
@@ -167,7 +175,7 @@
     .detail-top { grid-template-columns: 1fr; }
     .detail-hero { min-height: 220px; aspect-ratio: 16 / 9; height: auto; }
     .app { padding: 1rem 0.75rem 3rem; }
-    .recipe-card { min-height: 300px; }
+    .recipe-card { min-height: 225px; }
     .recipe-card-title { font-size: 16px; padding: 8px 10px; }
     .detail-summary-title { font-size: 20px; }
     .detail-meta-row { flex-direction: column; align-items: stretch; }
@@ -236,9 +244,19 @@ var BASE_PATH = (function() {
   return '/';
 })();
 
+var RECEPT_COOKIE_PATH = (function() {
+  var path = location.pathname;
+  var idx = path.indexOf('/recept');
+  if (idx <= 0) return '/';
+  return path.slice(0, idx) || '/';
+})();
+
 function assetUrl(path) {
   if (!path || /^https?:\/\//i.test(path)) return path;
-  return BASE_PATH + path.replace(/^\//, '');
+  var dir = BASE_PATH;
+  if (dir.slice(-1) !== '/') dir += '/';
+  var tail = path.replace(/^\//, '');
+  return location.origin + dir + tail;
 }
 
 function recipeHash(id) {
@@ -247,6 +265,56 @@ function recipeHash(id) {
 
 function recipeLink(id) {
   return BASE_PATH + recipeHash(id);
+}
+
+var FEATURED_NEW_IDS = ['chicken-kebab-wraps', 'rice-paper-shrimp-pancake'];
+var VISIT_COOKIE_NAME = 'recept_seen_new';
+var VISIT_COOKIE_MAX_AGE = String(365 * 24 * 60 * 60);
+
+function getSeenRecipeIds() {
+  try {
+    var parts = document.cookie.split(';');
+    for (var i = 0; i < parts.length; i++) {
+      var s = parts[i].trim();
+      if (s.indexOf(VISIT_COOKIE_NAME + '=') === 0) {
+        return JSON.parse(decodeURIComponent(s.slice(VISIT_COOKIE_NAME.length + 1)));
+      }
+    }
+  } catch (e) {}
+  return {};
+}
+
+function markRecipeVisited(id) {
+  if (FEATURED_NEW_IDS.indexOf(id) === -1) return;
+  var seen = getSeenRecipeIds();
+  seen[id] = 1;
+  document.cookie = VISIT_COOKIE_NAME + '=' + encodeURIComponent(JSON.stringify(seen)) + ';path=' + RECEPT_COOKIE_PATH + ';max-age=' + VISIT_COOKIE_MAX_AGE + ';SameSite=Lax';
+}
+
+function shouldShowNewBadge(id) {
+  if (FEATURED_NEW_IDS.indexOf(id) === -1) return false;
+  return !getSeenRecipeIds()[id];
+}
+
+function sortRecipesForList(filtered) {
+  var seen = getSeenRecipeIds();
+  var order = {};
+  recipes.forEach(function(r, i) { order[r.id] = i; });
+  var head = [];
+  FEATURED_NEW_IDS.forEach(function(fid) {
+    if (seen[fid]) return;
+    for (var j = 0; j < filtered.length; j++) {
+      if (filtered[j].id === fid) {
+        head.push(filtered[j]);
+        return;
+      }
+    }
+  });
+  var inHead = {};
+  head.forEach(function(r) { inHead[r.id] = 1; });
+  var tail = filtered.filter(function(r) { return !inHead[r.id]; });
+  tail.sort(function(a, b) { return order[a.id] - order[b.id]; });
+  return head.concat(tail);
 }
 
 function getRecipeIdFromHash() {
@@ -429,6 +497,11 @@ function createRecipeCard(r) {
   var tagsWrap = mk('div', 'recipe-card-tags');
   appendMetricTags(tagsWrap, cardMetricTags(r), 'recipe-card-tag');
   if (tagsWrap.childNodes.length) card.appendChild(tagsWrap);
+  if (shouldShowNewBadge(r.id)) {
+    var newLbl = mk('span', 'recipe-card-new');
+    newLbl.textContent = 'Nytt!';
+    card.appendChild(newLbl);
+  }
   var title = document.createElement('h2');
   title.className = 'recipe-card-title';
   title.textContent = r.title;
@@ -448,24 +521,10 @@ function renderList() {
   if (activeCategory !== 'all') {
     list = recipes.filter(function(r) { return r.category === activeCategory; });
   }
-  if (activeCategory === 'all') {
-    CATEGORY_ORDER.forEach(function(cat) {
-      var inCat = recipes.filter(function(r) { return r.category === cat; });
-      if (!inCat.length) return;
-      var section = mk('div', 'cat-section');
-      var heading = mk('div', 'cat-heading');
-      heading.textContent = categoryLabel(cat);
-      section.appendChild(heading);
-      var grid = mk('div', 'recipe-grid');
-      inCat.forEach(function(r) { grid.appendChild(createRecipeCard(r)); });
-      section.appendChild(grid);
-      container.appendChild(section);
-    });
-  } else {
-    var grid = mk('div', 'recipe-grid');
-    list.forEach(function(r) { grid.appendChild(createRecipeCard(r)); });
-    container.appendChild(grid);
-  }
+  list = sortRecipesForList(list);
+  var grid = mk('div', 'recipe-grid');
+  list.forEach(function(r) { grid.appendChild(createRecipeCard(r)); });
+  container.appendChild(grid);
 }
 
 function showList(skipHistory) {
@@ -475,6 +534,7 @@ function showList(skipHistory) {
   if (!skipHistory) setListUrl(false);
   else setListUrl(true);
   window.scrollTo(0, 0);
+  renderList();
 }
 
 document.getElementById('back-btn').addEventListener('click', function() {
@@ -499,6 +559,7 @@ function changeServings(d) {
 function showDetail(id, skipHistory) {
   var r = recipes.find(function(x) { return x.id === id; });
   if (!r) return;
+  markRecipeVisited(id);
   currentId = id;
   document.title = r.title + ' — Recept';
   if (!skipHistory) setRecipeUrl(id, false);
