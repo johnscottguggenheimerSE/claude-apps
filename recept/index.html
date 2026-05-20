@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recept</title>
+<title>Proteinrika recept</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -22,8 +22,12 @@
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
   .app { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
-  .list-header { margin-bottom: 0.75rem; }
-  .list-header h1 { font-size: 20px; font-weight: 500; color: var(--text); }
+  .list-header { margin-bottom: 1rem; }
+  .list-title {
+    font-size: clamp(2.125rem, 9vw, 3.75rem); font-weight: 700; line-height: 1.05;
+    letter-spacing: -0.035em; color: var(--text);
+  }
+  .list-tagline { font-size: 0.8125rem; font-weight: 400; color: var(--text2); margin-top: 0.4rem; letter-spacing: 0.02em; }
   .cat-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.25rem; }
   .cat-pill { font-size: 12px; font-family: inherit; padding: 0.35rem 0.7rem; border-radius: 999px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text2); cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s; }
   .cat-pill:hover { background: var(--bg2); color: var(--text); }
@@ -73,7 +77,7 @@
     min-width: 0; max-width: 100%;
   }
   .recipe-card-new {
-    position: absolute; left: 8px; bottom: 58px; z-index: 3;
+    position: absolute; top: 8px; left: 8px; z-index: 3;
     font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
     padding: 3px 9px; border-radius: 999px;
     background: var(--info); color: #fff;
@@ -177,6 +181,17 @@
     .detail-summary-title { font-size: 20px; }
     .detail-meta-row { flex-direction: column; align-items: stretch; }
     .serv-ctrl { align-self: flex-end; }
+    .cat-nav {
+      flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      gap: 10px; padding-bottom: 6px; margin-bottom: 1.1rem;
+      margin-left: -0.75rem; margin-right: -0.75rem;
+      padding-left: 0.75rem; padding-right: 0.75rem;
+      scroll-snap-type: x proximity;
+    }
+    .cat-pill {
+      flex-shrink: 0; font-size: 15px; font-weight: 500; padding: 0.55rem 1.05rem;
+      scroll-snap-align: start;
+    }
   }
   @media (max-width: 520px) {
     .two-col { grid-template-columns: 1fr; }
@@ -190,7 +205,10 @@
 <body>
 <div class="app">
   <div id="view-list">
-    <div class="list-header"><h1>Recept</h1></div>
+    <div class="list-header">
+      <h1 class="list-title">Proteinrika recept</h1>
+      <p class="list-tagline">by Jånn</p>
+    </div>
     <nav class="cat-nav" id="cat-nav" aria-label="Kategorier"></nav>
     <div id="recipe-list"></div>
   </div>
@@ -324,7 +342,7 @@ function setListUrl(replace) {
   var url = BASE_PATH + location.search;
   if (replace) history.replaceState({ view: 'list' }, '', url);
   else history.pushState({ view: 'list' }, '', url);
-  document.title = 'Recept';
+  document.title = 'Proteinrika recept';
 }
 
 function setRecipeUrl(id, replace) {
@@ -558,7 +576,7 @@ function showDetail(id, skipHistory) {
   if (!r) return;
   markRecipeVisited(id);
   currentId = id;
-  document.title = r.title + ' — Recept';
+  document.title = r.title + ' — Proteinrika recept';
   if (!skipHistory) setRecipeUrl(id, false);
   else setRecipeUrl(id, true);
   currentServings = 1;
