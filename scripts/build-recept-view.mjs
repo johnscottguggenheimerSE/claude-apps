@@ -12,6 +12,7 @@ let recipesBlock = m[0];
 const cats = {
   'buffalo-chicken-crust-pizza': 'middag',
   'hot-honey-chicken-sliders': 'middag',
+  'chicken-kebab-wraps': 'middag',
   'cinnamon-sugar-donut-holes': 'bakning',
   'gochujang-gnocchi': 'middag',
   'dumpling-lasagna': 'asiatisk',
