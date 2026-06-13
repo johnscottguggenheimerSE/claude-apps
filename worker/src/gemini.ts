@@ -1,8 +1,15 @@
 import type { Recipe } from './validate';
 
 const TEXT_MODEL = 'gemini-2.5-flash';
-// Nano Banana 2 → Nano Banana Pro (sällan använd, kvalitet först)
-const IMAGE_MODELS = ['gemini-3.1-flash-image', 'gemini-3-pro-image'];
+// Kvalitet först; fall back på billigare modell vid 404/429 (gratis tier har ofta 0 bildquota på Pro/3.1)
+const IMAGE_MODELS = [
+  'gemini-3.1-flash-image',
+  'gemini-3-pro-image',
+  'gemini-2.5-flash-image',
+];
+
+const QUOTA_HELP =
+  'Gratis Gemini API har ofta ingen bildkvot (limit: 0). Aktivera billing i Google AI Studio → API key → projekt med betalning, eller vänta tills dagens kvot återställs. Kvoter: https://ai.google.dev/gemini-api/docs/rate-limits · Usage: https://ai.dev/rate-limit';
 
 const PARSE_SYSTEM = `Du är receptparser för en svensk proteinfokuserad receptbok.
 Returnera ENDAST ett JSON-objekt (ingen markdown).
@@ -63,6 +70,8 @@ async function geminiImage(
   });
 
   let lastErr = 'Gemini returnerade ingen bild';
+  let sawQuota = false;
+
   for (const model of IMAGE_MODELS) {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -76,6 +85,11 @@ async function geminiImage(
       lastErr = `Modell ${model} hittades inte`;
       continue;
     }
+    if (res.status === 429) {
+      sawQuota = true;
+      lastErr = `Kvot slut för ${model}`;
+      continue;
+    }
     if (!res.ok) {
       const err = await res.text();
       throw new Error(`Gemini image ${res.status}: ${err.slice(0, 300)}`);
@@ -87,6 +101,10 @@ async function geminiImage(
       if (part.inlineData?.data) return part.inlineData;
     }
     lastErr = `Modell ${model} returnerade ingen bild`;
+  }
+
+  if (sawQuota) {
+    throw new Error(`Gemini bildkvot slut (${lastErr}). ${QUOTA_HELP}`);
   }
   throw new Error(lastErr);
 }
