@@ -22,9 +22,14 @@ export function normalizeRecipe(r: Recipe): Recipe {
   return r;
 }
 
-export function validateRecipe(r: Recipe, seenIds: Record<string, number>): string[] {
+export function validateRecipe(
+  r: Recipe,
+  seenIds: Record<string, number>,
+  opts?: { allowMissingImage?: boolean }
+): string[] {
   const errors: string[] = [];
   const prefix = r.id ? `[${r.id}] ` : '';
+  const allowMissingImage = opts?.allowMissingImage ?? false;
 
   if (!r.id || typeof r.id !== 'string') errors.push(`${prefix}saknar id`);
   else if (seenIds[r.id]) errors.push(`${prefix}duplicerat id`);
@@ -43,7 +48,9 @@ export function validateRecipe(r: Recipe, seenIds: Record<string, number>): stri
   else tags.forEach((t) => {
     if (!TAG_FILTER_ORDER.includes(t)) errors.push(`${prefix}okänd tag: ${t}`);
   });
-  if (!r.image || typeof r.image !== 'string') errors.push(`${prefix}saknar image`);
+  if (!allowMissingImage && (!r.image || typeof r.image !== 'string')) {
+    errors.push(`${prefix}saknar image`);
+  }
   const macros = r.macros as Record<string, number> | undefined;
   if (!macros) errors.push(`${prefix}saknar macros`);
   else ['kcal', 'prot', 'carb', 'fat'].forEach((k) => {

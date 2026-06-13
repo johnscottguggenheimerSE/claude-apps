@@ -11,6 +11,7 @@ import {
   generateFoodImage,
   parseRecipe,
 } from './gemini';
+import { fetchImageAsBase64, fetchRecipePage, isSocialMediaUrl } from './fetch-url';
 import { getRecipe, idExists, insertRecipe, listRecipes, updateRecipe } from './db';
 import { slugify, normalizeRecipe, validateRecipe, type Recipe } from './validate';
 
@@ -34,15 +35,26 @@ function extFromMime(mime: string): string {
   return 'jpg';
 }
 
+async function storeUploadedImage(
+  env: Env,
+  recipeId: string,
+  imageBase64: string,
+  mimeType: string
+): Promise<string> {
+  const bytes = Uint8Array.from(atob(imageBase64), (c) => c.charCodeAt(0));
+  return storeRecipeImage(env, recipeId, { data: imageBase64, mimeType }, bytes);
+}
+
 async function storeRecipeImage(
   env: Env,
   recipeId: string,
-  image: { data: string; mimeType: string }
+  image: { data: string; mimeType: string },
+  bytes?: Uint8Array
 ): Promise<string> {
   const ext = extFromMime(image.mimeType);
   const key = `recipes/${recipeId}.${ext}`;
-  const bytes = Uint8Array.from(atob(image.data), (c) => c.charCodeAt(0));
-  await env.IMAGES.put(key, bytes, {
+  const data = bytes ?? Uint8Array.from(atob(image.data), (c) => c.charCodeAt(0));
+  await env.IMAGES.put(key, data, {
     httpMetadata: { contentType: image.mimeType, cacheControl: 'public, max-age=31536000' },
   });
   return `/api/images/${key}`;
@@ -148,12 +160,71 @@ async function handleParse(request: Request, env: Env): Promise<Response> {
   }
 }
 
+async function handleParseUrl(request: Request, env: Env): Promise<Response> {
+  if (!env.GEMINI_API_KEY) return json({ error: 'GEMINI_API_KEY saknas' }, 503);
+
+  let body: { url?: string };
+  try {
+    body = (await request.json()) as { url?: string };
+  } catch {
+    return json({ error: 'Ogiltig JSON' }, 400);
+  }
+
+  const url = (body.url || '').trim();
+  if (!url || !/^https?:\/\//i.test(url)) return json({ error: 'Ogiltig URL' }, 400);
+  if (isSocialMediaUrl(url)) {
+    return json({
+      error: 'Instagram/TikTok fungerar inte här — använd Text + bild och klistra in caption.',
+    }, 400);
+  }
+
+  try {
+    const page = await fetchRecipePage(url);
+    let imageBase64: string | null = null;
+    let mimeType: string | null = null;
+    if (page.imageUrl) {
+      const img = await fetchImageAsBase64(page.imageUrl, url);
+      if (img) {
+        imageBase64 = img.data;
+        mimeType = img.mimeType;
+      }
+    }
+    const recipe = await parseRecipe(
+      env.GEMINI_API_KEY,
+      page.text,
+      null,
+      null,
+      url
+    );
+    if (page.pageTitle && (!recipe.source || recipe.source === 'Okänd källa')) {
+      try {
+        const host = new URL(url).hostname.replace(/^www\./, '');
+        recipe.source = page.pageTitle.includes(host) ? page.pageTitle : `${page.pageTitle} (${host})`;
+      } catch {
+        /* ignore */
+      }
+    }
+    delete recipe.emoji;
+    if (!recipe.id) recipe.id = slugify(String(recipe.title || 'recept'));
+    return json({
+      recipe,
+      imageBase64,
+      mimeType,
+      imageFromUrl: !!imageBase64,
+    });
+  } catch (e) {
+    return json({ error: e instanceof Error ? e.message : 'URL-tolkning misslyckades' }, 502);
+  }
+}
+
 async function handleCreateRecipe(request: Request, env: Env): Promise<Response> {
   let body: {
     recipe?: Recipe;
     imageBase64?: string;
     mimeType?: string;
     featuredNew?: boolean;
+    skipImageGeneration?: boolean;
+    uploadImage?: boolean;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -168,7 +239,8 @@ async function handleCreateRecipe(request: Request, env: Env): Promise<Response>
   if (!recipe.id) recipe.id = slugify(String(recipe.title || 'recept'));
   normalizeRecipe(recipe);
 
-  const errors = validateRecipe(recipe, {});
+  const skipAiImage = !!body.skipImageGeneration;
+  const errors = validateRecipe(recipe, {}, { allowMissingImage: skipAiImage });
   if (errors.length) return json({ error: 'Validering', details: errors }, 400);
 
   if (await idExists(env.DB, String(recipe.id))) {
@@ -176,13 +248,22 @@ async function handleCreateRecipe(request: Request, env: Env): Promise<Response>
   }
 
   try {
-    if (!recipe.image || String(recipe.image).startsWith('blob:')) {
+    if (body.uploadImage && body.imageBase64 && body.mimeType) {
+      recipe.image = await storeUploadedImage(
+        env,
+        String(recipe.id),
+        body.imageBase64,
+        body.mimeType
+      );
+    } else if (!skipAiImage && (!recipe.image || String(recipe.image).startsWith('blob:'))) {
       recipe.image = await resolveRecipeImage(
         env,
         recipe,
         body.imageBase64 || null,
         body.mimeType || null
       );
+    } else if (!recipe.image) {
+      delete recipe.image;
     }
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Bild misslyckades' }, 502);
@@ -199,6 +280,7 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
     mimeType?: string;
     featuredNew?: boolean;
     regenerateImage?: boolean;
+    uploadImage?: boolean;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -219,13 +301,17 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
   if (!existing) return json({ error: 'Hittades inte' }, 404);
 
   try {
-    if (body.regenerateImage || body.imageBase64 || !recipe.image) {
+    if (body.regenerateImage) {
       recipe.image = await resolveRecipeImage(
         env,
         recipe,
         body.imageBase64 || null,
         body.mimeType || null
       );
+    } else if (body.uploadImage && body.imageBase64 && body.mimeType) {
+      recipe.image = await storeUploadedImage(env, id, body.imageBase64, body.mimeType);
+    } else if (!recipe.image && existing.image) {
+      recipe.image = existing.image as string;
     }
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Bild misslyckades' }, 502);
@@ -280,6 +366,9 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   }
   if (path === '/api/parse' && request.method === 'POST') {
     return handleParse(request, env);
+  }
+  if (path === '/api/parse-url' && request.method === 'POST') {
+    return handleParseUrl(request, env);
   }
 
   const recipeMatch = path.match(/^\/api\/recipes\/([^/]+)$/);

@@ -42,9 +42,7 @@
     position: relative; margin-bottom: 1rem; border-radius: var(--radius); overflow: hidden;
     background: var(--bg);
   }
-  .preview-image-wrap img {
-    width: 100%; max-height: 220px; object-fit: cover; display: block;
-  }
+  .preview-image-wrap img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
   .preview-image-btn {
     position: absolute; bottom: 10px; right: 10px;
     font: inherit; font-size: 0.75rem; font-weight: 600;
@@ -60,10 +58,10 @@
     border-radius: var(--radius); padding: 0.75rem; overflow: auto; max-height: 320px;
     white-space: pre-wrap; word-break: break-word;
   }
-  .mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .mode-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
   .mode-tabs button.active { background: var(--info); color: #fff; border-color: var(--info); }
+  .sub-tabs button { font-size: 0.8125rem; padding: 0.45rem 0.75rem; }
   .hidden { display: none !important; }
-  .thumb { max-width: 120px; border-radius: var(--radius); margin-bottom: 0.75rem; }
   .flow-hint {
     font-size: 0.8125rem; color: var(--text2); line-height: 1.45;
     padding: 0.75rem 0.85rem; margin-bottom: 1rem;
@@ -71,6 +69,17 @@
   }
   .flow-hint strong { color: var(--text); font-weight: 600; }
   .field-hint { font-size: 0.75rem; color: var(--text2); margin: -0.5rem 0 1rem; line-height: 1.35; }
+  .image-drop {
+    border: 1px dashed var(--border); border-radius: var(--radius);
+    padding: 1rem; margin-bottom: 1rem; background: var(--bg);
+    cursor: pointer; text-align: center; font-size: 0.8125rem; color: var(--text2);
+    min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;
+  }
+  .image-drop:focus { outline: 2px solid var(--info); outline-offset: 2px; }
+  .image-drop.has-image { padding: 0.5rem; }
+  .image-drop img { max-width: 100%; max-height: 160px; border-radius: 6px; object-fit: cover; }
+  .image-drop-hint { pointer-events: none; }
+  .image-drop.has-image .image-drop-hint { display: none; }
 </style>
 </head>
 <body>
@@ -81,33 +90,73 @@
   </div>
 
   <div class="mode-tabs">
-    <button type="button" id="tab-new" class="active">Nytt recept</button>
-    <button type="button" id="tab-edit">Redigera befintligt</button>
+    <button type="button" id="tab-create" class="active">Skapa</button>
+    <button type="button" id="tab-edit">Redigera</button>
   </div>
 
-  <div id="panel-new">
-    <p class="flow-hint">
-      <strong>1. Tolka med AI</strong> — Gemini läser det du matat in (text, bild och/eller URL som kontext) och bygger ett recept.<br>
-      <strong>2. Spara recept</strong> — visas nedan efter tolkning. Då sparas till receptboken och en bild genereras eller förbättras.
-    </p>
-    <div class="field">
-      <label for="text">Recepttext, caption eller beskrivning</label>
-      <textarea id="text" placeholder="Klistra in caption från Instagram/TikTok, text från matblogg, eller skriv fritt…"></textarea>
-      <p class="field-hint">Minst text <em>eller</em> bild krävs. Från Instagram/TikTok: klistra in <em>captionen</em> här (appen hämtar inte posten automatiskt).</p>
+  <div id="panel-create">
+    <div class="mode-tabs sub-tabs">
+      <button type="button" id="tab-text" class="active">Text + bild</button>
+      <button type="button" id="tab-url">URL</button>
+      <button type="button" id="tab-from-image">Från bild</button>
     </div>
-    <div class="field">
-      <label for="sourceUrl">Källa-URL (blogg eller receptsajt, valfritt)</label>
-      <input type="url" id="sourceUrl" placeholder="https://cooking.nytimes.com/recipes/…">
-      <p class="field-hint">Bäst med öppna sidor (NYT Cooking, matbloggar). Instagram/TikTok-länkar kan sparas men kräver oftast inlogg — sätt då <code>source</code> till t.ex. «@namn på Instagram» utan fungerande länk.</p>
+
+    <div id="panel-text">
+      <p class="flow-hint">
+        <strong>1. Tolka text</strong> med AI → granska JSON.<br>
+        <strong>2. Spara</strong> — uppladdad/klistrad bild sparas <em>utan</em> AI. Generera bild senare via Redigera.
+      </p>
+      <div class="field">
+        <label for="text">Recepttext eller caption</label>
+        <textarea id="text" placeholder="Klistra in caption, ingredienslista eller fritext…"></textarea>
+      </div>
+      <div class="field">
+        <label for="source-label">Källa (valfritt)</label>
+        <input type="text" id="source-label" placeholder="t.ex. @namn på Instagram eller NYT Cooking">
+      </div>
+      <div class="field">
+        <label>Bild (valfritt)</label>
+        <div class="image-drop" id="drop-text" tabindex="0">
+          <span class="image-drop-hint">Klicka, dra eller klistra in (Ctrl+V)</span>
+          <img id="thumb-text" class="hidden" alt="">
+        </div>
+        <input type="file" id="file-text" accept="image/*" class="hidden">
+        <p class="field-hint">Bilden sparas som den är — ingen AI vid skapande.</p>
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-parse-text">Tolka text med AI</button>
+      </div>
     </div>
-    <div class="field">
-      <label for="image">Skärmdump eller matfoto (valfritt)</label>
-      <input type="file" id="image" accept="image/*">
-      <img id="thumb" class="thumb hidden" alt="">
-      <p class="field-hint">Skärmdump med text + bild, eller foto på maten. AI kan läsa text från bild och förbättra matfoto vid sparning.</p>
+
+    <div id="panel-url" class="hidden">
+      <p class="flow-hint">
+        Hämtar öppen receptsida (matblogg, NYT Cooking, …). Bild från sidan laddas automatiskt om den finns — <em>ingen</em> AI-bildgenerering vid sparning.
+      </p>
+      <div class="field">
+        <label for="recipe-url">Recept-URL</label>
+        <input type="url" id="recipe-url" placeholder="https://cooking.nytimes.com/recipes/…">
+        <p class="field-hint">Instagram/TikTok fungerar inte — använd Text + bild.</p>
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-parse-url">Hämta och tolka</button>
+      </div>
     </div>
-    <div class="actions">
-      <button type="button" class="primary" id="btn-parse">Tolka med AI</button>
+
+    <div id="panel-from-image" class="hidden">
+      <p class="flow-hint">
+        AI läser recept från skärmdump eller matfoto. Sparas utan AI-genererad bild — lägg till/uppdatera bild i Redigera vid behov.
+      </p>
+      <div class="field">
+        <label>Bild med recept</label>
+        <div class="image-drop" id="drop-image" tabindex="0">
+          <span class="image-drop-hint">Klicka, dra eller klistra in (Ctrl+V)</span>
+          <img id="thumb-image" class="hidden" alt="">
+        </div>
+        <input type="file" id="file-image" accept="image/*" class="hidden">
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-parse-image">Tolka recept från bild</button>
+      </div>
     </div>
   </div>
 
@@ -124,7 +173,7 @@
 
   <div class="preview" id="preview">
     <h2 id="preview-title">Förhandsgranskning</h2>
-    <p class="field-hint" style="margin-top:0;margin-bottom:0.75rem;">Justera JSON om du vill, sedan spara.</p>
+    <p class="field-hint" id="preview-hint" style="margin-top:0;margin-bottom:0.75rem;">Justera JSON om du vill, sedan spara.</p>
     <div class="preview-image-wrap hidden" id="preview-image-wrap">
       <img id="preview-img" alt="">
       <button type="button" class="preview-image-btn hidden" id="btn-regen-image">generera ny bild med AI</button>

@@ -1,23 +1,39 @@
 (function() {
   var currentRecipe = null;
   var editMode = false;
-  var imageBase64 = null;
-  var mimeType = null;
+  var pendingImageBase64 = null;
+  var pendingMimeType = null;
+  var createSubMode = 'text';
 
   var statusEl = document.getElementById('status');
   var previewEl = document.getElementById('preview');
   var previewTitle = document.getElementById('preview-title');
+  var previewHint = document.getElementById('preview-hint');
   var previewJson = document.getElementById('preview-json');
   var previewImg = document.getElementById('preview-img');
   var previewImageWrap = document.getElementById('preview-image-wrap');
   var btnRegenImage = document.getElementById('btn-regen-image');
-  var thumb = document.getElementById('thumb');
   var editSelect = document.getElementById('edit-select');
   var recipeList = [];
 
   function setStatus(msg, isErr) {
     statusEl.textContent = msg || '';
     statusEl.className = 'status' + (isErr ? ' err' : '');
+  }
+
+  function clearPendingImage() {
+    pendingImageBase64 = null;
+    pendingMimeType = null;
+  }
+
+  function setPendingImage(data, mime, dropId, thumbId) {
+    pendingImageBase64 = data;
+    pendingMimeType = mime;
+    var thumb = document.getElementById(thumbId);
+    var drop = document.getElementById(dropId);
+    thumb.src = 'data:' + mime + ';base64,' + data;
+    thumb.classList.remove('hidden');
+    drop.classList.add('has-image');
   }
 
   function readFileAsBase64(file) {
@@ -34,37 +50,85 @@
     });
   }
 
-  document.getElementById('image').addEventListener('change', function(e) {
-    var file = e.target.files && e.target.files[0];
-    if (!file) {
-      imageBase64 = null;
-      mimeType = null;
-      thumb.classList.add('hidden');
-      return;
+  function bindImageDrop(dropId, fileId, thumbId) {
+    var drop = document.getElementById(dropId);
+    var file = document.getElementById(fileId);
+    var thumb = document.getElementById(thumbId);
+
+    function applyFile(f) {
+      if (!f || !f.type.startsWith('image/')) return;
+      readFileAsBase64(f).then(function(r) {
+        setPendingImage(r.data, r.mimeType, dropId, thumbId);
+      }).catch(function() { setStatus('Kunde inte läsa bilden', true); });
     }
-    readFileAsBase64(file).then(function(r) {
-      imageBase64 = r.data;
-      mimeType = r.mimeType;
-      thumb.src = 'data:' + r.mimeType + ';base64,' + r.data;
-      thumb.classList.remove('hidden');
-    }).catch(function() { setStatus('Kunde inte läsa bilden', true); });
-  });
 
-  document.getElementById('tab-new').addEventListener('click', function() {
+    drop.addEventListener('click', function() { file.click(); });
+    file.addEventListener('change', function(e) {
+      var f = e.target.files && e.target.files[0];
+      if (f) applyFile(f);
+    });
+    drop.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      drop.style.borderColor = 'var(--info)';
+    });
+    drop.addEventListener('dragleave', function() {
+      drop.style.borderColor = '';
+    });
+    drop.addEventListener('drop', function(e) {
+      e.preventDefault();
+      drop.style.borderColor = '';
+      var f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) applyFile(f);
+    });
+    drop.addEventListener('paste', function(e) {
+      var items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image/') === 0) {
+          e.preventDefault();
+          var blob = items[i].getAsFile();
+          if (blob) applyFile(blob);
+          return;
+        }
+      }
+    });
+  }
+
+  bindImageDrop('drop-text', 'file-text', 'thumb-text');
+  bindImageDrop('drop-image', 'file-image', 'thumb-image');
+
+  function showCreatePanel() {
     editMode = false;
-    document.getElementById('tab-new').classList.add('active');
+    document.getElementById('tab-create').classList.add('active');
     document.getElementById('tab-edit').classList.remove('active');
-    document.getElementById('panel-new').classList.remove('hidden');
+    document.getElementById('panel-create').classList.remove('hidden');
     document.getElementById('panel-edit').classList.add('hidden');
-  });
+  }
 
-  document.getElementById('tab-edit').addEventListener('click', function() {
+  function showEditPanel() {
     editMode = true;
     document.getElementById('tab-edit').classList.add('active');
-    document.getElementById('tab-new').classList.remove('active');
+    document.getElementById('tab-create').classList.remove('active');
     document.getElementById('panel-edit').classList.remove('hidden');
-    document.getElementById('panel-new').classList.add('hidden');
-  });
+    document.getElementById('panel-create').classList.add('hidden');
+  }
+
+  document.getElementById('tab-create').addEventListener('click', showCreatePanel);
+  document.getElementById('tab-edit').addEventListener('click', showEditPanel);
+
+  function setCreateSubMode(mode) {
+    createSubMode = mode;
+    document.getElementById('tab-text').classList.toggle('active', mode === 'text');
+    document.getElementById('tab-url').classList.toggle('active', mode === 'url');
+    document.getElementById('tab-from-image').classList.toggle('active', mode === 'image');
+    document.getElementById('panel-text').classList.toggle('hidden', mode !== 'text');
+    document.getElementById('panel-url').classList.toggle('hidden', mode !== 'url');
+    document.getElementById('panel-from-image').classList.toggle('hidden', mode !== 'image');
+  }
+
+  document.getElementById('tab-text').addEventListener('click', function() { setCreateSubMode('text'); });
+  document.getElementById('tab-url').addEventListener('click', function() { setCreateSubMode('url'); });
+  document.getElementById('tab-from-image').addEventListener('click', function() { setCreateSubMode('image'); });
 
   function populateEditSelect(selectedId) {
     editSelect.replaceChildren();
@@ -86,6 +150,7 @@
   function loadRecipeById(id) {
     if (!id) return;
     setStatus('Hämtar…');
+    clearPendingImage();
     fetch('/api/recipes/' + encodeURIComponent(id), { credentials: 'same-origin' })
       .then(function(res) {
         return res.json().then(function(data) {
@@ -96,7 +161,7 @@
       .then(function(recipe) {
         editMode = true;
         showPreview(recipe);
-        setStatus('Redigera JSON i förhandsvisningen och spara.');
+        setStatus('Redigera JSON och spara, eller generera ny bild med AI.');
       })
       .catch(function(ex) { setStatus(ex.message, true); });
   }
@@ -134,19 +199,29 @@
     previewTitle.textContent = recipe.title || recipe.id;
     previewJson.textContent = JSON.stringify(recipe, null, 2);
     previewEl.classList.add('visible');
-    if (recipe.image) {
+
+    if (pendingImageBase64 && pendingMimeType) {
+      previewImg.src = 'data:' + pendingMimeType + ';base64,' + pendingImageBase64;
+      previewImageWrap.classList.remove('hidden');
+      previewImg.classList.remove('hidden');
+      btnRegenImage.classList.add('hidden');
+      previewHint.textContent = 'Uppladdad bild sparas utan AI. Justera JSON om du vill, sedan spara.';
+    } else if (recipe.image) {
       previewImg.src = imageSrcForRecipe(recipe);
       previewImageWrap.classList.remove('hidden');
       previewImg.classList.remove('hidden');
       if (recipeExistsInDb(recipe.id)) {
         btnRegenImage.classList.remove('hidden');
+        previewHint.textContent = 'Justera JSON eller generera ny bild med AI.';
       } else {
         btnRegenImage.classList.add('hidden');
+        previewHint.textContent = 'Justera JSON om du vill, sedan spara.';
       }
     } else {
       previewImageWrap.classList.add('hidden');
       previewImg.classList.add('hidden');
       btnRegenImage.classList.add('hidden');
+      previewHint.textContent = 'Ingen bild än — lägg till i Redigera efter sparning, eller generera med AI där.';
     }
   }
 
@@ -180,6 +255,7 @@
       });
     }).then(function(data) {
       editMode = true;
+      clearPendingImage();
       showPreview(data.recipe);
       previewImg.src = imageSrcForRecipe(data.recipe, true);
       setStatus('Ny bild genererad och sparad.');
@@ -188,19 +264,91 @@
     }).finally(function() { btnRegenImage.disabled = false; });
   });
 
-  document.getElementById('btn-parse').addEventListener('click', function() {
-    var btn = document.getElementById('btn-parse');
+  document.getElementById('btn-parse-text').addEventListener('click', function() {
+    var btn = document.getElementById('btn-parse-text');
+    var text = document.getElementById('text').value.trim();
+    var sourceLabel = document.getElementById('source-label').value.trim();
+    if (!text) {
+      setStatus('Klistra in recepttext först.', true);
+      return;
+    }
+    if (sourceLabel) text += '\n\nKälla: ' + sourceLabel;
     btn.disabled = true;
-    setStatus('Tolkar med Gemini…');
+    setStatus('Tolkar text med Gemini…');
+    fetch('/api/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ text: text })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Parse misslyckades');
+        return data;
+      });
+    }).then(function(data) {
+      editMode = false;
+      if (sourceLabel && (!data.recipe.source || data.recipe.source === 'Okänd källa')) {
+        data.recipe.source = sourceLabel;
+      }
+      showPreview(data.recipe);
+      setStatus('Granska och spara. Bilden ovan sparas utan AI om du lagt till en.');
+    }).catch(function(ex) {
+      setStatus(ex.message, true);
+    }).finally(function() { btn.disabled = false; });
+  });
+
+  document.getElementById('btn-parse-url').addEventListener('click', function() {
+    var btn = document.getElementById('btn-parse-url');
+    var url = document.getElementById('recipe-url').value.trim();
+    if (!url) {
+      setStatus('Ange en URL.', true);
+      return;
+    }
+    btn.disabled = true;
+    clearPendingImage();
+    setStatus('Hämtar sida och tolkar…');
+    fetch('/api/parse-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ url: url })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'URL-tolkning misslyckades');
+        return data;
+      });
+    }).then(function(data) {
+      editMode = false;
+      if (data.imageBase64 && data.mimeType) {
+        setPendingImage(data.imageBase64, data.mimeType, 'drop-text', 'thumb-text');
+      }
+      showPreview(data.recipe);
+      setStatus(
+        data.imageFromUrl
+          ? 'Bild från sidan ingår vid sparning. Granska och spara.'
+          : 'Ingen bild hittades på sidan — lägg till i Redigera efter sparning.'
+      );
+    }).catch(function(ex) {
+      setStatus(ex.message, true);
+    }).finally(function() { btn.disabled = false; });
+  });
+
+  document.getElementById('btn-parse-image').addEventListener('click', function() {
+    var btn = document.getElementById('btn-parse-image');
+    if (!pendingImageBase64) {
+      setStatus('Lägg till en bild först.', true);
+      return;
+    }
+    btn.disabled = true;
+    setStatus('Tolkar bild med Gemini…');
     fetch('/api/parse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
       body: JSON.stringify({
-        text: document.getElementById('text').value,
-        sourceUrl: document.getElementById('sourceUrl').value,
-        imageBase64: imageBase64,
-        mimeType: mimeType
+        text: '',
+        imageBase64: pendingImageBase64,
+        mimeType: pendingMimeType
       })
     }).then(function(res) {
       return res.json().then(function(data) {
@@ -210,7 +358,7 @@
     }).then(function(data) {
       editMode = false;
       showPreview(data.recipe);
-      setStatus('Granska och spara när du är nöjd.');
+      setStatus('Granska och spara. Samma bild sparas utan AI om du vill.');
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() { btn.disabled = false; });
@@ -220,7 +368,6 @@
     if (!currentRecipe) return;
     var btn = document.getElementById('btn-save');
     btn.disabled = true;
-    setStatus('Sparar och genererar bild…');
 
     var recipe;
     try {
@@ -236,25 +383,43 @@
       : '/api/recipes';
     var method = editMode ? 'PUT' : 'POST';
 
+    var body = {
+      recipe: recipe,
+      featuredNew: document.getElementById('featured-new').checked
+    };
+
+    if (editMode) {
+      setStatus('Sparar…');
+      if (pendingImageBase64 && pendingMimeType) {
+        body.uploadImage = true;
+        body.imageBase64 = pendingImageBase64;
+        body.mimeType = pendingMimeType;
+      }
+    } else {
+      setStatus('Sparar recept…');
+      body.skipImageGeneration = true;
+      if (pendingImageBase64 && pendingMimeType) {
+        body.uploadImage = true;
+        body.imageBase64 = pendingImageBase64;
+        body.mimeType = pendingMimeType;
+      }
+    }
+
     fetch(url, {
       method: method,
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({
-        recipe: recipe,
-        imageBase64: imageBase64,
-        mimeType: mimeType,
-        featuredNew: document.getElementById('featured-new').checked,
-        regenerateImage: editMode && !!imageBase64
-      })
+      body: JSON.stringify(body)
     }).then(function(res) {
       return res.json().then(function(data) {
         if (!res.ok) throw new Error((data.details && data.details.join(' · ')) || data.error || 'Sparning misslyckades');
         return data;
       });
     }).then(function(data) {
+      clearPendingImage();
+      editMode = true;
       showPreview(data.recipe);
-      setStatus('Sparat! ' + (editMode ? 'Uppdaterat.' : 'Nytt recept tillagt.'));
+      setStatus('Sparat! ' + (recipeExistsInDb(data.recipe.id) ? 'Uppdaterat.' : 'Nytt recept tillagt.'));
       var saved = data.recipe;
       var ix = -1;
       for (var i = 0; i < recipeList.length; i++) {
@@ -263,10 +428,7 @@
       if (ix === -1) recipeList.push({ id: saved.id, title: saved.title });
       else recipeList[ix].title = saved.title;
       populateEditSelect(saved.id);
-      if (!editMode) {
-        document.getElementById('featured-new').checked = false;
-        editMode = true;
-      }
+      document.getElementById('featured-new').checked = false;
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() { btn.disabled = false; });
@@ -275,7 +437,7 @@
   function bootEditFromQuery() {
     var editId = new URLSearchParams(location.search).get('edit');
     if (!editId) return;
-    document.getElementById('tab-edit').click();
+    showEditPanel();
     populateEditSelect(editId);
     editSelect.value = editId;
     loadRecipeById(editId);

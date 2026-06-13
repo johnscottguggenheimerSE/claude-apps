@@ -29,9 +29,7 @@ Fält (inget emoji-fält):
 
 Mått metriska, svenska. Uppskatta makros.`;
 
-function isSocialMediaUrl(url: string): boolean {
-  return /instagram\.com|instagr\.am|tiktok\.com/i.test(url);
-}
+import { isSocialMediaUrl } from './fetch-url';
 
 async function geminiJson(
   apiKey: string,
