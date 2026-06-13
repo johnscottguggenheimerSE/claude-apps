@@ -38,7 +38,22 @@
   .status.err { color: #c0392b; }
   .preview { display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 0.5px solid var(--border); }
   .preview.visible { display: block; }
-  .preview img { width: 100%; max-height: 220px; object-fit: cover; border-radius: var(--radius); margin-bottom: 1rem; }
+  .preview-image-wrap {
+    position: relative; margin-bottom: 1rem; border-radius: var(--radius); overflow: hidden;
+    background: var(--bg);
+  }
+  .preview-image-wrap img {
+    width: 100%; max-height: 220px; object-fit: cover; display: block;
+  }
+  .preview-image-btn {
+    position: absolute; bottom: 10px; right: 10px;
+    font: inherit; font-size: 0.75rem; font-weight: 600;
+    padding: 0.45rem 0.7rem; border: none; border-radius: 6px;
+    background: rgba(0, 0, 0, 0.72); color: #fff; cursor: pointer;
+    backdrop-filter: blur(6px);
+  }
+  .preview-image-btn:hover { background: rgba(0, 0, 0, 0.85); }
+  .preview-image-btn:disabled { opacity: 0.55; cursor: default; }
   .preview h2 { font-size: 1.125rem; margin-bottom: 0.5rem; }
   .preview pre {
     font-size: 0.75rem; background: var(--bg); border: 0.5px solid var(--border);
@@ -110,7 +125,10 @@
   <div class="preview" id="preview">
     <h2 id="preview-title">Förhandsgranskning</h2>
     <p class="field-hint" style="margin-top:0;margin-bottom:0.75rem;">Justera JSON om du vill, sedan spara.</p>
-    <img id="preview-img" class="hidden" alt="">
+    <div class="preview-image-wrap hidden" id="preview-image-wrap">
+      <img id="preview-img" alt="">
+      <button type="button" class="preview-image-btn hidden" id="btn-regen-image">generera ny bild med AI</button>
+    </div>
     <pre id="preview-json"></pre>
     <div class="actions">
       <button type="button" class="primary" id="btn-save">Spara recept</button>

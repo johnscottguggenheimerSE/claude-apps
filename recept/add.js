@@ -9,6 +9,8 @@
   var previewTitle = document.getElementById('preview-title');
   var previewJson = document.getElementById('preview-json');
   var previewImg = document.getElementById('preview-img');
+  var previewImageWrap = document.getElementById('preview-image-wrap');
+  var btnRegenImage = document.getElementById('btn-regen-image');
   var thumb = document.getElementById('thumb');
   var editSelect = document.getElementById('edit-select');
   var recipeList = [];
@@ -110,21 +112,81 @@
     loadRecipeById(id);
   });
 
+  function recipeExistsInDb(id) {
+    for (var i = 0; i < recipeList.length; i++) {
+      if (recipeList[i].id === id) return true;
+    }
+    return false;
+  }
+
+  function imageSrcForRecipe(recipe, bust) {
+    if (!recipe.image) return '';
+    var src;
+    if (recipe.image.indexOf('/api/') === 0) src = recipe.image;
+    else if (recipe.image.indexOf('http') === 0) src = recipe.image;
+    else src = '/' + recipe.image.replace(/^\//, '');
+    if (bust) src += (src.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
+    return src;
+  }
+
   function showPreview(recipe) {
     currentRecipe = recipe;
     previewTitle.textContent = recipe.title || recipe.id;
     previewJson.textContent = JSON.stringify(recipe, null, 2);
     previewEl.classList.add('visible');
-    if (recipe.image && recipe.image.indexOf('/api/') === 0) {
-      previewImg.src = recipe.image;
+    if (recipe.image) {
+      previewImg.src = imageSrcForRecipe(recipe);
+      previewImageWrap.classList.remove('hidden');
       previewImg.classList.remove('hidden');
-    } else if (recipe.image) {
-      previewImg.src = recipe.image.indexOf('http') === 0 ? recipe.image : '/' + recipe.image.replace(/^\//, '');
-      previewImg.classList.remove('hidden');
+      if (recipeExistsInDb(recipe.id)) {
+        btnRegenImage.classList.remove('hidden');
+      } else {
+        btnRegenImage.classList.add('hidden');
+      }
     } else {
+      previewImageWrap.classList.add('hidden');
       previewImg.classList.add('hidden');
+      btnRegenImage.classList.add('hidden');
     }
   }
+
+  btnRegenImage.addEventListener('click', function() {
+    var recipe;
+    try {
+      recipe = JSON.parse(previewJson.textContent);
+    } catch (e) {
+      setStatus('Ogiltig JSON i förhandsvisningen', true);
+      return;
+    }
+    if (!recipeExistsInDb(recipe.id)) {
+      setStatus('Spara receptet först innan du genererar ny bild.', true);
+      return;
+    }
+    btnRegenImage.disabled = true;
+    setStatus('Genererar ny bild med AI…');
+    fetch('/api/recipes/' + encodeURIComponent(recipe.id), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        recipe: recipe,
+        regenerateImage: true,
+        featuredNew: document.getElementById('featured-new').checked
+      })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Bildgenerering misslyckades');
+        return data;
+      });
+    }).then(function(data) {
+      editMode = true;
+      showPreview(data.recipe);
+      previewImg.src = imageSrcForRecipe(data.recipe, true);
+      setStatus('Ny bild genererad och sparad.');
+    }).catch(function(ex) {
+      setStatus(ex.message, true);
+    }).finally(function() { btnRegenImage.disabled = false; });
+  });
 
   document.getElementById('btn-parse').addEventListener('click', function() {
     var btn = document.getElementById('btn-parse');
