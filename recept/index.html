@@ -100,7 +100,9 @@
     display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
     line-clamp: 3;
   }
-  .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--info); cursor: pointer; margin-bottom: 0.85rem; background: none; border: none; padding: 0; font-family: inherit; }
+  .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--info); cursor: pointer; margin-bottom: 0.85rem; background: none; border: none; padding: 0; font-family: inherit; text-decoration: none; }
+  .detail-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.85rem; }
+  .detail-nav .back-btn { margin-bottom: 0; }
   .detail-top {
     display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
     align-items: stretch; margin-bottom: 1.5rem;
@@ -241,7 +243,10 @@
     <div id="recipe-list"></div>
   </div>
   <div id="view-detail" class="hidden">
-    <button type="button" class="back-btn" id="back-btn">← Alla recept</button>
+    <div class="detail-nav">
+      <button type="button" class="back-btn" id="back-btn">← Alla recept</button>
+      <a class="back-btn" id="detail-edit-link" href="/add">Redigera</a>
+    </div>
     <div id="detail-content"></div>
   </div>
 </div>

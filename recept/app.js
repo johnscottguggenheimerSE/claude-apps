@@ -68,6 +68,14 @@ function recipeLink(id) {
   return BASE_PATH + recipeHash(id);
 }
 
+function addPageUrl(editId) {
+  var base = BASE_PATH;
+  if (!base.endsWith('/')) base += '/';
+  var path = base === '/' ? '/add' : base + 'add';
+  if (!editId) return path;
+  return path + '?edit=' + encodeURIComponent(editId);
+}
+
 var FEATURED_NEW_IDS = [];
 var VISIT_COOKIE_NAME = 'recept_seen_new';
 var VISIT_COOKIE_MAX_AGE = String(365 * 24 * 60 * 60);
@@ -415,6 +423,8 @@ function showDetail(id, skipHistory) {
   document.title = r.title + ' — Proteinrika recept';
   if (!skipHistory) setRecipeUrl(id, false);
   else setRecipeUrl(id, true);
+  var editLink = document.getElementById('detail-edit-link');
+  if (editLink) editLink.href = addPageUrl(id);
   currentServings = getBaseServings(r);
   var c = document.getElementById('detail-content');
   c.replaceChildren();

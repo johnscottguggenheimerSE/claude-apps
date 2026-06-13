@@ -272,6 +272,15 @@
     }).finally(function() { btn.disabled = false; });
   });
 
+  function bootEditFromQuery() {
+    var editId = new URLSearchParams(location.search).get('edit');
+    if (!editId) return;
+    document.getElementById('tab-edit').click();
+    populateEditSelect(editId);
+    editSelect.value = editId;
+    loadRecipeById(editId);
+  }
+
   fetch('/api/auth/check', { credentials: 'same-origin' })
     .then(function(res) { return res.json(); })
     .then(function(d) {
@@ -281,6 +290,7 @@
         .then(function(data) {
           recipeList = (data.recipes || []).map(function(r) { return { id: r.id, title: r.title }; });
           populateEditSelect();
+          bootEditFromQuery();
         });
     })
     .catch(function() { location.href = '/login.html'; });
