@@ -185,7 +185,7 @@ export async function enhanceFoodImage(
   return geminiImage(apiKey, [
     { inlineData: { mimeType, data: imageBase64 } },
     {
-      text: `Improve this food photo of "${title}": sharper, better lighting, more appetizing, clean composition, photorealistic. Keep the same dish and plating. This may be a video screenshot — ${IMAGE_CLEANUP}`,
+      text: `This is a photo of "${title}". Create an improved version of THIS EXACT image — same dish, same plating, same bowl/plate, same camera angle and framing. Do not invent a different meal or change the composition. Fix and clean up: sharper focus, better natural lighting, richer appetizing colors, professional food photography. Photorealistic, no people. This may be a video screenshot — ${IMAGE_CLEANUP}`,
     },
   ]);
 }

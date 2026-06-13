@@ -238,16 +238,21 @@
       return;
     }
     btnRegenImage.disabled = true;
-    setStatus('Genererar ny bild med AI…');
+      setStatus('Förbättrar befintlig bild med AI…');
+    var regenBody = {
+      recipe: recipe,
+      regenerateImage: true,
+      featuredNew: document.getElementById('featured-new').checked
+    };
+    if (pendingImageBase64 && pendingMimeType) {
+      regenBody.imageBase64 = pendingImageBase64;
+      regenBody.mimeType = pendingMimeType;
+    }
     fetch('/api/recipes/' + encodeURIComponent(recipe.id), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({
-        recipe: recipe,
-        regenerateImage: true,
-        featuredNew: document.getElementById('featured-new').checked
-      })
+      body: JSON.stringify(regenBody)
     }).then(function(res) {
       return res.json().then(function(data) {
         if (!res.ok) throw new Error(data.error || 'Bildgenerering misslyckades');
@@ -258,7 +263,7 @@
       clearPendingImage();
       showPreview(data.recipe);
       previewImg.src = imageSrcForRecipe(data.recipe, true);
-      setStatus('Ny bild genererad och sparad.');
+      setStatus('Bild förbättrad och sparad.');
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() { btnRegenImage.disabled = false; });

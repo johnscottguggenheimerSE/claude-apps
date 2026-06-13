@@ -6,7 +6,6 @@ import {
   verifyPassword,
 } from './auth';
 import {
-  detectFoodPhoto,
   enhanceFoodImage,
   generateFoodImage,
   parseRecipe,
@@ -33,6 +32,35 @@ function extFromMime(mime: string): string {
   if (mime.includes('webp')) return 'webp';
   if (mime.includes('png')) return 'png';
   return 'jpg';
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk) as unknown as number[]);
+  }
+  return btoa(binary);
+}
+
+async function loadRecipeImageFromStorage(
+  env: Env,
+  imageRef: string | undefined | null
+): Promise<{ data: string; mimeType: string } | null> {
+  if (!imageRef || typeof imageRef !== 'string') return null;
+  let key: string;
+  if (imageRef.startsWith('/api/images/')) {
+    key = imageRef.slice('/api/images/'.length);
+  } else if (imageRef.startsWith('recipes/')) {
+    key = imageRef;
+  } else {
+    return null;
+  }
+  const obj = await env.IMAGES.get(key);
+  if (!obj) return null;
+  const bytes = new Uint8Array(await obj.arrayBuffer());
+  const mimeType = obj.httpMetadata?.contentType || 'image/jpeg';
+  return { data: bytesToBase64(bytes), mimeType };
 }
 
 async function storeUploadedImage(
@@ -64,7 +92,8 @@ async function resolveRecipeImage(
   env: Env,
   recipe: Recipe,
   imageBase64: string | null,
-  mimeType: string | null
+  mimeType: string | null,
+  existingImageRef?: string | null
 ): Promise<string> {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY saknas');
@@ -76,16 +105,20 @@ async function resolveRecipeImage(
       .filter(Boolean)
       .join('; ') || title;
 
-  let image: { data: string; mimeType: string };
+  if (!imageBase64) {
+    const imageRef =
+      existingImageRef ?? (typeof recipe.image === 'string' ? recipe.image : null);
+    const loaded = await loadRecipeImageFromStorage(env, imageRef);
+    if (loaded) {
+      imageBase64 = loaded.data;
+      mimeType = loaded.mimeType;
+    }
+  }
 
-  if (imageBase64 && mimeType) {
-    const hasFood = await detectFoodPhoto(apiKey, imageBase64, mimeType);
-    image = hasFood
+  const image =
+    imageBase64 && mimeType
       ? await enhanceFoodImage(apiKey, imageBase64, mimeType, title)
       : await generateFoodImage(apiKey, title, desc);
-  } else {
-    image = await generateFoodImage(apiKey, title, desc);
-  }
 
   return storeRecipeImage(env, String(recipe.id), image);
 }
@@ -306,7 +339,8 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
         env,
         recipe,
         body.imageBase64 || null,
-        body.mimeType || null
+        body.mimeType || null,
+        existing.image as string | undefined
       );
     } else if (body.uploadImage && body.imageBase64 && body.mimeType) {
       recipe.image = await storeUploadedImage(env, id, body.imageBase64, body.mimeType);
