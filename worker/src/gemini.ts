@@ -167,10 +167,13 @@ export async function parseRecipe(
   return recipe;
 }
 
+const IMAGE_CLEANUP =
+  'Remove ALL overlays and non-food UI: play/pause buttons, mute/volume icons, video progress bars, Reels/TikTok/Instagram chrome, timestamps, captions, subtitles, stickers, logos, watermarks, profile avatars, like/comment/share icons, screenshot borders, phone status bar. Output must be clean food photo only — zero text or interface elements.';
+
 export async function generateFoodImage(apiKey: string, title: string, description: string): Promise<{ data: string; mimeType: string }> {
   return geminiImage(apiKey, [
     {
-      text: `Professional appetizing food photography of "${title}". ${description}. Overhead or 3/4 angle, natural light, realistic, no text, no watermark, no people, restaurant quality.`,
+      text: `Professional appetizing food photography of "${title}". ${description}. Overhead or 3/4 angle, natural light, realistic, no people, restaurant quality. ${IMAGE_CLEANUP}`,
     },
   ]);
 }
@@ -184,7 +187,7 @@ export async function enhanceFoodImage(
   return geminiImage(apiKey, [
     { inlineData: { mimeType, data: imageBase64 } },
     {
-      text: `Improve this food photo of "${title}": sharper, better lighting, more appetizing, clean composition, photorealistic. Keep the same dish. Remove UI overlays, text, and screenshot chrome if present. No text in output.`,
+      text: `Improve this food photo of "${title}": sharper, better lighting, more appetizing, clean composition, photorealistic. Keep the same dish and plating. This may be a video screenshot — ${IMAGE_CLEANUP}`,
     },
   ]);
 }
