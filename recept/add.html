@@ -49,6 +49,13 @@
   .mode-tabs button.active { background: var(--info); color: #fff; border-color: var(--info); }
   .hidden { display: none !important; }
   .thumb { max-width: 120px; border-radius: var(--radius); margin-bottom: 0.75rem; }
+  .flow-hint {
+    font-size: 0.8125rem; color: var(--text2); line-height: 1.45;
+    padding: 0.75rem 0.85rem; margin-bottom: 1rem;
+    border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg);
+  }
+  .flow-hint strong { color: var(--text); font-weight: 600; }
+  .field-hint { font-size: 0.75rem; color: var(--text2); margin: -0.5rem 0 1rem; line-height: 1.35; }
 </style>
 </head>
 <body>
@@ -64,18 +71,25 @@
   </div>
 
   <div id="panel-new">
+    <p class="flow-hint">
+      <strong>1. Tolka med AI</strong> — Gemini läser det du matat in (text, bild och/eller URL som kontext) och bygger ett recept.<br>
+      <strong>2. Spara recept</strong> — visas nedan efter tolkning. Då sparas till receptboken och en bild genereras eller förbättras.
+    </p>
     <div class="field">
       <label for="text">Recepttext, caption eller beskrivning</label>
       <textarea id="text" placeholder="Klistra in recept från Instagram, TikTok eller skriv fritt…"></textarea>
+      <p class="field-hint">Minst text <em>eller</em> bild krävs. Fritext, Instagram-caption, rå ingredienslista — allt funkar.</p>
     </div>
     <div class="field">
       <label for="sourceUrl">Källa-URL (valfritt)</label>
       <input type="url" id="sourceUrl" placeholder="https://www.instagram.com/p/…">
+      <p class="field-hint">Bara länk räcker inte — klistra in caption i textfältet ovan. URL sparas som källa i receptet.</p>
     </div>
     <div class="field">
       <label for="image">Skärmdump eller matfoto (valfritt)</label>
       <input type="file" id="image" accept="image/*">
       <img id="thumb" class="thumb hidden" alt="">
+      <p class="field-hint">Skärmdump med text + bild, eller foto på maten. AI kan läsa text från bild och förbättra matfoto vid sparning.</p>
     </div>
     <div class="actions">
       <button type="button" class="primary" id="btn-parse">Tolka med AI</button>
@@ -94,7 +108,8 @@
   <div class="status" id="status"></div>
 
   <div class="preview" id="preview">
-    <h2 id="preview-title"></h2>
+    <h2 id="preview-title">Förhandsgranskning</h2>
+    <p class="field-hint" style="margin-top:0;margin-bottom:0.75rem;">Justera JSON om du vill, sedan spara.</p>
     <img id="preview-img" class="hidden" alt="">
     <pre id="preview-json"></pre>
     <div class="actions">
