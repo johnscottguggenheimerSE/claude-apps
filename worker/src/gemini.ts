@@ -1,7 +1,8 @@
 import type { Recipe } from './validate';
 
 const TEXT_MODEL = 'gemini-2.5-flash';
-const IMAGE_MODELS = ['gemini-2.5-flash-image', 'gemini-3.1-flash-image'];
+// Nano Banana 2 → Nano Banana Pro (sällan använd, kvalitet först)
+const IMAGE_MODELS = ['gemini-3.1-flash-image', 'gemini-3-pro-image'];
 
 const PARSE_SYSTEM = `Du är receptparser för en svensk proteinfokuserad receptbok.
 Returnera ENDAST ett JSON-objekt (ingen markdown).
