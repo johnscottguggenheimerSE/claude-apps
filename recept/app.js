@@ -275,15 +275,6 @@ function servingScale(r) {
   return currentServings / getBaseServings(r);
 }
 
-function badgePortions(r) {
-  if (!r.badges) return '';
-  for (var i = 0; i < r.badges.length; i++) {
-    var bl = r.badges[i].toLowerCase();
-    if (/portioner|pizza|sliders|bollar|bullar/.test(bl)) return r.badges[i];
-  }
-  return '';
-}
-
 function badgeTime(r) {
   if (!r.badges) return '';
   for (var i = 0; i < r.badges.length; i++) {
@@ -302,8 +293,6 @@ function badgeTime(r) {
 
 function cardMetricTags(r) {
   var tags = [];
-  var portions = badgePortions(r);
-  if (portions) tags.push(portions);
   if (r.macros) {
     var n = getBaseServings(r);
     tags.push(Math.round(r.macros.kcal / n) + ' kcal/port');
