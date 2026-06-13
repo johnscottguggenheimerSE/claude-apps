@@ -12,7 +12,7 @@ import {
   parseRecipe,
 } from './gemini';
 import { getRecipe, idExists, insertRecipe, listRecipes, updateRecipe } from './db';
-import { slugify, validateRecipe, type Recipe } from './validate';
+import { slugify, normalizeRecipe, validateRecipe, type Recipe } from './validate';
 
 export interface Env {
   ASSETS: Fetcher;
@@ -166,6 +166,7 @@ async function handleCreateRecipe(request: Request, env: Env): Promise<Response>
 
   delete recipe.emoji;
   if (!recipe.id) recipe.id = slugify(String(recipe.title || 'recept'));
+  normalizeRecipe(recipe);
 
   const errors = validateRecipe(recipe, {});
   if (errors.length) return json({ error: 'Validering', details: errors }, 400);
@@ -209,6 +210,7 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
   if (!recipe) return json({ error: 'Saknar recipe' }, 400);
   recipe.id = id;
   delete recipe.emoji;
+  normalizeRecipe(recipe);
 
   const errors = validateRecipe(recipe, {});
   if (errors.length) return json({ error: 'Validering', details: errors }, 400);

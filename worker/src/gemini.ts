@@ -1,4 +1,4 @@
-import type { Recipe } from './validate';
+import { normalizeRecipe, type Recipe } from './validate';
 
 const TEXT_MODEL = 'gemini-2.5-flash';
 // Kvalitet först; fall back på billigare modell vid 404/429 (gratis tier har ofta 0 bildquota på Pro/3.1)
@@ -19,7 +19,7 @@ Fält (inget emoji-fält):
 - category: middag | asiatisk | sallad | bakning
 - baseServings: number
 - tags: array — endast från: hog-protein, snabb, laggkolhydrat, vegetarisk, meal-prep, kyckling, notkott, flask, fisk, skaldjur, ugn, airfryer, stekpanna, tillbehor
-- title, source, sourceUrl (tom sträng om okänd)
+- title, source (alltid sträng — "Okänd källa" om okänd), sourceUrl (tom sträng om okänd)
 - badges: array
 - macros: { kcal, prot, carb, fat } för HELA receptet
 - groups med ingredients (name lowercase, amount number, unit: g|msk|tsk|st|pinch|näve|strimlor)
@@ -151,7 +151,7 @@ export async function parseRecipe(
   parts.push({ text: prompt });
 
   const raw = await geminiJson(apiKey, parts, PARSE_SYSTEM);
-  const recipe = JSON.parse(raw) as Recipe;
+  const recipe = normalizeRecipe(JSON.parse(raw) as Recipe);
   if (sourceUrl && !recipe.sourceUrl) recipe.sourceUrl = sourceUrl;
   delete recipe.emoji;
   return recipe;

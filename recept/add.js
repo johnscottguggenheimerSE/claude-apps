@@ -249,7 +249,7 @@
       })
     }).then(function(res) {
       return res.json().then(function(data) {
-        if (!res.ok) throw new Error((data.details && data.details[0]) || data.error || 'Sparning misslyckades');
+        if (!res.ok) throw new Error((data.details && data.details.join(' · ')) || data.error || 'Sparning misslyckades');
         return data;
       });
     }).then(function(data) {

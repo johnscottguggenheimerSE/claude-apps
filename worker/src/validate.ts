@@ -12,6 +12,16 @@ function isUrl(s: unknown): boolean {
   return typeof s === 'string' && /^https?:\/\//i.test(s);
 }
 
+export function normalizeRecipe(r: Recipe): Recipe {
+  if (!r.source || (typeof r.source === 'string' && !String(r.source).trim())) {
+    r.source = 'Okänd källa';
+  }
+  if (r.sourceUrl == null) r.sourceUrl = '';
+  if (!Array.isArray(r.badges)) r.badges = [];
+  if (!r.baseServings || (r.baseServings as number) < 1) r.baseServings = 1;
+  return r;
+}
+
 export function validateRecipe(r: Recipe, seenIds: Record<string, number>): string[] {
   const errors: string[] = [];
   const prefix = r.id ? `[${r.id}] ` : '';
