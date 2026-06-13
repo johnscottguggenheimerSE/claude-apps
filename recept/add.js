@@ -1,0 +1,180 @@
+(function() {
+  var currentRecipe = null;
+  var editMode = false;
+  var imageBase64 = null;
+  var mimeType = null;
+
+  var statusEl = document.getElementById('status');
+  var previewEl = document.getElementById('preview');
+  var previewTitle = document.getElementById('preview-title');
+  var previewJson = document.getElementById('preview-json');
+  var previewImg = document.getElementById('preview-img');
+  var thumb = document.getElementById('thumb');
+
+  function setStatus(msg, isErr) {
+    statusEl.textContent = msg || '';
+    statusEl.className = 'status' + (isErr ? ' err' : '');
+  }
+
+  function readFileAsBase64(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function() {
+        var result = reader.result;
+        if (typeof result !== 'string') return reject(new Error('Kunde inte läsa fil'));
+        var comma = result.indexOf(',');
+        resolve({ data: result.slice(comma + 1), mimeType: file.type || 'image/jpeg' });
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById('image').addEventListener('change', function(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) {
+      imageBase64 = null;
+      mimeType = null;
+      thumb.classList.add('hidden');
+      return;
+    }
+    readFileAsBase64(file).then(function(r) {
+      imageBase64 = r.data;
+      mimeType = r.mimeType;
+      thumb.src = 'data:' + r.mimeType + ';base64,' + r.data;
+      thumb.classList.remove('hidden');
+    }).catch(function() { setStatus('Kunde inte läsa bilden', true); });
+  });
+
+  document.getElementById('tab-new').addEventListener('click', function() {
+    editMode = false;
+    document.getElementById('tab-new').classList.add('active');
+    document.getElementById('tab-edit').classList.remove('active');
+    document.getElementById('panel-new').classList.remove('hidden');
+    document.getElementById('panel-edit').classList.add('hidden');
+  });
+
+  document.getElementById('tab-edit').addEventListener('click', function() {
+    editMode = true;
+    document.getElementById('tab-edit').classList.add('active');
+    document.getElementById('tab-new').classList.remove('active');
+    document.getElementById('panel-edit').classList.remove('hidden');
+    document.getElementById('panel-new').classList.add('hidden');
+  });
+
+  function showPreview(recipe) {
+    currentRecipe = recipe;
+    previewTitle.textContent = recipe.title || recipe.id;
+    previewJson.textContent = JSON.stringify(recipe, null, 2);
+    previewEl.classList.add('visible');
+    if (recipe.image && recipe.image.indexOf('/api/') === 0) {
+      previewImg.src = recipe.image;
+      previewImg.classList.remove('hidden');
+    } else if (recipe.image) {
+      previewImg.src = recipe.image.indexOf('http') === 0 ? recipe.image : '/' + recipe.image.replace(/^\//, '');
+      previewImg.classList.remove('hidden');
+    } else {
+      previewImg.classList.add('hidden');
+    }
+  }
+
+  document.getElementById('btn-parse').addEventListener('click', function() {
+    var btn = document.getElementById('btn-parse');
+    btn.disabled = true;
+    setStatus('Tolkar med Gemini…');
+    fetch('/api/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        text: document.getElementById('text').value,
+        sourceUrl: document.getElementById('sourceUrl').value,
+        imageBase64: imageBase64,
+        mimeType: mimeType
+      })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Parse misslyckades');
+        return data;
+      });
+    }).then(function(data) {
+      editMode = false;
+      showPreview(data.recipe);
+      setStatus('Granska och spara när du är nöjd.');
+    }).catch(function(ex) {
+      setStatus(ex.message, true);
+    }).finally(function() { btn.disabled = false; });
+  });
+
+  document.getElementById('btn-load').addEventListener('click', function() {
+    var id = document.getElementById('edit-id').value.trim();
+    if (!id) { setStatus('Ange recept-id', true); return; }
+    setStatus('Hämtar…');
+    fetch('/api/recipes/' + encodeURIComponent(id), { credentials: 'same-origin' })
+      .then(function(res) {
+        return res.json().then(function(data) {
+          if (!res.ok) throw new Error(data.error || 'Hittades inte');
+          return data.recipe;
+        });
+      })
+      .then(function(recipe) {
+        editMode = true;
+        showPreview(recipe);
+        setStatus('Redigera JSON i förhandsvisningen och spara.');
+      })
+      .catch(function(ex) { setStatus(ex.message, true); });
+  });
+
+  document.getElementById('btn-save').addEventListener('click', function() {
+    if (!currentRecipe) return;
+    var btn = document.getElementById('btn-save');
+    btn.disabled = true;
+    setStatus('Sparar och genererar bild…');
+
+    var recipe;
+    try {
+      recipe = JSON.parse(previewJson.textContent);
+    } catch (e) {
+      setStatus('Ogiltig JSON i förhandsvisningen', true);
+      btn.disabled = false;
+      return;
+    }
+
+    var url = editMode
+      ? '/api/recipes/' + encodeURIComponent(recipe.id)
+      : '/api/recipes';
+    var method = editMode ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        recipe: recipe,
+        imageBase64: imageBase64,
+        mimeType: mimeType,
+        featuredNew: document.getElementById('featured-new').checked,
+        regenerateImage: editMode && !!imageBase64
+      })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error((data.details && data.details[0]) || data.error || 'Sparning misslyckades');
+        return data;
+      });
+    }).then(function(data) {
+      showPreview(data.recipe);
+      setStatus('Sparat! ' + (editMode ? 'Uppdaterat.' : 'Nytt recept tillagt.'));
+      if (!editMode) {
+        document.getElementById('featured-new').checked = false;
+        editMode = true;
+      }
+    }).catch(function(ex) {
+      setStatus(ex.message, true);
+    }).finally(function() { btn.disabled = false; });
+  });
+
+  fetch('/api/auth/check', { credentials: 'same-origin' })
+    .then(function(res) { return res.json(); })
+    .then(function(d) { if (!d.ok) location.href = '/login.html'; })
+    .catch(function() { location.href = '/login.html'; });
+})();

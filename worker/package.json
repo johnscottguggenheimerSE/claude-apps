@@ -1,0 +1,19 @@
+{
+  "name": "receptbok-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply receptbok-db --local",
+    "db:migrate": "wrangler d1 migrations apply receptbok-db --remote",
+    "db:seed": "node ../scripts/seed-d1.mjs && wrangler d1 execute receptbok-db --remote --file=../scripts/seed.sql",
+    "secret:gemini": "wrangler secret put GEMINI_API_KEY",
+    "secret:auth": "wrangler secret put AUTH_PASSWORD"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "typescript": "^5.7.3",
+    "wrangler": "^4.14.0"
+  }
+}

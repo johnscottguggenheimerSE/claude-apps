@@ -1,2 +1,5 @@
 .DS_Store
 recept/.claude/
+.wrangler/
+worker/node_modules/
+worker/.dev.vars

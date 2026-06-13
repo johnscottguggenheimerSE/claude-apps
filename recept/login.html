@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logga in — Proteinrika recept</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0; --card: #fff; --text: #1a1a18; --text2: #6b6b65;
+    --border: rgba(0,0,0,0.12); --info: #1a5fa8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1c1c1a; --card: #252522; --text: #f0efe8; --text2: #a0a09a; --border: rgba(255,255,255,0.12); --info: #5ba3e8; }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .card { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 2rem; width: 100%; max-width: 360px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  h1 { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.35rem; }
+  p { font-size: 0.875rem; color: var(--text2); margin-bottom: 1.25rem; }
+  label { display: block; font-size: 0.8125rem; font-weight: 500; margin-bottom: 0.35rem; }
+  input[type=password] { width: 100%; font: inherit; font-size: 1rem; padding: 0.65rem 0.75rem; border: 0.5px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-bottom: 1rem; }
+  button { width: 100%; font: inherit; font-size: 0.9375rem; font-weight: 600; padding: 0.7rem; border: none; border-radius: 8px; background: var(--info); color: #fff; cursor: pointer; }
+  button:disabled { opacity: 0.6; cursor: default; }
+  .err { color: #c0392b; font-size: 0.8125rem; margin-bottom: 0.75rem; min-height: 1.2em; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Proteinrika recept</h1>
+  <p>Logga in för att se och lägga till recept.</p>
+  <div class="err" id="err" role="alert"></div>
+  <form id="form">
+    <label for="pw">Lösenord</label>
+    <input type="password" id="pw" name="password" autocomplete="current-password" required autofocus>
+    <button type="submit" id="btn">Logga in</button>
+  </form>
+</div>
+<script>
+document.getElementById('form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = document.getElementById('btn');
+  var err = document.getElementById('err');
+  err.textContent = '';
+  btn.disabled = true;
+  fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ password: document.getElementById('pw').value })
+  }).then(function(res) {
+    if (res.ok) { location.href = '/'; return; }
+    return res.json().then(function(d) { throw new Error(d.error || 'Fel lösenord'); });
+  }).catch(function(ex) {
+    err.textContent = ex.message || 'Något gick fel';
+    btn.disabled = false;
+  });
+});
+</script>
+</body>
+</html>

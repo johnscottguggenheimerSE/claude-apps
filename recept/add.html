@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lägg till recept</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f4f0; --text: #1a1a18; --text2: #6b6b65;
+    --border: rgba(0,0,0,0.09); --info: #1a5fa8; --radius: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1c1c1a; --bg2: #252522; --text: #f0efe8; --text2: #a0a09a; --border: rgba(255,255,255,0.09); --info: #5ba3e8; }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
+  .app { max-width: 720px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+  h1 { font-size: 1.5rem; font-weight: 700; }
+  a { color: var(--info); text-decoration: none; font-size: 0.875rem; }
+  label { display: block; font-size: 0.8125rem; font-weight: 500; margin-bottom: 0.35rem; color: var(--text2); }
+  textarea, input[type=url], input[type=text] {
+    width: 100%; font: inherit; font-size: 0.9375rem; padding: 0.65rem 0.75rem;
+    border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text);
+    margin-bottom: 1rem;
+  }
+  textarea { min-height: 140px; resize: vertical; }
+  .field { margin-bottom: 0.25rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+  button {
+    font: inherit; font-size: 0.875rem; font-weight: 600; padding: 0.6rem 1rem;
+    border-radius: var(--radius); border: 0.5px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer;
+  }
+  button.primary { background: var(--info); color: #fff; border-color: var(--info); }
+  button:disabled { opacity: 0.55; cursor: default; }
+  .status { font-size: 0.8125rem; color: var(--text2); margin: 0.75rem 0; min-height: 1.2em; }
+  .status.err { color: #c0392b; }
+  .preview { display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 0.5px solid var(--border); }
+  .preview.visible { display: block; }
+  .preview img { width: 100%; max-height: 220px; object-fit: cover; border-radius: var(--radius); margin-bottom: 1rem; }
+  .preview h2 { font-size: 1.125rem; margin-bottom: 0.5rem; }
+  .preview pre {
+    font-size: 0.75rem; background: var(--bg); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 0.75rem; overflow: auto; max-height: 320px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .mode-tabs button.active { background: var(--info); color: #fff; border-color: var(--info); }
+  .hidden { display: none !important; }
+  .thumb { max-width: 120px; border-radius: var(--radius); margin-bottom: 0.75rem; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <h1>Lägg till recept</h1>
+    <a href="/">← Alla recept</a>
+  </div>
+
+  <div class="mode-tabs">
+    <button type="button" id="tab-new" class="active">Nytt recept</button>
+    <button type="button" id="tab-edit">Redigera befintligt</button>
+  </div>
+
+  <div id="panel-new">
+    <div class="field">
+      <label for="text">Recepttext, caption eller beskrivning</label>
+      <textarea id="text" placeholder="Klistra in recept från Instagram, TikTok eller skriv fritt…"></textarea>
+    </div>
+    <div class="field">
+      <label for="sourceUrl">Källa-URL (valfritt)</label>
+      <input type="url" id="sourceUrl" placeholder="https://www.instagram.com/p/…">
+    </div>
+    <div class="field">
+      <label for="image">Skärmdump eller matfoto (valfritt)</label>
+      <input type="file" id="image" accept="image/*">
+      <img id="thumb" class="thumb hidden" alt="">
+    </div>
+    <div class="actions">
+      <button type="button" class="primary" id="btn-parse">Tolka med AI</button>
+    </div>
+  </div>
+
+  <div id="panel-edit" class="hidden">
+    <div class="field">
+      <label for="edit-id">Recept-id</label>
+      <input type="text" id="edit-id" placeholder="t.ex. chicken-kebab-wraps">
+    </div>
+    <div class="actions">
+      <button type="button" id="btn-load">Hämta recept</button>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="preview" id="preview">
+    <h2 id="preview-title"></h2>
+    <img id="preview-img" class="hidden" alt="">
+    <pre id="preview-json"></pre>
+    <div class="actions">
+      <button type="button" class="primary" id="btn-save">Spara recept</button>
+      <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8125rem;margin-left:0.25rem;">
+        <input type="checkbox" id="featured-new"> Visa som Nytt!
+      </label>
+    </div>
+  </div>
+</div>
+<script src="add.js"></script>
+</body>
+</html>

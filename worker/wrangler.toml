@@ -1,0 +1,17 @@
+name = "receptbok"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "receptbok-db"
+database_id = "0ef83070-9ab7-47d2-842b-d0c7c7d7fa64"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "receptbok-images"
+
+[assets]
+directory = "../recept"
+binding = "ASSETS"

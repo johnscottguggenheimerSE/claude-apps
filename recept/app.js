@@ -53,6 +53,7 @@ var RECEPT_COOKIE_PATH = (function() {
 
 function assetUrl(path) {
   if (!path || /^https?:\/\//i.test(path)) return path;
+  if (path.indexOf('/api/') === 0) return location.origin + path;
   var dir = BASE_PATH;
   if (dir.slice(-1) !== '/') dir += '/';
   var tail = path.replace(/^\//, '');
@@ -67,7 +68,7 @@ function recipeLink(id) {
   return BASE_PATH + recipeHash(id);
 }
 
-var FEATURED_NEW_IDS = ['chicken-kebab-wraps', 'rice-paper-shrimp-pancake'];
+var FEATURED_NEW_IDS = [];
 var VISIT_COOKIE_NAME = 'recept_seen_new';
 var VISIT_COOKIE_MAX_AGE = String(365 * 24 * 60 * 60);
 
@@ -136,7 +137,7 @@ function setRecipeUrl(id, replace) {
   else history.pushState({ view: 'recipe', id: id }, '', url);
 }
 
-var recipes = RECIPES;
+var recipes = [];
 var activeCategory = 'all';
 var activeTagFilters = [];
 var currentServings = 1;
@@ -320,11 +321,6 @@ function buildDetailHero(r, opts) {
   if (r.image) {
     hero.classList.add('detail-hero--photo');
     hero.style.backgroundImage = "url('" + assetUrl(r.image) + "')";
-  } else {
-    hero.classList.add('detail-hero--fallback');
-    var emojiEl = mk('div', 'detail-hero-emoji');
-    emojiEl.textContent = r.emoji;
-    hero.appendChild(emojiEl);
   }
   var heroTags = mk('div', 'detail-hero-tags');
   appendMetricTags(heroTags, cardMetricTags(r), 'detail-hero-tag');
@@ -342,11 +338,6 @@ function createRecipeCard(r) {
   card.href = recipeLink(r.id);
   if (r.image) {
     card.style.backgroundImage = "url('" + assetUrl(r.image) + "')";
-  } else {
-    card.classList.add('recipe-card--fallback');
-    var emojiEl = mk('div', 'recipe-card-emoji');
-    emojiEl.textContent = r.emoji;
-    card.appendChild(emojiEl);
   }
   var tagsWrap = mk('div', 'recipe-card-tags');
   appendMetricTags(tagsWrap, cardMetricTags(r), 'recipe-card-tag');
@@ -591,8 +582,32 @@ window.addEventListener('hashchange', function() {
   else showList(true);
 });
 
-RecipeValidate.reportAtLoad(RECIPES, TAG_FILTER_ORDER, CATEGORY_ORDER);
+function bootApp(data) {
+  recipes = data.recipes || [];
+  FEATURED_NEW_IDS.length = 0;
+  (data.featuredNewIds || []).forEach(function(id) { FEATURED_NEW_IDS.push(id); });
+  RecipeValidate.reportAtLoad(recipes, TAG_FILTER_ORDER, CATEGORY_ORDER);
+  renderCategoryNav();
+  renderList();
+  routeFromLocation();
+}
 
-renderCategoryNav();
-renderList();
-routeFromLocation();
+fetch('/api/recipes', { credentials: 'same-origin' })
+  .then(function(res) {
+    if (res.status === 401) {
+      location.href = '/login.html';
+      return null;
+    }
+    if (!res.ok) throw new Error('Kunde inte hämta recept');
+    return res.json();
+  })
+  .then(function(data) {
+    if (data) bootApp(data);
+  })
+  .catch(function() {
+    var banner = document.createElement('div');
+    banner.className = 'recipe-validate-banner';
+    banner.setAttribute('role', 'alert');
+    banner.textContent = 'Kunde inte ladda recept. Försök ladda om sidan.';
+    document.body.insertBefore(banner, document.body.firstChild);
+  });

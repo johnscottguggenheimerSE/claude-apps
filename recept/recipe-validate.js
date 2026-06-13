@@ -46,7 +46,7 @@ var RecipeValidate = (function() {
     else seenIds[r.id] = 1;
 
     if (!r.title) errors.push(prefix + 'saknar title');
-    if (!r.emoji) errors.push(prefix + 'saknar emoji');
+    if (!r.image || typeof r.image !== 'string') errors.push(prefix + 'saknar image');
     if (!r.source) errors.push(prefix + 'saknar source');
     if (r.sourceUrl && r.sourceUrl !== '#' && !isUrl(r.sourceUrl)) {
       errors.push(prefix + 'sourceUrl är inte en giltig http(s)-URL');

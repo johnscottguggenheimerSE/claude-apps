@@ -225,8 +225,16 @@
 <div class="app">
   <div id="view-list">
     <div class="list-header">
-      <h1 class="list-title">Proteinrika recept</h1>
-      <p class="list-tagline">by Jånn</p>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div>
+          <h1 class="list-title">Proteinrika recept</h1>
+          <p class="list-tagline">by Jånn</p>
+        </div>
+        <nav style="display:flex;gap:0.75rem;font-size:0.8125rem;padding-top:0.35rem;">
+          <a href="/add" style="color:var(--info);text-decoration:none;">+ Lägg till</a>
+          <button type="button" id="logout-btn" style="font:inherit;font-size:0.8125rem;background:none;border:none;color:var(--text2);cursor:pointer;padding:0;">Logga ut</button>
+        </nav>
+      </div>
     </div>
     <nav class="cat-nav" id="cat-nav" aria-label="Kategorier"></nav>
     <nav class="tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
@@ -237,8 +245,13 @@
     <div id="detail-content"></div>
   </div>
 </div>
-<script src="recipes.js"></script>
 <script src="recipe-validate.js"></script>
 <script src="app.js"></script>
+<script>
+document.getElementById('logout-btn').addEventListener('click', function() {
+  fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+    .then(function() { location.href = '/login.html'; });
+});
+</script>
 </body>
 </html>
