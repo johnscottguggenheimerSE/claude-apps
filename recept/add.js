@@ -268,18 +268,22 @@
     var btn = document.getElementById('btn-parse-text');
     var text = document.getElementById('text').value.trim();
     var sourceLabel = document.getElementById('source-label').value.trim();
-    if (!text) {
-      setStatus('Klistra in recepttext först.', true);
+    if (!text && !pendingImageBase64) {
+      setStatus('Klistra in text eller lägg till en bild.', true);
       return;
     }
-    if (sourceLabel) text += '\n\nKälla: ' + sourceLabel;
+    if (sourceLabel) text = (text ? text + '\n\n' : '') + 'Källa: ' + sourceLabel;
     btn.disabled = true;
-    setStatus('Tolkar text med Gemini…');
+    setStatus('Bygger recept…');
     fetch('/api/parse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ text: text })
+      body: JSON.stringify({
+        text: text,
+        imageBase64: pendingImageBase64,
+        mimeType: pendingMimeType
+      })
     }).then(function(res) {
       return res.json().then(function(data) {
         if (!res.ok) throw new Error(data.error || 'Parse misslyckades');
@@ -291,7 +295,7 @@
         data.recipe.source = sourceLabel;
       }
       showPreview(data.recipe);
-      setStatus('Granska och spara. Bilden ovan sparas utan AI om du lagt till en.');
+      setStatus('Granska JSON nedan och spara när du är nöjd.');
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() { btn.disabled = false; });
