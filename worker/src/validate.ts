@@ -12,13 +12,38 @@ function isUrl(s: unknown): boolean {
   return typeof s === 'string' && /^https?:\/\//i.test(s);
 }
 
+export function inferBadges(r: Recipe): string[] {
+  const badges: string[] = [];
+  const n = typeof r.baseServings === 'number' && r.baseServings > 0 ? r.baseServings : 1;
+  badges.push(`${n} portioner`);
+  const macros = r.macros as Record<string, number> | undefined;
+  if (macros?.kcal) badges.push(`${Math.round(macros.kcal / n)} kcal/port`);
+  if (macros?.prot) badges.push(`${Math.round(macros.prot / n)}g protein/port`);
+  const tags = r.tags as string[] | undefined;
+  if (tags?.includes('hog-protein')) badges.push('hög protein');
+  if (tags?.includes('snabb')) badges.push('snabb');
+  const steps = r.steps as { text?: string }[] | undefined;
+  if (steps) {
+    for (const step of steps) {
+      const m = step.text?.match(/(?:ca\s+)?(?:under\s+)?(\d+(?:[–-]\d+)?)\s*min/i);
+      if (m) {
+        badges.push(m[0].trim());
+        break;
+      }
+    }
+  }
+  return badges;
+}
+
 export function normalizeRecipe(r: Recipe): Recipe {
   if (!r.source || (typeof r.source === 'string' && !String(r.source).trim())) {
     r.source = 'Okänd källa';
   }
   if (r.sourceUrl == null) r.sourceUrl = '';
-  if (!Array.isArray(r.badges)) r.badges = [];
   if (!r.baseServings || (r.baseServings as number) < 1) r.baseServings = 1;
+  if (!Array.isArray(r.badges) || r.badges.length === 0) {
+    r.badges = inferBadges(r);
+  }
   return r;
 }
 

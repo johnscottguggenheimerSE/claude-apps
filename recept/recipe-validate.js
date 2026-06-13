@@ -37,6 +37,34 @@ var RecipeValidate = (function() {
     return null;
   }
 
+  function inferBadges(r) {
+    var badges = [];
+    var n = r.baseServings && r.baseServings > 0 ? r.baseServings : 1;
+    badges.push(n + ' portioner');
+    if (r.macros && r.macros.kcal) badges.push(Math.round(r.macros.kcal / n) + ' kcal/port');
+    if (r.macros && r.macros.prot) badges.push(Math.round(r.macros.prot / n) + 'g protein/port');
+    if (r.tags && r.tags.indexOf('hog-protein') !== -1) badges.push('hög protein');
+    if (r.tags && r.tags.indexOf('snabb') !== -1) badges.push('snabb');
+    if (r.steps) {
+      for (var si = 0; si < r.steps.length; si++) {
+        var m = r.steps[si].text && r.steps[si].text.match(/(?:ca\s+)?(?:under\s+)?(\d+(?:[–-]\d+)?)\s*min/i);
+        if (m) {
+          badges.push(m[0].trim());
+          break;
+        }
+      }
+    }
+    return badges;
+  }
+
+  function normalizeRecipe(r) {
+    if (!r.source || !String(r.source).trim()) r.source = 'Okänd källa';
+    if (r.sourceUrl == null) r.sourceUrl = '';
+    if (!r.baseServings || r.baseServings < 1) r.baseServings = 1;
+    if (!r.badges || !r.badges.length) r.badges = inferBadges(r);
+    return r;
+  }
+
   function validateRecipe(r, tagFilterOrder, categoryOrder, seenIds) {
     var errors = [];
     var prefix = r.id ? '[' + r.id + '] ' : '';
@@ -102,6 +130,7 @@ var RecipeValidate = (function() {
     var seenIds = {};
     if (!recipes || !recipes.length) errors.push('RECIPES är tom');
     recipes.forEach(function(r) {
+      normalizeRecipe(r);
       errors = errors.concat(validateRecipe(r, tagFilterOrder, categoryOrder, seenIds));
     });
     return errors;

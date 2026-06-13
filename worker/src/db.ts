@@ -1,4 +1,4 @@
-import type { Recipe } from './validate';
+import { normalizeRecipe, type Recipe } from './validate';
 
 export interface RecipeRow {
   id: string;
@@ -10,7 +10,7 @@ export interface RecipeRow {
 }
 
 export function rowToRecipe(row: RecipeRow): Recipe {
-  return JSON.parse(row.data) as Recipe;
+  return normalizeRecipe(JSON.parse(row.data) as Recipe);
 }
 
 export async function listRecipes(db: D1Database): Promise<{ recipes: Recipe[]; featuredNewIds: string[] }> {

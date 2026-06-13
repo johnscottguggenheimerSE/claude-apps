@@ -451,7 +451,7 @@ function showDetail(id, skipHistory) {
       badgesDiv.appendChild(tb);
     });
   }
-  r.badges.forEach(function(b) {
+  (r.badges || []).forEach(function(b) {
     var badge = mk('span', 'badge');
     badge.textContent = b;
     badgesDiv.appendChild(badge);
