@@ -1,7 +1,7 @@
 import type { Recipe } from './validate';
 
-const TEXT_MODEL = 'gemini-2.0-flash';
-const IMAGE_MODEL = 'gemini-2.0-flash-preview-image-generation';
+const TEXT_MODEL = 'gemini-2.5-flash';
+const IMAGE_MODELS = ['gemini-2.5-flash-image', 'gemini-3.1-flash-image'];
 
 const PARSE_SYSTEM = `Du är receptparser för en svensk proteinfokuserad receptbok.
 Returnera ENDAST ett JSON-objekt (ingen markdown).
@@ -53,28 +53,41 @@ async function geminiImage(
   apiKey: string,
   parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>
 ): Promise<{ data: string; mimeType: string }> {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts }],
-        generationConfig: { responseModalities: ['IMAGE'], temperature: 0.4 },
-      }),
+  const body = JSON.stringify({
+    contents: [{ role: 'user', parts }],
+    generationConfig: {
+      responseModalities: ['TEXT', 'IMAGE'],
+      temperature: 0.4,
+    },
+  });
+
+  let lastErr = 'Gemini returnerade ingen bild';
+  for (const model of IMAGE_MODELS) {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      }
+    );
+    if (res.status === 404) {
+      lastErr = `Modell ${model} hittades inte`;
+      continue;
     }
-  );
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini image ${res.status}: ${err.slice(0, 300)}`);
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Gemini image ${res.status}: ${err.slice(0, 300)}`);
+    }
+    const data = (await res.json()) as {
+      candidates?: { content?: { parts?: { inlineData?: { data: string; mimeType: string } }[] } }[];
+    };
+    for (const part of data.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData?.data) return part.inlineData;
+    }
+    lastErr = `Modell ${model} returnerade ingen bild`;
   }
-  const data = (await res.json()) as {
-    candidates?: { content?: { parts?: { inlineData?: { data: string; mimeType: string } }[] } }[];
-  };
-  for (const part of data.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData?.data) return part.inlineData;
-  }
-  throw new Error('Gemini returnerade ingen bild');
+  throw new Error(lastErr);
 }
 
 export async function detectFoodPhoto(
