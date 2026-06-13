@@ -15,7 +15,7 @@ export function rowToRecipe(row: RecipeRow): Recipe {
 
 export async function listRecipes(db: D1Database): Promise<{ recipes: Recipe[]; featuredNewIds: string[] }> {
   const { results } = await db
-    .prepare('SELECT * FROM recipes ORDER BY featured_new DESC, sort_order ASC, created_at ASC')
+    .prepare('SELECT * FROM recipes ORDER BY created_at DESC, sort_order DESC')
     .all<RecipeRow>();
   const rows = results || [];
   const featuredNewIds = rows.filter((r) => r.featured_new).map((r) => r.id);
