@@ -1,12 +1,19 @@
 import { normalizeRecipe, type Recipe } from './validate';
 
-const TEXT_MODEL = 'gemini-2.5-flash';
-// Kvalitet först; fall back på billigare modell vid 404/429 (gratis tier har ofta 0 bildquota på Pro/3.1)
+/**
+ * Text / JSON — endast modeller med gratis free tier (Flash / Flash-Lite).
+ * Pro, Preview-Pro och bildmodeller används aldrig här.
+ * @see https://ai.google.dev/gemini-api/docs/pricing
+ */
+const TEXT_MODELS_PARSE = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'] as const;
+const TEXT_MODELS_SIMPLE = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'] as const;
+
+/** Bildgenerering — kräver ofta billing; separat kvot från text. */
 const IMAGE_MODELS = [
   'gemini-3.1-flash-image',
   'gemini-3-pro-image',
   'gemini-2.5-flash-image',
-];
+] as const;
 
 const QUOTA_HELP =
   'Gratis Gemini API har ofta ingen bildkvot (limit: 0). Aktivera billing i Google AI Studio → API key → projekt med betalning, eller vänta tills dagens kvot återställs. Kvoter: https://ai.google.dev/gemini-api/docs/rate-limits · Usage: https://ai.dev/rate-limit';
@@ -31,38 +38,65 @@ Mått metriska, svenska. Uppskatta makros.`;
 
 import { isSocialMediaUrl } from './fetch-url';
 
+type GeminiPart = { text?: string; inlineData?: { mimeType: string; data: string } };
+
+function textGenerationConfig() {
+  return {
+    responseMimeType: 'application/json',
+    temperature: 0.2,
+    thinkingConfig: { thinkingBudget: 0 },
+  };
+}
+
 async function geminiJson(
   apiKey: string,
-  parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>,
-  system: string
+  parts: GeminiPart[],
+  system: string,
+  models: readonly string[] = TEXT_MODELS_PARSE
 ): Promise<string> {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL}:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: 'user', parts }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.2 },
-      }),
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: system }] },
+    contents: [{ role: 'user', parts }],
+    generationConfig: textGenerationConfig(),
+  });
+
+  let lastErr = 'Gemini returnerade ingen text';
+
+  for (const model of models) {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      }
+    );
+    if (res.status === 404) {
+      lastErr = `Modell ${model} hittades inte`;
+      continue;
     }
-  );
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini text ${res.status}: ${err.slice(0, 300)}`);
+    if (res.status === 429) {
+      lastErr = `Kvot slut för ${model}`;
+      continue;
+    }
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Gemini text ${res.status}: ${err.slice(0, 300)}`);
+    }
+    const data = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (text) return text;
+    lastErr = `Modell ${model} returnerade ingen text`;
   }
-  const data = (await res.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
-  };
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Gemini returnerade ingen text');
-  return text;
+
+  throw new Error(lastErr);
 }
 
 async function geminiImage(
   apiKey: string,
-  parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>
+  parts: GeminiPart[]
 ): Promise<{ data: string; mimeType: string }> {
   const body = JSON.stringify({
     contents: [{ role: 'user', parts }],
@@ -125,7 +159,8 @@ export async function detectFoodPhoto(
         text: 'Finns en tydlig maträtt/foto av mat i bilden (inte bara text/UI)? Svara JSON: {"hasFoodPhoto": true|false}',
       },
     ],
-    'Svara endast JSON.'
+    'Svara endast JSON.',
+    TEXT_MODELS_SIMPLE
   );
   try {
     return !!(JSON.parse(text) as { hasFoodPhoto?: boolean }).hasFoodPhoto;
@@ -141,7 +176,7 @@ export async function parseRecipe(
   mimeType: string | null,
   sourceUrl: string
 ): Promise<Recipe> {
-  const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+  const parts: GeminiPart[] = [];
   if (imageBase64 && mimeType) {
     parts.push({ inlineData: { mimeType, data: imageBase64 } });
   }
@@ -153,7 +188,7 @@ export async function parseRecipe(
     .join('\n\n');
   parts.push({ text: prompt });
 
-  const raw = await geminiJson(apiKey, parts, PARSE_SYSTEM);
+  const raw = await geminiJson(apiKey, parts, PARSE_SYSTEM, TEXT_MODELS_PARSE);
   const recipe = normalizeRecipe(JSON.parse(raw) as Recipe);
   if (sourceUrl && !recipe.sourceUrl && !isSocialMediaUrl(sourceUrl)) {
     recipe.sourceUrl = sourceUrl;
