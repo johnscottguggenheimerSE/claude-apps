@@ -6,7 +6,7 @@ En receptapp hostad på GitHub Pages som samlar recept från Instagram och recep
 
 **Live:** https://johnscottguggenheimerse.github.io/claude-apps/recept/  
 **Repo:** https://github.com/johnscottguggenheimerSE/claude-apps  
-**Fil:** `recept/index.html`
+**Fil:** `recept/index.html` (+ `recept/recipes.js` för data, `recept/app.js` för logik)
 
 **Deploy (GitHub Pages, annat konto än övriga projekt):** se **[DEPLOY.md](./DEPLOY.md)** — aktivera Pages i repot en gång, sedan `git push origin main`.
 
@@ -24,11 +24,12 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 
 1. Användaren skickar en Instagram-URL (eller annan recept-URL)
 2. Hämta sidan och extrahera receptet från captionen eller receptsidan
-3. Bygg ett receptobjekt i samma format som befintliga recept i `recept/index.html`
-4. Lägg till objektet i `RECIPES`-arrayen i `recept/index.html`
-5. **Nytt!-märke:** Lägg receptets `id` först i arrayen `FEATURED_NEW_IDS` i samma fil (sök i `<script>`) så det visas överst med "Nytt!" tills användaren öppnat receptet (sparad i cookie).
-6. `git add recept/index.html && git commit -m "Add [receptnamn]" && git push` (eller `git add .` om fler filer ska med)
-7. GitHub Pages uppdateras automatiskt efter ~30 sekunder
+3. Bygg ett receptobjekt i samma format som befintliga recept i `recept/recipes.js`
+4. Lägg till objektet i `RECIPES`-arrayen i `recept/recipes.js`
+5. **Nytt!-märke:** Lägg receptets `id` först i arrayen `FEATURED_NEW_IDS` i `recept/app.js` så det visas överst med "Nytt!" tills användaren öppnat receptet (sparad i cookie).
+6. Kör `node scripts/validate-recipes.mjs` — ska vara OK innan push.
+7. `git add recept/ && git commit -m "Add [receptnamn]" && git push` (eller `git add .` om fler filer ska med)
+8. GitHub Pages uppdateras automatiskt efter ~30 sekunder
 
 ---
 
@@ -38,7 +39,8 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 {
   id: 'kebab-case-id',
   category: 'middag', // en av: middag | asiatisk | sallad | bakning
-  tags: ['hog-protein', 'snabb', 'kyckling'], // flera filter-taggar; id:n som i TAG_FILTER_ORDER i index.html
+  baseServings: 4, // portioner som ingredienslistan och macros avser
+  tags: ['hog-protein', 'snabb', 'kyckling'], // flera filter-taggar; id:n som i TAG_FILTER_ORDER i app.js
   image: 'images/recept.png', // valfritt; annars emoji-bakgrund
   emoji: '🍕',
   title: 'Receptnamn',
@@ -66,7 +68,9 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 }
 ```
 
-**Listvy:** Första raden filtrerar på **kategori** (en i taget). Andra raden är **taggar** — flera kan vara valda samtidigt; då visas bara recept som har **alla** valda taggar (i kombination med vald kategori). Nya tagg-id läggs i `TAG_FILTER_ORDER` och `TAG_LABELS` i samma fil.
+**Listvy:** Första raden filtrerar på **kategori** (en i taget). Andra raden är **taggar** — flera kan vara valda samtidigt; då visas bara recept som har **alla** valda taggar (i kombination med vald kategori). Nya tagg-id läggs i `TAG_FILTER_ORDER` och `TAG_LABELS` i `recept/app.js`.
+
+**Validering:** `node scripts/validate-recipes.mjs` före push. Vid valfritt `macros` per ingrediens jämförs summan mot receptets `macros`.
 
 ---
 
@@ -113,6 +117,6 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 ## Tekniskt
 
 - Ren HTML/CSS/JS — inga ramverk, inga beroenden
-- All data hårdkodad i `RECIPES`-arrayen i `index.html`
+- Data i `recept/recipes.js`, logik i `recept/app.js`, validering i `recept/recipe-validate.js`
 - GitHub Pages hostas från `main`-branchen, rot `/`
 - **CSP-kompatibel kod:** inga template literals i `innerHTML`; använd DOM-metoder (`createElement`, `textContent`, etc.)
