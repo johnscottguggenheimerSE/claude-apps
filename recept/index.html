@@ -46,10 +46,10 @@
     position: relative; display: block; width: 100%;
     min-height: 165px; aspect-ratio: 10 / 9;
     border-radius: var(--radius-lg); overflow: hidden;
-    cursor: pointer; border: 0.5px solid var(--border);
+    cursor: pointer; border: none;
     background-color: var(--bg2); background-size: cover; background-position: center;
     background-repeat: no-repeat;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.24);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     text-decoration: none; color: inherit;
@@ -58,10 +58,10 @@
     .recipe-card { height: 0; padding-top: 90%; min-height: 0; }
     .recipe-card > * { position: absolute; }
   }
-  .recipe-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.14); }
+  .recipe-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.14), inset 0 0 0 1px rgba(0,0,0,0.24); }
   .recipe-card::before {
-    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-    background: linear-gradient(180deg, transparent 0%, transparent 45%, rgba(0,0,0,0.55) 72%, rgba(0,0,0,0.82) 100%);
+    content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: 1; pointer-events: none;
+    background: linear-gradient(180deg, transparent 0%, transparent 45%, rgba(0,0,0,0.55) 72%, rgba(0,0,0,0.88) 100%);
   }
   .recipe-card--fallback::before {
     background: linear-gradient(180deg, transparent 0%, transparent 50%, rgba(0,0,0,0.45) 100%);
