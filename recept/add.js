@@ -368,6 +368,17 @@
     }).finally(function() { btn.disabled = false; });
   });
 
+  function goToRecipe(id) {
+    var path = '/';
+    var p = location.pathname;
+    var idx = p.indexOf('/recept');
+    if (idx !== -1) {
+      path = p.slice(0, idx + 7);
+      if (!path.endsWith('/')) path += '/';
+    }
+    location.href = path + '#' + encodeURIComponent(id);
+  }
+
   document.getElementById('btn-save').addEventListener('click', function() {
     if (!currentRecipe) return;
     var btn = document.getElementById('btn-save');
@@ -420,19 +431,7 @@
         return data;
       });
     }).then(function(data) {
-      clearPendingImage();
-      editMode = true;
-      showPreview(data.recipe);
-      setStatus('Sparat! ' + (recipeExistsInDb(data.recipe.id) ? 'Uppdaterat.' : 'Nytt recept tillagt.'));
-      var saved = data.recipe;
-      var ix = -1;
-      for (var i = 0; i < recipeList.length; i++) {
-        if (recipeList[i].id === saved.id) { ix = i; break; }
-      }
-      if (ix === -1) recipeList.push({ id: saved.id, title: saved.title });
-      else recipeList[ix].title = saved.title;
-      populateEditSelect(saved.id);
-      document.getElementById('featured-new').checked = false;
+      goToRecipe(data.recipe.id);
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() { btn.disabled = false; });
