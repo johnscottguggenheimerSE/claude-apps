@@ -19,7 +19,8 @@ Fält (inget emoji-fält):
 - category: middag | asiatisk | sallad | bakning
 - baseServings: number
 - tags: array — endast från: hog-protein, snabb, laggkolhydrat, vegetarisk, meal-prep, kyckling, notkott, flask, fisk, skaldjur, ugn, airfryer, stekpanna, tillbehor
-- title, source (alltid sträng — "Okänd källa" om okänd), sourceUrl (tom sträng om okänd)
+- title, source (läsbar källa: sajtnamn, «Ali Slagle, NYT Cooking», «@handle på Instagram»), sourceUrl
+- sourceUrl: publik recept-URL (matblogg, NYT Cooking, etc.). Tom sträng för Instagram/TikTok — vi kan inte läsa inloggade sociala länkar; använd @handle i source istället
 - badges: array
 - macros: { kcal, prot, carb, fat } för HELA receptet
 - groups med ingredients (name lowercase, amount number, unit: g|msk|tsk|st|pinch|näve|strimlor)
@@ -27,6 +28,10 @@ Fält (inget emoji-fält):
 - tips: exakt 4, första title "Seattle" (mild för Seattle Mae, 7 år)
 
 Mått metriska, svenska. Uppskatta makros.`;
+
+function isSocialMediaUrl(url: string): boolean {
+  return /instagram\.com|instagr\.am|tiktok\.com/i.test(url);
+}
 
 async function geminiJson(
   apiKey: string,
@@ -152,7 +157,12 @@ export async function parseRecipe(
 
   const raw = await geminiJson(apiKey, parts, PARSE_SYSTEM);
   const recipe = normalizeRecipe(JSON.parse(raw) as Recipe);
-  if (sourceUrl && !recipe.sourceUrl) recipe.sourceUrl = sourceUrl;
+  if (sourceUrl && !recipe.sourceUrl && !isSocialMediaUrl(sourceUrl)) {
+    recipe.sourceUrl = sourceUrl;
+  }
+  if (recipe.sourceUrl && isSocialMediaUrl(String(recipe.sourceUrl))) {
+    recipe.sourceUrl = '';
+  }
   delete recipe.emoji;
   return recipe;
 }
