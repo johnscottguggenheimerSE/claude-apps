@@ -19,11 +19,12 @@
   h1 { font-size: 1.5rem; font-weight: 700; }
   a { color: var(--info); text-decoration: none; font-size: 0.875rem; }
   label { display: block; font-size: 0.8125rem; font-weight: 500; margin-bottom: 0.35rem; color: var(--text2); }
-  textarea, input[type=url], input[type=text] {
+  textarea, input[type=url], input[type=text], select {
     width: 100%; font: inherit; font-size: 0.9375rem; padding: 0.65rem 0.75rem;
     border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text);
     margin-bottom: 1rem;
   }
+  select { cursor: pointer; }
   textarea { min-height: 140px; resize: vertical; }
   .field { margin-bottom: 0.25rem; }
   .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
@@ -83,11 +84,10 @@
 
   <div id="panel-edit" class="hidden">
     <div class="field">
-      <label for="edit-id">Recept-id</label>
-      <input type="text" id="edit-id" placeholder="t.ex. chicken-kebab-wraps">
-    </div>
-    <div class="actions">
-      <button type="button" id="btn-load">Hämta recept</button>
+      <label for="edit-select">Välj recept</label>
+      <select id="edit-select">
+        <option value="">Välj recept…</option>
+      </select>
     </div>
   </div>
 

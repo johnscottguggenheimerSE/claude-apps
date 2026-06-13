@@ -10,6 +10,8 @@
   var previewJson = document.getElementById('preview-json');
   var previewImg = document.getElementById('preview-img');
   var thumb = document.getElementById('thumb');
+  var editSelect = document.getElementById('edit-select');
+  var recipeList = [];
 
   function setStatus(msg, isErr) {
     statusEl.textContent = msg || '';
@@ -62,6 +64,52 @@
     document.getElementById('panel-new').classList.add('hidden');
   });
 
+  function populateEditSelect(selectedId) {
+    editSelect.replaceChildren();
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Välj recept…';
+    editSelect.appendChild(placeholder);
+    recipeList.sort(function(a, b) {
+      return (a.title || a.id).localeCompare(b.title || b.id, 'sv');
+    }).forEach(function(r) {
+      var opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = r.title || r.id;
+      editSelect.appendChild(opt);
+    });
+    if (selectedId) editSelect.value = selectedId;
+  }
+
+  function loadRecipeById(id) {
+    if (!id) return;
+    setStatus('Hämtar…');
+    fetch('/api/recipes/' + encodeURIComponent(id), { credentials: 'same-origin' })
+      .then(function(res) {
+        return res.json().then(function(data) {
+          if (!res.ok) throw new Error(data.error || 'Hittades inte');
+          return data.recipe;
+        });
+      })
+      .then(function(recipe) {
+        editMode = true;
+        showPreview(recipe);
+        setStatus('Redigera JSON i förhandsvisningen och spara.');
+      })
+      .catch(function(ex) { setStatus(ex.message, true); });
+  }
+
+  editSelect.addEventListener('change', function() {
+    var id = editSelect.value;
+    if (!id) {
+      previewEl.classList.remove('visible');
+      currentRecipe = null;
+      setStatus('');
+      return;
+    }
+    loadRecipeById(id);
+  });
+
   function showPreview(recipe) {
     currentRecipe = recipe;
     previewTitle.textContent = recipe.title || recipe.id;
@@ -106,25 +154,6 @@
     }).finally(function() { btn.disabled = false; });
   });
 
-  document.getElementById('btn-load').addEventListener('click', function() {
-    var id = document.getElementById('edit-id').value.trim();
-    if (!id) { setStatus('Ange recept-id', true); return; }
-    setStatus('Hämtar…');
-    fetch('/api/recipes/' + encodeURIComponent(id), { credentials: 'same-origin' })
-      .then(function(res) {
-        return res.json().then(function(data) {
-          if (!res.ok) throw new Error(data.error || 'Hittades inte');
-          return data.recipe;
-        });
-      })
-      .then(function(recipe) {
-        editMode = true;
-        showPreview(recipe);
-        setStatus('Redigera JSON i förhandsvisningen och spara.');
-      })
-      .catch(function(ex) { setStatus(ex.message, true); });
-  });
-
   document.getElementById('btn-save').addEventListener('click', function() {
     if (!currentRecipe) return;
     var btn = document.getElementById('btn-save');
@@ -164,6 +193,14 @@
     }).then(function(data) {
       showPreview(data.recipe);
       setStatus('Sparat! ' + (editMode ? 'Uppdaterat.' : 'Nytt recept tillagt.'));
+      var saved = data.recipe;
+      var ix = -1;
+      for (var i = 0; i < recipeList.length; i++) {
+        if (recipeList[i].id === saved.id) { ix = i; break; }
+      }
+      if (ix === -1) recipeList.push({ id: saved.id, title: saved.title });
+      else recipeList[ix].title = saved.title;
+      populateEditSelect(saved.id);
       if (!editMode) {
         document.getElementById('featured-new').checked = false;
         editMode = true;
@@ -175,6 +212,14 @@
 
   fetch('/api/auth/check', { credentials: 'same-origin' })
     .then(function(res) { return res.json(); })
-    .then(function(d) { if (!d.ok) location.href = '/login.html'; })
+    .then(function(d) {
+      if (!d.ok) { location.href = '/login.html'; return; }
+      return fetch('/api/recipes', { credentials: 'same-origin' })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          recipeList = (data.recipes || []).map(function(r) { return { id: r.id, title: r.title }; });
+          populateEditSelect();
+        });
+    })
     .catch(function() { location.href = '/login.html'; });
 })();
