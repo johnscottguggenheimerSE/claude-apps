@@ -630,6 +630,8 @@ function applyServingsScale() {
   if (!r) return;
   var scale = servingScale(r);
   document.getElementById('serv-val').textContent = String(currentServings);
+  var yieldLine = document.querySelector('.detail-yield');
+  if (yieldLine) yieldLine.textContent = 'Listan avser ' + currentServings + ' portioner.';
   document.getElementById('m-kcal').textContent = Math.round(r.macros.kcal * scale);
   document.getElementById('m-prot').textContent = Math.round(r.macros.prot * scale) + 'g';
   document.getElementById('m-carb').textContent = Math.round(r.macros.carb * scale) + 'g';
@@ -644,9 +646,97 @@ function changeServings(d) {
   applyServingsScale();
 }
 
+function createDetailFavoriteAction(recipeId) {
+  var btn = mk('button', 'detail-action-btn detail-action-btn--fav');
+  btn.type = 'button';
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'detail-action-icon');
+  var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z');
+  svg.appendChild(path);
+  btn.appendChild(svg);
+  var label = mk('span', 'detail-action-label');
+  label.textContent = 'Favorit';
+  btn.appendChild(label);
+  function sync() {
+    var on = isFavorite(recipeId);
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', on ? 'Ta bort från favoriter' : 'Spara som favorit');
+    label.textContent = on ? 'Sparad' : 'Favorit';
+    svg.style.fill = on ? 'currentColor' : 'none';
+  }
+  sync();
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    toggleFavorite(recipeId);
+    sync();
+    updateFavoritesToggleBtn();
+    if (showFavoritesOnly && !document.getElementById('view-detail').classList.contains('hidden')) return;
+    if (showFavoritesOnly) renderList();
+  });
+  return btn;
+}
+
+function createDetailEditAction(recipeId) {
+  var link = mk('a', 'detail-action-btn detail-action-btn--edit');
+  link.href = addPageUrl(recipeId);
+  link.textContent = 'Redigera';
+  if (!window.ReceptAdmin || !window.ReceptAdmin.isAdmin) link.classList.add('hidden');
+  return link;
+}
+
+function appendDetailMetaItem(list, label, valueEl) {
+  var row = mk('div', 'detail-meta-item');
+  var dt = mk('span', 'detail-meta-label');
+  dt.textContent = label;
+  var dd = mk('span', 'detail-meta-value');
+  if (typeof valueEl === 'string') {
+    dd.textContent = valueEl;
+  } else {
+    dd.appendChild(valueEl);
+  }
+  row.appendChild(dt);
+  row.appendChild(dd);
+  list.appendChild(row);
+}
+
 function formatTipTitle(title) {
   if (/^seattle$/i.test(String(title || '').trim())) return 'För barn';
   return title;
+}
+
+function buildDetailIngredientsTable(r) {
+  var table = mk('table', 'ing-table');
+  var tbody = document.createElement('tbody');
+  r.groups.forEach(function(g) {
+    if (g.name) {
+      var headRow = mk('tr', 'ing-grp-head');
+      var headCell = document.createElement('th');
+      headCell.colSpan = 2;
+      headCell.textContent = g.name;
+      headRow.appendChild(headCell);
+      tbody.appendChild(headRow);
+    }
+    g.ingredients.forEach(function(ing) {
+      var row = mk('tr', 'ing-row');
+      var qtyCell = mk('td', 'ing-qty');
+      var amtEl = mk('span', 'ing-amt');
+      amtEl.dataset.base = ing.amount;
+      amtEl.dataset.unit = ing.unit;
+      amtEl.textContent = fmt(ing.amount, ing.unit);
+      qtyCell.appendChild(amtEl);
+      var nameCell = mk('td', 'ing-name');
+      nameCell.textContent = ing.name;
+      row.appendChild(qtyCell);
+      row.appendChild(nameCell);
+      tbody.appendChild(row);
+    });
+  });
+  table.appendChild(tbody);
+  return table;
 }
 
 function showDetail(id, skipHistory) {
@@ -657,44 +747,45 @@ function showDetail(id, skipHistory) {
   document.title = r.title + ' — Macro-friendly recipes';
   if (!skipHistory) setRecipeUrl(id, false);
   else setRecipeUrl(id, true);
-  var editLink = document.getElementById('detail-edit-link');
-  if (editLink) editLink.href = addPageUrl(id);
   updateAdminUi();
   currentServings = getBaseServings(r);
   var c = document.getElementById('detail-content');
   c.replaceChildren();
-  var top = mk('div', 'detail-top');
-  top.appendChild(buildDetailHero(r, { includeTitle: false }));
-  var summary = mk('div', 'detail-summary');
-  var summaryHead = mk('div', 'detail-summary-head');
-  var summaryTitle = document.createElement('h1');
-  summaryTitle.className = 'detail-summary-title';
-  summaryTitle.textContent = r.title;
-  summaryHead.appendChild(summaryTitle);
-  summaryHead.appendChild(createFavoriteButton(r.id, 'fav-btn--detail'));
-  summary.appendChild(summaryHead);
-  appendSourceLine(summary, r, { className: 'source' });
-  var metaRow = mk('div', 'detail-meta-row');
-  var badgesDiv = mk('div', 'badges');
-  if (r.category) {
-    var catBadge = mk('span', 'badge');
-    catBadge.textContent = categoryLabel(r.category);
-    badgesDiv.appendChild(catBadge);
-  }
+
+  var lead = mk('div', 'detail-lead');
+  var copy = mk('div', 'detail-lead-copy');
+  var titleEl = document.createElement('h1');
+  titleEl.className = 'detail-title';
+  titleEl.textContent = r.title;
+  copy.appendChild(titleEl);
+  appendSourceLine(copy, r, { className: 'detail-source' });
+
+  var tagBits = [];
+  if (r.category) tagBits.push(categoryLabel(r.category));
   if (r.tags && r.tags.length) {
-    r.tags.forEach(function(tid) {
-      var tb = mk('span', 'badge');
-      tb.textContent = TAG_LABELS[tid] || tid;
-      badgesDiv.appendChild(tb);
-    });
+    r.tags.forEach(function(tid) { tagBits.push(TAG_LABELS[tid] || tid); });
   }
-  (r.badges || []).forEach(function(b) {
-    var badge = mk('span', 'badge');
-    badge.textContent = formatBadgeLabel(b);
-    badgesDiv.appendChild(badge);
-  });
-  metaRow.appendChild(badgesDiv);
-  var servCtrl = mk('div', 'serv-ctrl');
+  if (tagBits.length) {
+    var tagsLine = mk('p', 'detail-tags-line');
+    tagsLine.textContent = tagBits.join(' · ');
+    copy.appendChild(tagsLine);
+  }
+
+  var metaList = mk('div', 'detail-meta-list');
+  var time = formatRecipeTime(r);
+  if (time) appendDetailMetaItem(metaList, 'Total tid', time);
+
+  var rev = reviewSummaries[r.id];
+  if (rev && rev.count > 0) {
+    var ratingVal = mk('span', 'detail-rating-value');
+    var stars = mk('span', 'detail-rating-stars');
+    stars.textContent = formatStars(rev.average);
+    ratingVal.appendChild(stars);
+    ratingVal.appendChild(document.createTextNode(' (' + rev.count + ')'));
+    appendDetailMetaItem(metaList, 'Betyg', ratingVal);
+  }
+
+  var servCtrl = mk('div', 'serv-ctrl serv-ctrl--detail');
   var minusBtn = mk('button', 'serv-btn');
   minusBtn.type = 'button';
   minusBtn.textContent = '−';
@@ -712,77 +803,72 @@ function showDetail(id, skipHistory) {
   servCtrl.appendChild(servValEl);
   servCtrl.appendChild(servLbl);
   servCtrl.appendChild(plusBtn);
-  metaRow.appendChild(servCtrl);
-  summary.appendChild(metaRow);
-  var macrosDiv = mk('div', 'macros');
+  appendDetailMetaItem(metaList, 'Portioner', servCtrl);
+  copy.appendChild(metaList);
+
+  var actions = mk('div', 'detail-actions');
+  actions.appendChild(createDetailFavoriteAction(r.id));
+  actions.appendChild(createDetailEditAction(r.id));
+  copy.appendChild(actions);
+
+  var macrosDiv = mk('div', 'detail-macros');
   [
     { id: 'm-kcal', val: r.macros.kcal, lbl: 'kcal' },
     { id: 'm-prot', val: r.macros.prot + 'g', lbl: 'protein' },
     { id: 'm-carb', val: r.macros.carb + 'g', lbl: 'kolhydrater' },
     { id: 'm-fat', val: r.macros.fat + 'g', lbl: 'fett' }
   ].forEach(function(m) {
-    var mac = mk('div', 'mac');
-    var valEl = mk('span', 'mac-val');
+    var mac = mk('div', 'detail-mac');
+    var valEl = mk('span', 'detail-mac-val');
     valEl.id = m.id;
     valEl.textContent = String(m.val);
-    var lblEl = mk('span', 'mac-lbl');
+    var lblEl = mk('span', 'detail-mac-lbl');
     lblEl.textContent = m.lbl;
     mac.appendChild(valEl);
     mac.appendChild(lblEl);
     macrosDiv.appendChild(mac);
   });
-  summary.appendChild(macrosDiv);
-  top.appendChild(summary);
-  c.appendChild(top);
-  var twoCol = mk('div', 'two-col');
-  var ingCol = mk('div');
-  var ingTitle = mk('div', 'sec-title');
-  ingTitle.textContent = 'Ingredienser';
-  ingCol.appendChild(ingTitle);
-  r.groups.forEach(function(g) {
-    var grp = mk('div', 'ing-grp');
-    var grpName = mk('div', 'ing-grp-name');
-    grpName.textContent = g.name;
-    grp.appendChild(grpName);
-    g.ingredients.forEach(function(ing) {
-      var row = mk('div', 'ing-row');
-      var nameEl = mk('span');
-      nameEl.textContent = ing.name;
-      row.appendChild(nameEl);
-      var amtEl = mk('span', 'ing-amt');
-      amtEl.dataset.base = ing.amount;
-      amtEl.dataset.unit = ing.unit;
-      amtEl.textContent = fmt(ing.amount, ing.unit);
-      row.appendChild(amtEl);
-      grp.appendChild(row);
-    });
-    ingCol.appendChild(grp);
-  });
-  twoCol.appendChild(ingCol);
-  var stepsCol = mk('div');
-  var stepsTitle = mk('div', 'sec-title');
-  stepsTitle.textContent = 'Gör så här';
-  stepsCol.appendChild(stepsTitle);
+  copy.appendChild(macrosDiv);
+
+  var media = mk('div', 'detail-lead-media');
+  media.appendChild(buildDetailHero(r, { includeTitle: false }));
+  lead.appendChild(copy);
+  lead.appendChild(media);
+  c.appendChild(lead);
+
+  var recipeGrid = mk('div', 'detail-recipe');
+  var ingCol = mk('div', 'detail-recipe-col');
+  var ingHead = mk('h2', 'detail-sec-head');
+  ingHead.textContent = 'Ingredienser';
+  ingCol.appendChild(ingHead);
+  var yieldLine = mk('p', 'detail-yield');
+  yieldLine.textContent = 'Listan avser ' + currentServings + ' portioner.';
+  ingCol.appendChild(yieldLine);
+  ingCol.appendChild(buildDetailIngredientsTable(r));
+  recipeGrid.appendChild(ingCol);
+
+  var stepsCol = mk('div', 'detail-recipe-col');
+  var stepsHead = mk('h2', 'detail-sec-head');
+  stepsHead.textContent = 'Gör så här';
+  stepsCol.appendChild(stepsHead);
+  var prep = mk('div', 'detail-prep');
   r.steps.forEach(function(s, i) {
-    var step = mk('div', 'step');
-    var num = mk('div', 'step-num');
-    num.textContent = String(i + 1);
-    step.appendChild(num);
-    var body = mk('div');
-    var stitle = mk('div', 'step-title');
-    stitle.textContent = s.title;
-    var stext = mk('div', 'step-text');
+    var step = mk('div', 'prep-step');
+    var stitle = mk('div', 'prep-step-title');
+    stitle.textContent = s.title && s.title !== 'Steg' ? ('Steg ' + (i + 1) + ': ' + s.title) : ('Steg ' + (i + 1));
+    var stext = mk('p', 'prep-step-text');
     stext.textContent = s.text;
-    body.appendChild(stitle);
-    body.appendChild(stext);
-    step.appendChild(body);
-    stepsCol.appendChild(step);
+    step.appendChild(stitle);
+    step.appendChild(stext);
+    prep.appendChild(step);
   });
-  twoCol.appendChild(stepsCol);
-  c.appendChild(twoCol);
-  var tipsTitle = mk('div', 'sec-title');
-  tipsTitle.textContent = 'Tips & variationer';
-  c.appendChild(tipsTitle);
+  stepsCol.appendChild(prep);
+  recipeGrid.appendChild(stepsCol);
+  c.appendChild(recipeGrid);
+
+  var tipsHead = mk('h2', 'detail-sec-head detail-sec-head--sub');
+  tipsHead.textContent = 'Tips & variationer';
+  c.appendChild(tipsHead);
   var tipsGrid = mk('div', 'tips-grid');
   r.tips.forEach(function(t) {
     var box = mk('div', 'tip-box');
@@ -950,8 +1036,9 @@ window.addEventListener('hashchange', function() {
 
 function updateAdminUi() {
   var isAdmin = !!(window.ReceptAdmin && window.ReceptAdmin.isAdmin);
-  var editLink = document.getElementById('detail-edit-link');
-  if (editLink) editLink.hidden = !isAdmin;
+  document.querySelectorAll('.detail-action-btn--edit').forEach(function(el) {
+    el.classList.toggle('hidden', !isAdmin);
+  });
 }
 
 window.addEventListener('recept-auth', function() {
