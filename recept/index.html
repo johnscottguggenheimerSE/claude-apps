@@ -47,6 +47,9 @@
   .site-brand { justify-self: start; }
   .site-brand-link { text-decoration: none; color: inherit; display: block; line-height: 0; }
   .site-logo { display: block; height: 6.3rem; width: auto; }
+  .site-logo-dark { display: none; }
+  [data-theme="dark"] .site-logo-light { display: none; }
+  [data-theme="dark"] .site-logo-dark { display: block; }
   .site-search {
     grid-column: 2;
     width: 100%;
@@ -373,7 +376,8 @@
   <div class="site-top-bar">
     <div class="site-brand">
       <a href="/" class="site-brand-link" id="brand-home">
-        <img src="images/logo.png" alt="Macro-friendly recipes by Jann" class="site-logo" width="280" height="187">
+        <img src="images/logo-light.png" alt="Macro-friendly recipes by Jann" class="site-logo site-logo-light" width="1024" height="262">
+        <img src="images/logo-dark.png" alt="Macro-friendly recipes by Jann" class="site-logo site-logo-dark" width="280" height="187">
       </a>
     </div>
     <div class="site-search">
