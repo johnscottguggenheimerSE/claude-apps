@@ -10,12 +10,15 @@ export interface RecipeRow {
 }
 
 export function rowToRecipe(row: RecipeRow): Recipe {
-  return normalizeRecipe(JSON.parse(row.data) as Recipe);
+  const recipe = normalizeRecipe(JSON.parse(row.data) as Recipe);
+  recipe.updatedAt = row.updated_at;
+  recipe.createdAt = row.created_at;
+  return recipe;
 }
 
 export async function listRecipes(db: D1Database): Promise<{ recipes: Recipe[]; featuredNewIds: string[] }> {
   const { results } = await db
-    .prepare('SELECT * FROM recipes ORDER BY created_at DESC, sort_order DESC')
+    .prepare('SELECT * FROM recipes ORDER BY updated_at DESC, created_at DESC')
     .all<RecipeRow>();
   const rows = results || [];
   const featuredNewIds = rows.filter((r) => r.featured_new).map((r) => r.id);

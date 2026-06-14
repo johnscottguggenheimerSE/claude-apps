@@ -102,24 +102,12 @@ function shouldShowNewBadge(id) {
 }
 
 function sortRecipesForList(filtered) {
-  var seen = getSeenRecipeIds();
-  var order = {};
-  recipes.forEach(function(r, i) { order[r.id] = i; });
-  var head = [];
-  FEATURED_NEW_IDS.forEach(function(fid) {
-    if (seen[fid]) return;
-    for (var j = 0; j < filtered.length; j++) {
-      if (filtered[j].id === fid) {
-        head.push(filtered[j]);
-        return;
-      }
-    }
+  return filtered.sort(function(a, b) {
+    var au = a.updatedAt || a.createdAt || '';
+    var bu = b.updatedAt || b.createdAt || '';
+    if (au === bu) return 0;
+    return au < bu ? 1 : -1;
   });
-  var inHead = {};
-  head.forEach(function(r) { inHead[r.id] = 1; });
-  var tail = filtered.filter(function(r) { return !inHead[r.id]; });
-  tail.sort(function(a, b) { return order[a.id] - order[b.id]; });
-  return head.concat(tail);
 }
 
 function getRecipeIdFromHash() {
