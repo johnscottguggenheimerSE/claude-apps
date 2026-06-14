@@ -509,9 +509,6 @@ function buildDetailHero(r, opts) {
     hero.classList.add('detail-hero--photo');
     hero.style.backgroundImage = "url('" + assetUrl(r.image) + "')";
   }
-  var heroTags = mk('div', 'detail-hero-tags');
-  appendMetricTags(heroTags, cardMetricTags(r), 'detail-hero-tag');
-  if (heroTags.childNodes.length) hero.appendChild(heroTags);
   if (opts && opts.includeTitle === false) return hero;
   var title = document.createElement('h1');
   title.className = 'detail-hero-title';
