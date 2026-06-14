@@ -644,6 +644,11 @@ function changeServings(d) {
   applyServingsScale();
 }
 
+function formatTipTitle(title) {
+  if (/^seattle$/i.test(String(title || '').trim())) return 'För barn';
+  return title;
+}
+
 function showDetail(id, skipHistory) {
   var r = recipes.find(function(x) { return x.id === id; });
   if (!r) return;
@@ -782,7 +787,7 @@ function showDetail(id, skipHistory) {
   r.tips.forEach(function(t) {
     var box = mk('div', 'tip-box');
     var ttitle = mk('div', 'tip-title');
-    ttitle.textContent = t.title;
+    ttitle.textContent = formatTipTitle(t.title);
     var ttext = mk('div', 'tip-text');
     ttext.textContent = t.text;
     box.appendChild(ttitle);

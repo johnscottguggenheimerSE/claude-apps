@@ -36,7 +36,7 @@ Fält (inget emoji-fält):
 - macros: { kcal, prot, carb, fat } för HELA receptet
 - groups med ingredients (name lowercase, amount number, unit: g|msk|tsk|st|pinch|näve|strimlor)
 - steps: [{ title, text }]
-- tips: exakt 4, första title "Seattle" (mild för Seattle Mae, 7 år)
+- tips: exakt 4, första title "För barn" (mild barnvänlig anpassning)
 
 Kategori — måltidstyp:
 - frukost: frukostmat

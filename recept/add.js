@@ -505,7 +505,7 @@
       var ttIn = document.createElement('input');
       ttIn.className = 'tip-title-input';
       ttIn.placeholder = 'Rubrik';
-      ttIn.value = t.title || '';
+      ttIn.value = (/^seattle$/i.test(String(t.title || '').trim()) ? 'För barn' : t.title) || '';
       var ttText = document.createElement('textarea');
       ttText.className = 'tip-text-input';
       ttText.placeholder = 'Text';
