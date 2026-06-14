@@ -32,14 +32,18 @@
   }
   .site-top-inner {
     max-width: 1120px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 0.35rem;
+  }
+  .site-top-primary {
     display: flex; align-items: center; gap: 1rem 1.5rem; flex-wrap: wrap;
+    width: 100%;
   }
   .site-brand-link { text-decoration: none; color: inherit; display: block; line-height: 1.1; }
   .site-title { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.02em; display: block; }
   .site-tagline { font-size: 0.6875rem; color: var(--text2); letter-spacing: 0.04em; }
   .meal-nav {
     display: flex; align-items: center; gap: 0.25rem 1.25rem;
-    flex: 1; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    width: 100%; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
   .meal-nav::-webkit-scrollbar { display: none; }
@@ -54,14 +58,46 @@
   .meal-tab.active { color: var(--text); border-bottom-color: var(--info); }
   .site-actions {
     display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0;
-    font-size: 0.8125rem;
+    font-size: 0.8125rem; margin-left: auto;
   }
   .site-action-link { color: var(--info); text-decoration: none; font-weight: 500; }
   .site-action-btn {
     font: inherit; font-size: inherit; background: none; border: none;
     color: var(--text2); cursor: pointer; padding: 0;
   }
-  .theme-toggle { min-width: 3.25rem; text-align: right; }
+  .site-toolbar {
+    display: flex; justify-content: flex-end; align-items: center;
+    width: 100%; padding-top: 0.1rem;
+  }
+  .theme-switch {
+    position: relative; display: inline-flex; align-items: center;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .theme-switch input {
+    position: absolute; opacity: 0; width: 0; height: 0;
+    pointer-events: none;
+  }
+  .theme-switch-track {
+    display: block; width: 44px; height: 24px;
+    background: var(--bg3); border: 0.5px solid var(--border2);
+    border-radius: 999px; position: relative;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .theme-switch-thumb {
+    position: absolute; top: 2px; left: 2px;
+    width: 19px; height: 19px; border-radius: 50%;
+    background: var(--bg); box-shadow: 0 1px 3px rgba(0,0,0,0.22);
+    transition: transform 0.2s ease;
+  }
+  .theme-switch input:checked + .theme-switch-track {
+    background: var(--info); border-color: var(--info);
+  }
+  .theme-switch input:checked + .theme-switch-track .theme-switch-thumb {
+    transform: translateX(20px);
+  }
+  .theme-switch input:focus-visible + .theme-switch-track {
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--info);
+  }
   .list-body { padding: 1rem 1rem 4rem; }
   .filter-bar {
     display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
@@ -276,9 +312,7 @@
     .detail-summary-title { font-size: 20px; }
     .detail-meta-row { flex-direction: column; align-items: stretch; }
     .serv-ctrl { align-self: flex-end; }
-    .meal-nav {
-      order: 3; width: 100%; margin: 0 -0.25rem; padding-bottom: 0.15rem;
-    }
+    .meal-nav { margin: 0 -0.25rem; padding-bottom: 0.1rem; }
     .filter-bar {
       flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
       gap: 8px; padding-bottom: 0.5rem; margin-right: -0.75rem; padding-right: 0.75rem;
@@ -298,17 +332,24 @@
 <div class="app">
   <header class="site-top" id="site-top">
     <div class="site-top-inner">
-      <div class="site-brand">
-        <a href="/" class="site-brand-link" id="brand-home">
-          <span class="site-title">Proteinrika recept</span>
-          <span class="site-tagline">by Jånn</span>
-        </a>
+      <div class="site-top-primary">
+        <div class="site-brand">
+          <a href="/" class="site-brand-link" id="brand-home">
+            <span class="site-title">Proteinrika recept</span>
+            <span class="site-tagline">by Jånn</span>
+          </a>
+        </div>
+        <div class="site-actions">
+          <a href="/add" class="site-action-link">+ Lägg till</a>
+          <button type="button" id="logout-btn" class="site-action-btn">Logga ut</button>
+        </div>
       </div>
       <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
-      <div class="site-actions">
-        <button type="button" id="theme-toggle" class="site-action-btn theme-toggle" aria-label="Byt tema">Mörkt</button>
-        <a href="/add" class="site-action-link">+ Lägg till</a>
-        <button type="button" id="logout-btn" class="site-action-btn">Logga ut</button>
+      <div class="site-toolbar">
+        <label class="theme-switch" title="Mörkt läge">
+          <input type="checkbox" id="theme-toggle" role="switch" aria-label="Mörkt läge">
+          <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+        </label>
       </div>
     </div>
   </header>
@@ -331,18 +372,17 @@
 <script src="recipe-validate.js"></script>
 <script src="app.js"></script>
 <script>
-function updateThemeToggleLabel() {
-  var btn = document.getElementById('theme-toggle');
-  if (!btn || !window.ReceptTheme) return;
+function syncThemeToggle() {
+  var input = document.getElementById('theme-toggle');
+  if (!input) return;
   var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  btn.textContent = dark ? 'Ljust' : 'Mörkt';
-  btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+  input.checked = dark;
 }
-document.getElementById('theme-toggle').addEventListener('click', function() {
-  if (window.ReceptTheme) ReceptTheme.toggle();
-  updateThemeToggleLabel();
+document.getElementById('theme-toggle').addEventListener('change', function() {
+  if (window.ReceptTheme) ReceptTheme.set(this.checked ? 'dark' : 'light');
+  syncThemeToggle();
 });
-updateThemeToggleLabel();
+syncThemeToggle();
 
 document.getElementById('logout-btn').addEventListener('click', function() {
   fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
