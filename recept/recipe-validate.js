@@ -62,6 +62,10 @@ var RecipeValidate = (function() {
     if (r.sourceUrl == null) r.sourceUrl = '';
     if (!r.baseServings || r.baseServings < 1) r.baseServings = 1;
     if (!r.badges || !r.badges.length) r.badges = inferBadges(r);
+    if (r.tags && r.tags.length) {
+      var deprecated = { ugn: 1, airfryer: 1, stekpanna: 1, tillbehor: 1 };
+      r.tags = r.tags.filter(function(t) { return !deprecated[t]; });
+    }
     return r;
   }
 

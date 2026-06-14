@@ -25,7 +25,7 @@ Fält (inget emoji-fält):
 - id: kebab-case engelska
 - category: middag | asiatisk | sallad | bakning
 - baseServings: number
-- tags: array — endast från: hog-protein, snabb, laggkolhydrat, vegetarisk, meal-prep, kyckling, notkott, flask, fisk, skaldjur, ugn, airfryer, stekpanna, tillbehor
+- tags: array — endast från: hog-protein, snabb, laggkolhydrat, vegetarisk, meal-prep, kyckling, notkott, flask, fisk, skaldjur (inte ugn/airfryer/stekpanna/tillbehör — kategori täcker måltidstyp)
 - title, source (läsbar källa: sajtnamn, «Ali Slagle, NYT Cooking», «@handle på Instagram»), sourceUrl
 - sourceUrl: publik recept-URL (matblogg, NYT Cooking, etc.). Tom sträng för Instagram/TikTok — vi kan inte läsa inloggade sociala länkar; använd @handle i source istället
 - badges: array med minst portioner (t.ex. «4 portioner») och tidsuppskattning (t.ex. «30 min»)

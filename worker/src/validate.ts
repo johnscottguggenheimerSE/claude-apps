@@ -1,10 +1,12 @@
 const VALID_CATEGORIES = ['middag', 'asiatisk', 'sallad', 'bakning'];
 const VALID_UNITS = ['g', 'msk', 'tsk', 'st', 'pinch', 'näve', 'strimlor'];
+/** Filter-taggar — kategori (middag/asiatisk/…) är separat; ingen ugn/stekpanna/tillbehör. */
 const TAG_FILTER_ORDER = [
   'hog-protein', 'snabb', 'laggkolhydrat', 'vegetarisk', 'meal-prep',
   'kyckling', 'notkott', 'flask', 'fisk', 'skaldjur',
-  'ugn', 'airfryer', 'stekpanna', 'tillbehor',
 ];
+
+const DEPRECATED_TAGS = new Set(['ugn', 'airfryer', 'stekpanna', 'tillbehor']);
 
 export type Recipe = Record<string, unknown>;
 
@@ -35,6 +37,65 @@ export function inferBadges(r: Recipe): string[] {
   return badges;
 }
 
+function ingredientText(r: Recipe): string {
+  const groups = r.groups as { ingredients?: { name?: string }[] }[] | undefined;
+  if (!groups) return '';
+  return groups
+    .flatMap((g) => g.ingredients?.map((i) => i.name || '') || [])
+    .join(' ')
+    .toLowerCase();
+}
+
+function looksSnabb(r: Recipe): boolean {
+  if (r.tags && (r.tags as string[]).includes('snabb')) return true;
+  const badges = r.badges as string[] | undefined;
+  if (badges?.some((b) => /under\s*\d+\s*min|≤\s*30|(?:^|\s)30\s*min/i.test(b))) return true;
+  const steps = r.steps as { text?: string }[] | undefined;
+  if (steps) {
+    for (const step of steps) {
+      const m = step.text?.match(/(?:under\s+)?(\d+)\s*min/i);
+      if (m && parseInt(m[1], 10) <= 30) return true;
+    }
+  }
+  return false;
+}
+
+export function inferTags(r: Recipe): string[] {
+  const tags: string[] = [];
+  const n = typeof r.baseServings === 'number' && r.baseServings > 0 ? r.baseServings : 1;
+  const macros = r.macros as Record<string, number> | undefined;
+  if (macros?.prot && macros.prot / n >= 25) tags.push('hog-protein');
+  if (looksSnabb(r)) tags.push('snabb');
+
+  const ing = ingredientText(r);
+  const proteinTags: Array<{ id: string; re: RegExp }> = [
+    { id: 'kyckling', re: /kyckling|chicken|turkey|kalkon/i },
+    { id: 'notkott', re: /nöt|beef|färs|biff|oxfil|entrecote|flank/i },
+    { id: 'flask', re: /fläsk|pork|bacon|chorizo|prosciutto|pancetta|sausage/i },
+    { id: 'fisk', re: /fisk|torsk|tonfisk|tuna|salmon|lax|sardine|makrill/i },
+    { id: 'skaldjur', re: /räk|shrimp|prawn|krabba|crab|mussel|scallop|scampi/i },
+  ];
+  for (const { id, re } of proteinTags) {
+    if (re.test(ing)) tags.push(id);
+  }
+
+  const vegHints = /tofu|tempeh|halloumi|bönor|beans|linser|quinoa|keso(?!l)/i;
+  const meatHints = /kyckling|chicken|nöt|beef|fläsk|pork|bacon|fisk|torsk|tonfisk|räk|shrimp|korv|wurst/i;
+  if (vegHints.test(ing) && !meatHints.test(ing)) tags.push('vegetarisk');
+
+  const title = String(r.title || '').toLowerCase();
+  if (/meal prep|meal-prep|lunchbox|wraps/i.test(title + ing)) tags.push('meal-prep');
+  if (/lågkol|low carb|lchf/i.test(title + ing + String(r.badges?.join(' ') || ''))) {
+    tags.push('laggkolhydrat');
+  }
+
+  return [...new Set(tags)];
+}
+
+export function sanitizeTags(tags: string[]): string[] {
+  return tags.filter((t) => !DEPRECATED_TAGS.has(t) && TAG_FILTER_ORDER.includes(t));
+}
+
 export function normalizeRecipe(r: Recipe): Recipe {
   if (!r.source || (typeof r.source === 'string' && !String(r.source).trim())) {
     r.source = 'Okänd källa';
@@ -44,6 +105,9 @@ export function normalizeRecipe(r: Recipe): Recipe {
   if (!Array.isArray(r.badges) || r.badges.length === 0) {
     r.badges = inferBadges(r);
   }
+  let tags = Array.isArray(r.tags) ? sanitizeTags(r.tags as string[]) : [];
+  if (!tags.length) tags = inferTags(r);
+  r.tags = tags;
   return r;
 }
 
@@ -99,4 +163,4 @@ export function slugify(title: string): string {
     .slice(0, 48) || 'recept';
 }
 
-export { TAG_FILTER_ORDER, VALID_CATEGORIES, VALID_UNITS };
+export { TAG_FILTER_ORDER, VALID_CATEGORIES, VALID_UNITS, DEPRECATED_TAGS };

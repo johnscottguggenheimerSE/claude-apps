@@ -8,8 +8,7 @@ const CATEGORY_LABELS = {
 
 var TAG_FILTER_ORDER = [
   'hog-protein', 'snabb', 'laggkolhydrat', 'vegetarisk', 'meal-prep',
-  'kyckling', 'notkott', 'flask', 'fisk', 'skaldjur',
-  'ugn', 'airfryer', 'stekpanna', 'tillbehor'
+  'kyckling', 'notkott', 'flask', 'fisk', 'skaldjur'
 ];
 var TAG_LABELS = {
   'hog-protein': 'Hög protein',
@@ -21,11 +20,7 @@ var TAG_LABELS = {
   flask: 'Fläsk',
   fisk: 'Fisk',
   skaldjur: 'Skaldjur',
-  laggkolhydrat: 'Lågkolhydrat',
-  ugn: 'Ugn / plåt',
-  airfryer: 'Airfryer',
-  stekpanna: 'Stekpanna',
-  tillbehor: 'Tillbehör'
+  laggkolhydrat: 'Lågkolhydrat'
 };
 
 if (!Element.prototype.replaceChildren) {
@@ -217,11 +212,22 @@ function recipeHasAllActiveTags(r) {
   return true;
 }
 
+function tagIdsInUse() {
+  var counts = {};
+  recipes.forEach(function(r) {
+    if (!r.tags) return;
+    r.tags.forEach(function(t) {
+      if (TAG_FILTER_ORDER.indexOf(t) !== -1) counts[t] = 1;
+    });
+  });
+  return TAG_FILTER_ORDER.filter(function(t) { return counts[t]; });
+}
+
 function renderTagNav() {
   var nav = document.getElementById('tag-nav');
   if (!nav) return;
   nav.replaceChildren();
-  TAG_FILTER_ORDER.forEach(function(tagId) {
+  tagIdsInUse().forEach(function(tagId) {
     var btn = mk('button', 'tag-pill');
     btn.type = 'button';
     btn.textContent = TAG_LABELS[tagId] || tagId;

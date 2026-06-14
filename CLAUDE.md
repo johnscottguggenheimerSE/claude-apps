@@ -40,7 +40,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
   id: 'kebab-case-id',
   category: 'middag', // en av: middag | asiatisk | sallad | bakning
   baseServings: 4, // portioner som ingredienslistan och macros avser
-  tags: ['hog-protein', 'snabb', 'kyckling'], // flera filter-taggar; id:n som i TAG_FILTER_ORDER i app.js
+  tags: ['hog-protein', 'snabb', 'kyckling'], // filter-taggar; id:n i TAG_FILTER_ORDER (ej ugn/stekpanna/tillbehör)
   image: 'images/recept.png', // valfritt; annars emoji-bakgrund
   emoji: '🍕',
   title: 'Receptnamn',
@@ -68,7 +68,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 }
 ```
 
-**Listvy:** Första raden filtrerar på **kategori** (en i taget). Andra raden är **taggar** — flera kan vara valda samtidigt; då visas bara recept som har **alla** valda taggar (i kombination med vald kategori). Nya tagg-id läggs i `TAG_FILTER_ORDER` och `TAG_LABELS` i `recept/app.js`.
+**Listvy:** Första raden filtrerar på **kategori** (en i taget). Andra raden är **taggar** — bara taggar som finns på recept visas; flera kan vara valda (alla ska matcha). Taggar = diet/tid/protein, inte redskap (ugn/stekpanna) eller tillbehör (använd kategori). Nya tagg-id i `TAG_FILTER_ORDER` och `TAG_LABELS` i `recept/app.js`.
 
 **Validering:** `node scripts/validate-recipes.mjs` före push. Vid valfritt `macros` per ingrediens jämförs summan mot receptets `macros`.
 
