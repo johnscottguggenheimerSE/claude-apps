@@ -339,28 +339,66 @@ function buildDetailHero(r, opts) {
 function createRecipeCard(r) {
   var card = mk('a', 'recipe-card');
   card.href = recipeLink(r.id);
+
+  var media = mk('div', 'recipe-card-media');
   if (r.image) {
-    card.style.backgroundImage = "url('" + assetUrl(r.image) + "')";
+    var img = document.createElement('img');
+    img.className = 'recipe-card-img';
+    img.src = assetUrl(r.image);
+    img.alt = '';
+    img.loading = 'lazy';
+    media.appendChild(img);
+  } else if (r.emoji) {
+    var emojiEl = mk('span', 'recipe-card-emoji');
+    emojiEl.textContent = r.emoji;
+    media.appendChild(emojiEl);
   }
-  var tagsWrap = mk('div', 'recipe-card-tags');
-  appendMetricTags(tagsWrap, cardMetricTags(r), 'recipe-card-tag');
-  if (tagsWrap.childNodes.length) card.appendChild(tagsWrap);
+  card.appendChild(media);
+
+  var body = mk('div', 'recipe-card-body');
   if (shouldShowNewBadge(r.id)) {
     var newLbl = mk('span', 'recipe-card-new');
     newLbl.textContent = 'Nytt!';
-    card.appendChild(newLbl);
-  }
-  var rev = reviewSummaries[r.id];
-  if (rev && rev.count > 0) {
-    var ratingEl = mk('span', 'recipe-card-rating');
-    if (shouldShowNewBadge(r.id)) ratingEl.classList.add('has-new-offset');
-    ratingEl.textContent = formatStars(rev.average) + ' ' + rev.average.toFixed(1);
-    card.appendChild(ratingEl);
+    body.appendChild(newLbl);
   }
   var title = document.createElement('h2');
   title.className = 'recipe-card-title';
   title.textContent = r.title;
-  card.appendChild(title);
+  body.appendChild(title);
+  if (r.source) {
+    var src = mk('div', 'recipe-card-source');
+    src.textContent = r.source;
+    body.appendChild(src);
+  }
+  var rev = reviewSummaries[r.id];
+  if (rev && rev.count > 0) {
+    var ratingRow = mk('div', 'recipe-card-rating-row');
+    var stars = mk('span', 'recipe-card-stars');
+    stars.textContent = formatStars(rev.average);
+    ratingRow.appendChild(stars);
+    var count = mk('span', 'recipe-card-rating-count');
+    count.textContent = String(rev.count);
+    ratingRow.appendChild(count);
+    body.appendChild(ratingRow);
+  }
+  var time = badgeTime(r);
+  if (time) {
+    var timeEl = mk('div', 'recipe-card-time');
+    timeEl.textContent = time;
+    body.appendChild(timeEl);
+  }
+  if (r.tags && r.tags.length) {
+    var tagsWrap = mk('div', 'recipe-card-tags');
+    r.tags.slice(0, 4).forEach(function(tagId) {
+      var label = TAG_LABELS[tagId] || tagId;
+      var tag = mk('span', 'recipe-card-tag');
+      tag.textContent = label;
+      tagsWrap.appendChild(tag);
+    });
+    body.appendChild(tagsWrap);
+  }
+  card.appendChild(body);
+
   card.addEventListener('click', function(e) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();

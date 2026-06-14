@@ -4,18 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lägg till recept</title>
+<script src="theme.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
+  :root, [data-theme="light"] {
+    color-scheme: light;
     --bg: #ffffff; --bg2: #f5f4f0; --text: #1a1a18; --text2: #6b6b65;
     --border: rgba(0,0,0,0.09); --info: #1a5fa8; --radius: 8px;
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #1c1c1a; --bg2: #252522; --text: #f0efe8; --text2: #a0a09a; --border: rgba(255,255,255,0.09); --info: #5ba3e8; }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #1c1c1a; --bg2: #252522; --text: #f0efe8; --text2: #a0a09a;
+    --border: rgba(255,255,255,0.09); --info: #5ba3e8;
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
   .app { max-width: 720px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
   .top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+  .top-actions { display: flex; align-items: center; gap: 0.85rem; font-size: 0.8125rem; }
+  .theme-btn { font: inherit; font-size: inherit; background: none; border: none; color: var(--text2); cursor: pointer; padding: 0; }
   h1 { font-size: 1.5rem; font-weight: 700; }
   a { color: var(--info); text-decoration: none; font-size: 0.875rem; }
   label { display: block; font-size: 0.8125rem; font-weight: 500; margin-bottom: 0.35rem; color: var(--text2); }
@@ -131,7 +137,10 @@
 <div class="app">
   <div class="top">
     <h1>Lägg till recept</h1>
-    <a href="/">← Alla recept</a>
+    <div class="top-actions">
+      <button type="button" class="theme-btn" id="theme-toggle" aria-label="Byt tema">Mörkt</button>
+      <a href="/">← Alla recept</a>
+    </div>
   </div>
 
   <div class="mode-tabs">
@@ -236,6 +245,20 @@
     </div>
   </div>
 </div>
+<script>
+(function() {
+  var btn = document.getElementById('theme-toggle');
+  function sync() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    btn.textContent = dark ? 'Ljust' : 'Mörkt';
+  }
+  btn.addEventListener('click', function() {
+    if (window.ReceptTheme) ReceptTheme.toggle();
+    sync();
+  });
+  sync();
+})();
+</script>
 <script src="add.js"></script>
 </body>
 </html>

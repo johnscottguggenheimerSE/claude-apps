@@ -4,21 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Proteinrika recept</title>
+<script src="theme.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
+  :root, [data-theme="light"] {
+    color-scheme: light;
     --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eeedea;
     --text: #1a1a18; --text2: #6b6b65; --text3: #9a9a94;
     --border: rgba(0,0,0,0.09); --border2: rgba(0,0,0,0.16);
     --info: #1a5fa8; --radius: 8px; --radius-lg: 12px;
+    --star: #1a1a18;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1c1c1a; --bg2: #252522; --bg3: #2e2e2a;
-      --text: #f0efe8; --text2: #a0a09a; --text3: #6a6a64;
-      --border: rgba(255,255,255,0.09); --border2: rgba(255,255,255,0.16);
-      --info: #5ba3e8;
-    }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #1c1c1a; --bg2: #252522; --bg3: #2e2e2a;
+    --text: #f0efe8; --text2: #a0a09a; --text3: #6a6a64;
+    --border: rgba(255,255,255,0.09); --border2: rgba(255,255,255,0.16);
+    --info: #5ba3e8;
+    --star: #f0efe8;
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
   .app { max-width: 1120px; margin: 0 auto; }
@@ -58,6 +61,7 @@
     font: inherit; font-size: inherit; background: none; border: none;
     color: var(--text2); cursor: pointer; padding: 0;
   }
+  .theme-toggle { min-width: 3.25rem; text-align: right; }
   .list-body { padding: 1rem 1rem 4rem; }
   .filter-bar {
     display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
@@ -80,73 +84,70 @@
   .tag-pill.tag-clear:disabled { opacity: 0.45; cursor: default; }
   .cat-section { margin-bottom: 1.75rem; }
   .cat-heading { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); margin-bottom: 0.65rem; padding-bottom: 0.35rem; border-bottom: 0.5px solid var(--border); }
-  .recipe-grid { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: stretch; grid-auto-rows: 1fr; }
+  .recipe-grid {
+    display: grid; grid-template-columns: 1fr; gap: 1.5rem;
+    align-items: start;
+  }
   .recipe-card {
-    position: relative; display: block; width: 100%;
-    min-height: 165px; aspect-ratio: 10 / 9;
-    border-radius: var(--radius-lg); overflow: hidden;
-    cursor: pointer; border: none;
-    background-color: var(--bg2); background-size: cover; background-position: center;
-    background-repeat: no-repeat;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.24);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    display: flex; flex-direction: column; width: 100%;
+    cursor: pointer; border: none; background: none;
     text-decoration: none; color: inherit;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   }
-  @supports not (aspect-ratio: 10 / 9) {
-    .recipe-card { height: 0; padding-top: 90%; min-height: 0; }
-    .recipe-card > * { position: absolute; }
+  .recipe-card-media {
+    position: relative; width: 100%; aspect-ratio: 16 / 11;
+    border-radius: var(--radius-lg); overflow: hidden;
+    background: var(--bg3);
   }
-  .recipe-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.14), inset 0 0 0 1px rgba(0,0,0,0.24); }
-  .recipe-card::before {
-    content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: 1; pointer-events: none;
-    background: linear-gradient(180deg, transparent 0%, transparent 45%, rgba(0,0,0,0.55) 72%, rgba(0,0,0,0.88) 100%);
-  }
-  .recipe-card--fallback::before {
-    background: linear-gradient(180deg, transparent 0%, transparent 50%, rgba(0,0,0,0.45) 100%);
+  .recipe-card-img {
+    display: block; width: 100%; height: 100%; object-fit: cover;
   }
   .recipe-card-emoji {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -58%);
-    font-size: 42px; line-height: 1; z-index: 0; opacity: 0.9;
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%; font-size: 48px; line-height: 1;
   }
-  .recipe-card-tags {
-    position: absolute; top: 8px; left: auto; right: 8px; z-index: 2;
-    width: min(58%, calc(100% - 16px));
-    display: grid; grid-template-columns: 1fr; gap: 4px; justify-items: end;
-    pointer-events: none;
-  }
-  .recipe-card-tag {
-    font-size: 10px; font-weight: 500; line-height: 1.2; padding: 4px 7px;
-    border-radius: 999px; color: #fff; background: rgba(0,0,0,0.62);
-    border: 0.5px solid rgba(255,255,255,0.2);
-    text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    min-width: 0; max-width: 100%;
+  .recipe-card-body {
+    padding: 0.75rem 0.15rem 0; min-width: 0;
   }
   .recipe-card-new {
-    position: absolute; top: 8px; left: 8px; z-index: 3;
+    display: inline-block; margin-bottom: 0.35rem;
     font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
-    padding: 3px 9px; border-radius: 999px;
+    padding: 2px 8px; border-radius: 999px;
     background: var(--info); color: #fff;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
-    pointer-events: none;
   }
-  .recipe-card-rating {
-    position: absolute; top: 8px; left: 8px; z-index: 3;
-    font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
-    color: #fff; background: rgba(0,0,0,0.62); border: 0.5px solid rgba(255,255,255,0.2);
-    pointer-events: none;
-  }
-  .recipe-card-new + .recipe-card-rating,
-  .recipe-card-rating.has-new-offset { left: auto; right: 8px; top: 36px; }
   .recipe-card-title {
-    position: absolute; right: 14px; bottom: 14px; left: 14px; z-index: 2;
-    margin: 0; padding: 10px 12px; font-size: 18px; font-weight: 600; line-height: 1.2;
-    color: #fff; text-align: right; letter-spacing: -0.01em;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.85), 0 2px 14px rgba(0,0,0,0.75), 0 0 24px rgba(0,0,0,0.5);
-    overflow: hidden;
-    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
-    line-clamp: 3;
+    margin: 0 0 0.2rem; font-size: 1.0625rem; font-weight: 700;
+    line-height: 1.25; letter-spacing: -0.02em;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    line-clamp: 2; overflow: hidden;
   }
+  .recipe-card-source {
+    font-size: 0.8125rem; color: var(--text2); margin-bottom: 0.35rem;
+    line-height: 1.35;
+  }
+  .recipe-card-rating-row {
+    display: flex; align-items: center; gap: 0.35rem;
+    margin-bottom: 0.25rem; min-height: 1.1rem;
+  }
+  .recipe-card-stars {
+    font-size: 0.75rem; letter-spacing: 0.02em; color: var(--star); line-height: 1;
+  }
+  .recipe-card-rating-count {
+    font-size: 0.8125rem; color: var(--text2); font-weight: 500;
+  }
+  .recipe-card-time {
+    font-size: 0.8125rem; color: var(--text2); margin-bottom: 0.45rem;
+  }
+  .recipe-card-tags {
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  .recipe-card-tag {
+    font-size: 10px; font-weight: 500; line-height: 1.2; padding: 3px 7px;
+    border-radius: 999px; color: var(--text2);
+    background: var(--bg3); border: 0.5px solid var(--border);
+    white-space: nowrap;
+  }
+  .recipe-card:hover .recipe-card-title { color: var(--info); }
   .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--info); cursor: pointer; margin-bottom: 0.85rem; background: none; border: none; padding: 0; font-family: inherit; text-decoration: none; }
   .detail-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.85rem; }
   .detail-nav .back-btn { margin-bottom: 0; }
@@ -271,8 +272,7 @@
     .detail-hero { min-height: 220px; aspect-ratio: 16 / 9; height: auto; }
     .list-body, .detail-body { padding: 0.85rem 0.75rem 3rem; }
     .site-top { padding: 0.55rem 0.75rem; }
-    .recipe-card { min-height: 225px; }
-    .recipe-card-title { font-size: 16px; padding: 8px 10px; }
+    .recipe-card-title { font-size: 1rem; }
     .detail-summary-title { font-size: 20px; }
     .detail-meta-row { flex-direction: column; align-items: stretch; }
     .serv-ctrl { align-self: flex-end; }
@@ -284,14 +284,12 @@
       gap: 8px; padding-bottom: 0.5rem; margin-right: -0.75rem; padding-right: 0.75rem;
     }
     .tag-pill { flex-shrink: 0; font-size: 12px; padding: 0.4rem 0.75rem; }
-    .recipe-card-tag { font-size: 9px; padding: 3px 5px; }
     .detail-hero-tag { font-size: 10px; padding: 4px 6px; }
   }
   @media (max-width: 520px) {
     .two-col { grid-template-columns: 1fr; }
     .tips-grid { grid-template-columns: 1fr; }
     .macros { grid-template-columns: repeat(2,1fr); }
-    .recipe-card-tag { font-size: 9px; padding: 3px 5px; }
     .detail-hero-tag { font-size: 10px; padding: 4px 6px; }
   }
 </style>
@@ -308,6 +306,7 @@
       </div>
       <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
       <div class="site-actions">
+        <button type="button" id="theme-toggle" class="site-action-btn theme-toggle" aria-label="Byt tema">Mörkt</button>
         <a href="/add" class="site-action-link">+ Lägg till</a>
         <button type="button" id="logout-btn" class="site-action-btn">Logga ut</button>
       </div>
@@ -332,6 +331,19 @@
 <script src="recipe-validate.js"></script>
 <script src="app.js"></script>
 <script>
+function updateThemeToggleLabel() {
+  var btn = document.getElementById('theme-toggle');
+  if (!btn || !window.ReceptTheme) return;
+  var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  btn.textContent = dark ? 'Ljust' : 'Mörkt';
+  btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+}
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  if (window.ReceptTheme) ReceptTheme.toggle();
+  updateThemeToggleLabel();
+});
+updateThemeToggleLabel();
+
 document.getElementById('logout-btn').addEventListener('click', function() {
   fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
     .then(function() { location.href = '/login.html'; });

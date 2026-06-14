@@ -4,14 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Logga in — Proteinrika recept</title>
+<script src="theme.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
+  :root, [data-theme="light"] {
+    color-scheme: light;
     --bg: #f5f4f0; --card: #fff; --text: #1a1a18; --text2: #6b6b65;
     --border: rgba(0,0,0,0.12); --info: #1a5fa8;
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #1c1c1a; --card: #252522; --text: #f0efe8; --text2: #a0a09a; --border: rgba(255,255,255,0.12); --info: #5ba3e8; }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #1c1c1a; --card: #252522; --text: #f0efe8; --text2: #a0a09a;
+    --border: rgba(255,255,255,0.12); --info: #5ba3e8;
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
   .card { background: var(--card); border: 0.5px solid var(--border); border-radius: 12px; padding: 2rem; width: 100%; max-width: 360px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
@@ -22,9 +26,15 @@
   button { width: 100%; font: inherit; font-size: 0.9375rem; font-weight: 600; padding: 0.7rem; border: none; border-radius: 8px; background: var(--info); color: #fff; cursor: pointer; }
   button:disabled { opacity: 0.6; cursor: default; }
   .err { color: #c0392b; font-size: 0.8125rem; margin-bottom: 0.75rem; min-height: 1.2em; }
+  .theme-btn {
+    position: fixed; top: 0.75rem; right: 0.75rem;
+    font: inherit; font-size: 0.8125rem; background: none; border: none;
+    color: var(--text2); cursor: pointer; padding: 0;
+  }
 </style>
 </head>
 <body>
+<button type="button" class="theme-btn" id="theme-toggle" aria-label="Byt tema">Mörkt</button>
 <div class="card">
   <h1>Proteinrika recept</h1>
   <p>Logga in för att se och lägga till recept.</p>
@@ -55,6 +65,18 @@ document.getElementById('form').addEventListener('submit', function(e) {
     btn.disabled = false;
   });
 });
+(function() {
+  var btn = document.getElementById('theme-toggle');
+  function sync() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    btn.textContent = dark ? 'Ljust' : 'Mörkt';
+  }
+  btn.addEventListener('click', function() {
+    if (window.ReceptTheme) ReceptTheme.toggle();
+    sync();
+  });
+  sync();
+})();
 </script>
 </body>
 </html>
