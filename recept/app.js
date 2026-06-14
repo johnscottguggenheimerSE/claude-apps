@@ -614,12 +614,15 @@ function showList(skipHistory) {
   if (!skipHistory) setListUrl(false);
   else setListUrl(true);
   window.scrollTo(0, 0);
+  updateListHeading();
+  renderBrowseNav();
+  renderListFilters();
+  updateFavoritesToggleBtn();
   renderList();
 }
 
 document.getElementById('back-btn').addEventListener('click', function() {
-  if (history.length > 1) history.back();
-  else showList();
+  showList(false);
 });
 
 function applyServingsScale() {
