@@ -359,6 +359,22 @@
     return menu.label + ' (' + labels.length + ')';
   }
 
+  function listFilterChevron() {
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'list-filter-chevron');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M6 9l6 6 6-6');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(path);
+    return svg;
+  }
+
   function renderListFilters(container, options) {
     options = options || {};
     var recipes = options.recipes || null;
@@ -376,7 +392,10 @@
       var selected = activeMulti[menu.id] || [];
       var trigger = mk('button', 'list-filter-trigger');
       trigger.type = 'button';
-      trigger.textContent = listFilterTriggerLabel(menu, activeMulti);
+      var triggerLabel = mk('span', 'list-filter-trigger-label');
+      triggerLabel.textContent = listFilterTriggerLabel(menu, activeMulti);
+      trigger.appendChild(triggerLabel);
+      trigger.appendChild(listFilterChevron());
       trigger.setAttribute('aria-haspopup', 'true');
       trigger.setAttribute('aria-expanded', 'false');
       if (selected.length) trigger.classList.add('has-selection');

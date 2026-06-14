@@ -230,12 +230,21 @@
   }
   .list-filter-menu { position: relative; }
   .list-filter-trigger {
+    display: inline-flex; align-items: center; gap: 0.35rem;
     font: inherit; font-size: 0.8125rem; font-weight: 500;
-    padding: 0.38rem 0.7rem; border-radius: var(--radius);
+    padding: 0.38rem 0.55rem 0.38rem 0.7rem; border-radius: var(--radius);
     border: 1px solid var(--border2); background: var(--bg);
     color: var(--text); cursor: pointer; white-space: nowrap;
     transition: border-color 0.12s, color 0.12s;
   }
+  .list-filter-trigger-label { line-height: 1.2; }
+  .list-filter-chevron {
+    width: 0.75rem; height: 0.75rem; flex-shrink: 0;
+    color: var(--text3);
+    transition: transform 0.15s ease, color 0.12s;
+  }
+  .list-filter-trigger:hover .list-filter-chevron { color: var(--info); }
+  .list-filter-menu.is-open .list-filter-chevron { transform: rotate(180deg); }
   .list-filter-trigger:hover { border-color: var(--text3); color: var(--info); }
   .list-filter-trigger.has-selection {
     border-color: var(--text); font-weight: 600;
