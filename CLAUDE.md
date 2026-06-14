@@ -43,7 +43,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
   tags: ['hog-protein', 'snabb', 'kyckling'], // filter-taggar; id:n i TAG_FILTER_ORDER (ej ugn/stekpanna/tillbehör)
   image: 'images/recept.png', // valfritt; annars emoji-bakgrund
   emoji: '🍕',
-  title: 'Receptnamn',
+  title: 'Receptnamn', // alltid svenska — översätt engelska källtitlar
   source: '@kontonamn på Instagram',
   sourceUrl: 'https://www.instagram.com/p/...',
   badges: ['4 portioner', '30 min', 'hög protein'], // tid alltid «XX min» (inga ca/under/intervall)
@@ -80,6 +80,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 - Övriga enheter som förekommer i appen: `pinch`, `näve`, `strimlor` m.m.
 - Lowercase på alla ingrediensnamn
 - Makros gäller hela receptet, inte per portion
+- **`title` alltid på svenska** — översätt engelska/internationella källnamn (etablerade matlånord som gochujang, teriyaki, buffalo får stanna)
 
 ## Makros
 

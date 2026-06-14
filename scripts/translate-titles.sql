@@ -1,0 +1,17 @@
+UPDATE recipes SET data = json_set(data, '$.title', 'Buffalo-pizza med kycklingbotten'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'buffalo-chicken-crust-pizza';
+UPDATE recipes SET data = json_set(data, '$.title', 'Dumplinglasagne'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'dumpling-lasagna';
+UPDATE recipes SET data = json_set(data, '$.title', 'Krämig edamame-spread med jalapeño och basilika'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'edamame-spread';
+UPDATE recipes SET data = json_set(data, '$.title', 'Smashad gurka med ume och chili crunch'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'smashed-cucumber';
+UPDATE recipes SET data = json_set(data, '$.title', 'Krämig gochujang-gnocchi med sesambiff'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'gochujang-gnocchi';
+UPDATE recipes SET data = json_set(data, '$.title', 'Kycklingslider med het honung'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'hot-honey-chicken-sliders';
+UPDATE recipes SET data = json_set(data, '$.title', 'Kanel-socker munkbullar'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'cinnamon-sugar-donut-holes';
+UPDATE recipes SET data = json_set(data, '$.title', 'Sichuansallad med kyckling och gurka'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'numbing-chicken-cucumber';
+UPDATE recipes SET data = json_set(data, '$.title', 'Tonfisksallad med chili crunch'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'tuna-chili-crisp-salad';
+UPDATE recipes SET data = json_set(data, '$.title', 'Smashad picklesallad'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'smashed-pickle-salad';
+UPDATE recipes SET data = json_set(data, '$.title', 'Dumplings med grönsaker i en panna'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'one-pan-dumplings-with-greens';
+UPDATE recipes SET data = json_set(data, '$.title', 'Thailändska basilikarullar med nötkött'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'thai-basil-beef-rolls';
+UPDATE recipes SET data = json_set(data, '$.title', 'Runda proteinbullar'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'hoagie-brod';
+UPDATE recipes SET data = json_set(data, '$.title', 'Räkpannkaka i rispapper'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'rice-paper-shrimp-pancake';
+UPDATE recipes SET data = json_set(data, '$.title', 'Högprotein kycklingkebab-wraps'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'chicken-kebab-wraps';
+UPDATE recipes SET data = json_set(data, '$.title', 'Mexikansk kyckling- och majssallad'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'mexican-chicken-corn-salad';
+UPDATE recipes SET data = json_set(data, '$.title', 'Nudlar med honung, lime och teriyakinötkött'), updated_at = '2026-06-14T11:17:44.137Z' WHERE id = 'honey-lime-teriyaki-beef-noodles';
