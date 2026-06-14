@@ -2,13 +2,13 @@
 
 ## Vad projektet är
 
-En receptapp hostad på GitHub Pages som samlar recept från Instagram och receptsajter. Appen är en fristående HTML-fil med inbyggd data — inga externa beroenden, ingen backend.
+En receptapp på **Cloudflare Workers** (D1, R2, auth, API) som samlar recept från Instagram och receptsajter. Frontend i `recept/`; backend i `worker/`.
 
-**Live:** https://johnscottguggenheimerse.github.io/claude-apps/recept/  
+**Live:** https://receptbok.receptbok.workers.dev  
 **Repo:** https://github.com/johnscottguggenheimerSE/claude-apps  
-**Fil:** `recept/index.html` (+ `recept/recipes.js` för data, `recept/app.js` för logik)
+**Fil:** `recept/index.html` (+ `recept/app.js` för logik; data via `/api/recipes`)
 
-**Deploy (GitHub Pages, annat konto än övriga projekt):** se **[DEPLOY.md](./DEPLOY.md)** — aktivera Pages i repot en gång, sedan `git push origin main`.
+**Deploy:** `git push origin main` + `cd worker && npm run deploy`. Se **[DEPLOY.md](./DEPLOY.md)**.
 
 ### I Cursor (denna workspace)
 

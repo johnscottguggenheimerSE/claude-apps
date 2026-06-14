@@ -20,7 +20,7 @@ När användaren klistrar in en **recept-URL** (Instagram-inlägg/reel, blogg, t
 3. **Mått:** Endast `g`, `msk`, `tsk`, `st`, ev. `pinch`/`näve`/`strimlor` — **lowercase** på ingrediensnamn. Valfritt `macros` per ingrediens för automatisk makrokontroll.
 4. **Infoga:** Nytt element sist i `RECIPES` i `recept/recipes.js`. Uppdatera **`FEATURED_NEW_IDS`** i `recept/app.js` för "Nytt!".
 5. **Validera:** `node scripts/validate-recipes.mjs` ska passera.
-6. **Commit + push:** Lägg till `recept/images/` om ny bild finns. Committa och **pusha** till `origin main` (se `always-push-github`). GitHub Pages ~1 min.
+6. **Commit + push + deploy:** `git push origin main` och `cd worker && npm run deploy`.
 
 ## Kodpolicy
 

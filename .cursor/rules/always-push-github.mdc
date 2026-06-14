@@ -1,14 +1,25 @@
 ---
-description: Pusha alltid till GitHub efter ändringar i detta repo
+description: Committa, pusha och deploya efter ändringar i detta repo
 alwaysApply: true
 ---
 
-# Alltid pusha till GitHub
+# Committa, pusha och deploya
 
-Efter du har gjort **meningsfulla ändringar** i detta repo (särskilt `recept/`, bilder, skript):
+Efter **meningsfulla ändringar** i detta repo (särskilt `recept/`, `worker/`, bilder, skript):
 
 1. **Committa** med ett tydligt meddelande (användaren behöver inte be om det).
-2. **Pusha** till `origin main` direkt efter lyckad commit.
+2. **Pusha** till `origin main`.
+3. **Deploya Worker** så live-sajten uppdateras:
+
+```bash
+cd worker && npm run deploy
+```
+
+## Live
+
+**https://receptbok.receptbok.workers.dev**
+
+Appen körs som Cloudflare Worker med D1 + R2 — **inte** GitHub Pages. `git push` räcker inte för att publicera frontend-ändringar.
 
 ## Git
 
@@ -17,13 +28,9 @@ Efter du har gjort **meningsfulla ändringar** i detta repo (särskilt `recept/`
 - Kör **inte** force push till `main` utan explicit begäran.
 - Uppdatera **inte** git config.
 
-## Recept-app (GitHub Pages)
-
-Live på: https://johnscottguggenheimerse.github.io/claude-apps/recept/
-
-Efter push: nämn kort att sidan uppdateras inom ~1 minut (hård omladdning på mobil om cache).
+Efter deploy: nämn live-URL ovan (hård omladdning på mobil om cache).
 
 ## Undantag
 
-- Frågor utan kodändringar — ingen commit/push.
-- Användaren säger uttryckligen att de **inte** vill pusha än.
+- Frågor utan kodändringar — ingen commit/push/deploy.
+- Användaren säger uttryckligen att de **inte** vill publicera än.
