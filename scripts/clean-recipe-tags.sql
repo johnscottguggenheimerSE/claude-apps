@@ -1,0 +1,17 @@
+UPDATE recipes SET data = json_set(data, '$.tags', json('["kyckling"]')), updated_at = datetime('now') WHERE id = 'buffalo-chicken-crust-pizza';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["flask"]')), updated_at = datetime('now') WHERE id = 'dumpling-lasagna';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["vegetarisk"]')), updated_at = datetime('now') WHERE id = 'edamame-spread';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["vegetarisk"]')), updated_at = datetime('now') WHERE id = 'smashed-cucumber';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["notkott"]')), updated_at = datetime('now') WHERE id = 'gochujang-gnocchi';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["kyckling"]')), updated_at = datetime('now') WHERE id = 'hot-honey-chicken-sliders';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["vegetarisk"]')), updated_at = datetime('now') WHERE id = 'cinnamon-sugar-donut-holes';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["kyckling"]')), updated_at = datetime('now') WHERE id = 'numbing-chicken-cucumber';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["fisk"]')), updated_at = datetime('now') WHERE id = 'tuna-chili-crisp-salad';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["vegetarisk"]')), updated_at = datetime('now') WHERE id = 'smashed-pickle-salad';
+UPDATE recipes SET data = json_set(data, '$.tags', json('[]')), updated_at = datetime('now') WHERE id = 'one-pan-dumplings-with-greens';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["notkott"]')), updated_at = datetime('now') WHERE id = 'thai-basil-beef-rolls';
+UPDATE recipes SET data = json_set(data, '$.tags', json('[]')), updated_at = datetime('now') WHERE id = 'hoagie-brod';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["skaldjur"]')), updated_at = datetime('now') WHERE id = 'rice-paper-shrimp-pancake';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["kyckling"]')), updated_at = datetime('now') WHERE id = 'chicken-kebab-wraps';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["kyckling"]')), updated_at = datetime('now') WHERE id = 'mexican-chicken-corn-salad';
+UPDATE recipes SET data = json_set(data, '$.tags', json('["notkott"]')), updated_at = datetime('now') WHERE id = 'honey-lime-teriyaki-beef-noodles';

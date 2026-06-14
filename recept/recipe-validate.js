@@ -60,8 +60,6 @@ var RecipeValidate = (function() {
     badges.push(n + ' portioner');
     if (r.macros && r.macros.kcal) badges.push(Math.round(r.macros.kcal / n) + ' kcal/port');
     if (r.macros && r.macros.prot) badges.push(Math.round(r.macros.prot / n) + 'g protein/port');
-    if (r.tags && r.tags.indexOf('hog-protein') !== -1) badges.push('hög protein');
-    if (r.tags && r.tags.indexOf('snabb') !== -1) badges.push('snabb');
     if (r.steps) {
       for (var si = 0; si < r.steps.length; si++) {
         var m = r.steps[si].text && r.steps[si].text.match(/(?:ca\s+)?(?:under\s+)?(\d+(?:[–-]\d+)?)\s*min/i);
@@ -98,7 +96,7 @@ var RecipeValidate = (function() {
 
     if (!r.title) errors.push(prefix + 'saknar title');
     else if (/\bprotein/i.test(String(r.title))) {
-      errors.push(prefix + 'title får inte innehålla «protein» — använd tagg hog-protein/badges istället');
+      errors.push(prefix + 'title får inte innehålla «protein» — använd badges/makros istället');
     }
     if (!r.image || typeof r.image !== 'string') errors.push(prefix + 'saknar image');
     if (!r.source) errors.push(prefix + 'saknar source');
@@ -108,8 +106,7 @@ var RecipeValidate = (function() {
     if (VALID_CATEGORIES.indexOf(r.category) === -1) {
       errors.push(prefix + 'ogiltig category: ' + r.category);
     }
-    if (!r.tags || !r.tags.length) errors.push(prefix + 'saknar tags');
-    else {
+    if (r.tags && r.tags.length) {
       r.tags.forEach(function(t) {
         if (tagFilterOrder.indexOf(t) === -1) errors.push(prefix + 'okänd tag: ' + t);
       });

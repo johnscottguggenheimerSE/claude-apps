@@ -16,10 +16,9 @@ const RECIPE_CATEGORY_OVERRIDES: Record<string, string> = {
   'mexican-chicken-corn-salad': 'lunch',
 };
 const VALID_UNITS = ['g', 'msk', 'tsk', 'st', 'pinch', 'näve', 'strimlor'];
-/** Filter-taggar — kategori (middag/asiatisk/…) är separat; ingen ugn/stekpanna/tillbehör. */
+/** Filter-taggar — proteinkälla + diet (ej tid/makro-tagg). */
 const TAG_FILTER_ORDER = [
-  'hog-protein', 'snabb', 'laggkolhydrat', 'vegetarisk', 'meal-prep',
-  'kyckling', 'notkott', 'flask', 'fisk', 'skaldjur',
+  'kyckling', 'notkott', 'flask', 'fisk', 'skaldjur', 'vegetarisk', 'vegan',
 ];
 
 const DEPRECATED_TAGS = new Set(['ugn', 'airfryer', 'stekpanna', 'tillbehor']);
@@ -60,9 +59,6 @@ export function inferBadges(r: Recipe): string[] {
   const macros = r.macros as Record<string, number> | undefined;
   if (macros?.kcal) badges.push(`${Math.round(macros.kcal / n)} kcal/port`);
   if (macros?.prot) badges.push(`${Math.round(macros.prot / n)}g protein/port`);
-  const tags = r.tags as string[] | undefined;
-  if (tags?.includes('hog-protein')) badges.push('hög protein');
-  if (tags?.includes('snabb')) badges.push('snabb');
   const steps = r.steps as { text?: string }[] | undefined;
   if (steps) {
     for (const step of steps) {
@@ -86,27 +82,8 @@ function ingredientText(r: Recipe): string {
     .toLowerCase();
 }
 
-function looksSnabb(r: Recipe): boolean {
-  if (r.tags && (r.tags as string[]).includes('snabb')) return true;
-  const badges = r.badges as string[] | undefined;
-  if (badges?.some((b) => /under\s*\d+\s*min|≤\s*30|(?:^|\s)30\s*min/i.test(b))) return true;
-  const steps = r.steps as { text?: string }[] | undefined;
-  if (steps) {
-    for (const step of steps) {
-      const m = step.text?.match(/(?:under\s+)?(\d+)\s*min/i);
-      if (m && parseInt(m[1], 10) <= 30) return true;
-    }
-  }
-  return false;
-}
-
 export function inferTags(r: Recipe): string[] {
   const tags: string[] = [];
-  const n = typeof r.baseServings === 'number' && r.baseServings > 0 ? r.baseServings : 1;
-  const macros = r.macros as Record<string, number> | undefined;
-  if (macros?.prot && macros.prot / n >= 25) tags.push('hog-protein');
-  if (looksSnabb(r)) tags.push('snabb');
-
   const ing = ingredientText(r);
   const proteinTags: Array<{ id: string; re: RegExp }> = [
     { id: 'kyckling', re: /kyckling|chicken|turkey|kalkon/i },
@@ -122,12 +99,6 @@ export function inferTags(r: Recipe): string[] {
   const vegHints = /tofu|tempeh|halloumi|bönor|beans|linser|quinoa|keso(?!l)/i;
   const meatHints = /kyckling|chicken|nöt|beef|fläsk|pork|bacon|fisk|torsk|tonfisk|räk|shrimp|korv|wurst/i;
   if (vegHints.test(ing) && !meatHints.test(ing)) tags.push('vegetarisk');
-
-  const title = String(r.title || '').toLowerCase();
-  if (/meal prep|meal-prep|lunchbox|wraps/i.test(title + ing)) tags.push('meal-prep');
-  if (/lågkol|low carb|lchf/i.test(title + ing + String(r.badges?.join(' ') || ''))) {
-    tags.push('laggkolhydrat');
-  }
 
   return [...new Set(tags)];
 }
@@ -190,7 +161,7 @@ export function validateRecipe(
 
   if (!r.title) errors.push(`${prefix}saknar title`);
   else if (/\bprotein/i.test(String(r.title))) {
-    errors.push(`${prefix}title får inte innehålla «protein» — använd tagg hog-protein/badges istället`);
+    errors.push(`${prefix}title får inte innehålla «protein» — använd badges/makros istället`);
   }
   if (!r.source) errors.push(`${prefix}saknar source`);
   if (r.sourceUrl && r.sourceUrl !== '#' && !isUrl(r.sourceUrl)) {
@@ -200,8 +171,7 @@ export function validateRecipe(
     errors.push(`${prefix}ogiltig category`);
   }
   const tags = r.tags as string[] | undefined;
-  if (!tags?.length) errors.push(`${prefix}saknar tags`);
-  else tags.forEach((t) => {
+  if (tags) tags.forEach((t) => {
     if (!TAG_FILTER_ORDER.includes(t)) errors.push(`${prefix}okänd tag: ${t}`);
   });
   if (!allowMissingImage && (!r.image || typeof r.image !== 'string')) {

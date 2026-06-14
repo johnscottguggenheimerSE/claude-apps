@@ -40,7 +40,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
   id: 'kebab-case-id',
   category: 'middag', // måltidstyp: frukost | lunch | middag | tillbehor | fika
   baseServings: 4, // portioner som ingredienslistan och macros avser
-  tags: ['hog-protein', 'snabb', 'kyckling'], // filter-taggar; id:n i TAG_FILTER_ORDER (ej ugn/stekpanna/tillbehör)
+  tags: ['kyckling'], // proteinkälla + diet — se TAG_FILTER_ORDER i app.js
   image: 'images/recept.png', // valfritt; annars emoji-bakgrund
   emoji: '🍕',
   title: 'Receptnamn', // alltid svenska — översätt engelska källtitlar; aldrig «protein» i namnet
@@ -81,7 +81,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 - Lowercase på alla ingrediensnamn
 - Makros gäller hela receptet, inte per portion
 - **`title` alltid på svenska** — översätt engelska/internationella källnamn (etablerade matlånord som gochujang, teriyaki, buffalo får stanna)
-- **`title` utan «protein»** — använd aldrig protein/högprotein i receptnamn; proteinhalt via tagg `hog-protein`, badges och makros
+- **`title` utan «protein»** — använd aldrig protein/högprotein i receptnamn; proteinhalt via badges och makros
 - **`source` = ursprunglig skapare** — @handle, blogg/sajt eller kock + publikation. Läs av caption, URL och synlig @handle på skärmdumpar. **Aldrig** vän/familj som vidarebefordrat (t.ex. Antonia) om de inte själva postat receptet. Vid okänd: «Okänd källa»
 
 ## Makros

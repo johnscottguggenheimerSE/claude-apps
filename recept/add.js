@@ -22,13 +22,11 @@
     frukost: 'Frukost', lunch: 'Lunch', middag: 'Middag', tillbehor: 'Tillbehör', fika: 'Fika & bakning'
   };
   var TAG_FILTER_ORDER = [
-    'hog-protein', 'snabb', 'laggkolhydrat', 'vegetarisk', 'meal-prep',
-    'kyckling', 'notkott', 'flask', 'fisk', 'skaldjur'
+    'kyckling', 'notkott', 'flask', 'fisk', 'skaldjur', 'vegetarisk', 'vegan'
   ];
   var TAG_LABELS = {
-    'hog-protein': 'Hög protein', snabb: 'Snabbt', vegetarisk: 'Vegetariskt',
-    'meal-prep': 'Meal prep', kyckling: 'Kyckling', notkott: 'Nötkött', flask: 'Fläsk',
-    fisk: 'Fisk', skaldjur: 'Skaldjur', laggkolhydrat: 'Lågkolhydrat'
+    kyckling: 'Kyckling', notkott: 'Nötkött', flask: 'Fläsk',
+    fisk: 'Fisk', skaldjur: 'Skaldjur', vegetarisk: 'Vegetariskt', vegan: 'Veganskt'
   };
   var VALID_UNITS = ['g', 'msk', 'tsk', 'st', 'pinch', 'näve', 'strimlor'];
 
