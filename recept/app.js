@@ -908,7 +908,21 @@ function bootApp(data) {
   FEATURED_NEW_IDS.length = 0;
   (data.featuredNewIds || []).forEach(function(id) { FEATURED_NEW_IDS.push(id); });
   RecipeValidate.reportAtLoad(recipes, TAG_FILTER_ORDER, CATEGORY_ORDER);
+  try {
+    var storedSearch = sessionStorage.getItem('recept_search');
+    if (storedSearch) {
+      searchQuery = storedSearch;
+      var searchInput = document.getElementById('recipe-search');
+      if (searchInput) searchInput.value = storedSearch;
+      sessionStorage.removeItem('recept_search');
+    }
+    if (sessionStorage.getItem('recept_show_favorites') === '1') {
+      showFavoritesOnly = true;
+      sessionStorage.removeItem('recept_show_favorites');
+    }
+  } catch (e) {}
   renderCategoryNav();
+  updateFavoritesToggleBtn();
   renderList();
   routeFromLocation();
 }

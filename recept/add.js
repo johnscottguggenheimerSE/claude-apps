@@ -159,12 +159,20 @@
     }).catch(function() { setStatus('Kunde inte läsa bilden', true); });
   });
 
+  function updatePageHeading() {
+    var heading = document.getElementById('page-heading');
+    if (!heading) return;
+    heading.textContent = editMode ? 'Redigera recept' : 'Lägg till recept';
+    document.title = (editMode ? 'Redigera recept' : 'Lägg till recept') + ' — Macro-friendly recipes';
+  }
+
   function showCreatePanel() {
     editMode = false;
     document.getElementById('tab-create').classList.add('active');
     document.getElementById('tab-edit').classList.remove('active');
     document.getElementById('panel-create').classList.remove('hidden');
     document.getElementById('panel-edit').classList.add('hidden');
+    updatePageHeading();
   }
 
   function showEditPanel() {
@@ -173,6 +181,7 @@
     document.getElementById('tab-create').classList.remove('active');
     document.getElementById('panel-edit').classList.remove('hidden');
     document.getElementById('panel-create').classList.add('hidden');
+    updatePageHeading();
   }
 
   document.getElementById('tab-create').addEventListener('click', showCreatePanel);

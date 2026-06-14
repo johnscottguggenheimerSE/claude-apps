@@ -3,27 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lägg till recept</title>
+<title>Lägg till recept — Macro-friendly recipes</title>
 <script src="theme.js"></script>
+<link rel="stylesheet" href="site-shell.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root, [data-theme="light"] {
-    color-scheme: light;
-    --bg: #ffffff; --bg2: #f5f4f0; --text: #1a1a18; --text2: #6b6b65;
-    --border: rgba(0,0,0,0.09); --info: #1a5fa8; --radius: 8px;
-  }
-  [data-theme="dark"] {
-    color-scheme: dark;
-    --bg: #1c1d1c; --bg2: #1c1d1c; --text: #f0efe8; --text2: #a0a09a;
-    --border: rgba(255,255,255,0.09); --info: #5ba3e8;
-  }
+  :root, [data-theme="light"] { --radius: 8px; }
+  [data-theme="dark"] { --radius: 8px; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
-  .app { max-width: 720px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
-  .top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
-  .top-actions { display: flex; align-items: center; gap: 0.85rem; font-size: 0.8125rem; }
-  .theme-btn { font: inherit; font-size: inherit; background: none; border: none; color: var(--text2); cursor: pointer; padding: 0; }
-  h1 { font-size: 1.5rem; font-weight: 700; }
-  a { color: var(--info); text-decoration: none; font-size: 0.875rem; }
+  .add-content { max-width: 720px; }
   label { display: block; font-size: 0.8125rem; font-weight: 500; margin-bottom: 0.35rem; color: var(--text2); }
   textarea, input[type=url], input[type=text], select {
     width: 100%; font: inherit; font-size: 0.9375rem; padding: 0.65rem 0.75rem;
@@ -133,132 +121,153 @@
   .image-drop.has-image .image-drop-hint { display: none; }
 </style>
 </head>
-<body>
-<div class="app">
-  <div class="top">
-    <h1>Lägg till recept</h1>
-    <div class="top-actions">
-      <button type="button" class="theme-btn" id="theme-toggle" aria-label="Byt tema">Mörkt</button>
-      <a href="/">← Alla recept</a>
+<body data-page="add">
+<div class="site-shell">
+  <div class="admin-bar">
+    <div class="admin-bar-inner">
+      <a href="/add" class="admin-bar-link is-current">Lägg till +</a>
     </div>
   </div>
-
-  <div class="mode-tabs">
-    <button type="button" id="tab-create" class="active">Skapa</button>
-    <button type="button" id="tab-edit">Redigera</button>
-  </div>
-
-  <div id="panel-create">
-    <div class="mode-tabs sub-tabs">
-      <button type="button" id="tab-text" class="active">Text + bild</button>
-      <button type="button" id="tab-url">URL</button>
-      <button type="button" id="tab-from-image">Från bild</button>
-    </div>
-
-    <div id="panel-text">
-      <div class="field">
-        <label for="text">Recepttext eller caption</label>
-        <textarea id="text" placeholder="Klistra in caption, ingredienslista eller fritext…"></textarea>
+  <header class="site-top" id="site-top">
+    <div class="site-top-bar">
+      <div class="site-brand">
+        <a href="/" class="site-brand-link">
+          <img src="images/logo-light.png" alt="Macro-friendly recipes by Jann" class="site-logo site-logo-light" width="1024" height="262">
+          <img src="images/logo-dark.png" alt="Macro-friendly recipes by Jann" class="site-logo site-logo-dark" width="1024" height="262">
+        </a>
       </div>
-      <div class="field">
-        <label for="source-label">Källa (valfritt)</label>
-        <input type="text" id="source-label" placeholder="t.ex. @namn på Instagram eller NYT Cooking">
+      <div class="site-search">
+        <svg class="site-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+        <input type="search" id="recipe-search" class="site-search-input" placeholder="Vad vill du laga?" autocomplete="off" enterkeyhint="search">
       </div>
-      <div class="field">
-        <label>Bild (valfritt)</label>
-        <div class="image-drop" id="drop-text" tabindex="0">
-          <span class="image-drop-hint">Klicka, dra eller klistra in (Ctrl+V)</span>
-          <img id="thumb-text" class="hidden" alt="">
-        </div>
-        <input type="file" id="file-text" accept="image/*" class="hidden">
-        <p class="field-hint">Bilden sparas som den är — ingen AI vid skapande.</p>
-      </div>
-      <div class="actions">
-        <button type="button" class="primary" id="btn-parse-text">Granska recept</button>
+      <div class="site-actions">
+        <button type="button" id="favorites-toggle-btn" class="site-action-btn">
+          <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          Favoriter
+        </button>
+        <button type="button" id="theme-toggle-btn" class="site-action-btn" aria-label="Byt tema">
+          <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <span id="theme-toggle-label">Mörkt</span>
+        </button>
+        <button type="button" id="logout-btn" class="site-action-btn">
+          <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Logga ut
+        </button>
       </div>
     </div>
-
-    <div id="panel-url" class="hidden">
-      <p class="flow-hint">
-        Hämtar receptsida. Endast <em>matfoto</em> från sidan sparas — inte ingrediensbilder eller text.
-      </p>
-      <div class="field">
-        <label for="recipe-url">Recept-URL</label>
-        <input type="url" id="recipe-url" placeholder="https://cooking.nytimes.com/recipes/…">
-        <p class="field-hint">Instagram/TikTok fungerar inte — använd Text + bild.</p>
-      </div>
-      <div class="actions">
-        <button type="button" class="primary" id="btn-parse-url">Hämta och tolka</button>
-      </div>
+    <div class="site-nav-row">
+      <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
     </div>
-
-    <div id="panel-from-image" class="hidden">
-      <p class="flow-hint">
-        AI läser recept från bilden. Endast matfoto sparas med receptet — ingredienslistor och text sparas inte som bild.
-      </p>
-      <div class="field">
-        <label>Bild med recept</label>
-        <div class="image-drop" id="drop-image" tabindex="0">
-          <span class="image-drop-hint">Klicka, dra eller klistra in (Ctrl+V)</span>
-          <img id="thumb-image" class="hidden" alt="">
-        </div>
-        <input type="file" id="file-image" accept="image/*" class="hidden">
-      </div>
-      <div class="actions">
-        <button type="button" class="primary" id="btn-parse-image">Tolka recept från bild</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="panel-edit" class="hidden">
-    <div class="field">
-      <label for="edit-select">Välj recept</label>
-      <select id="edit-select">
-        <option value="">Välj recept…</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="status" id="status"></div>
-
-  <div class="preview" id="preview">
-    <h2 id="preview-title">Granska recept</h2>
-    <p class="field-hint" id="preview-hint" style="margin-top:0;margin-bottom:0.75rem;">Redigera fält nedan och spara.</p>
-    <div class="preview-detail-top">
-      <div class="preview-hero preview-image-wrap no-image" id="preview-image-wrap">
-        <div class="preview-image-placeholder">Ingen bild</div>
-        <img id="preview-img" class="hidden" alt="">
-        <div class="preview-image-actions">
-          <button type="button" class="preview-image-btn" id="btn-upload-image">ladda upp bild</button>
-          <button type="button" class="preview-image-btn hidden" id="btn-regen-image">förbättra bild med AI</button>
-        </div>
-        <input type="file" id="file-preview" accept="image/*" class="hidden">
-      </div>
-      <div class="preview-summary" id="preview-meta-fields"></div>
-    </div>
-    <div id="preview-form"></div>
-    <div class="actions">
-      <button type="button" class="primary" id="btn-save">Spara recept</button>
-      <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8125rem;margin-left:0.25rem;">
-        <input type="checkbox" id="featured-new"> Visa som Nytt!
-      </label>
-    </div>
-  </div>
+  </header>
 </div>
-<script>
-(function() {
-  var btn = document.getElementById('theme-toggle');
-  function sync() {
-    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    btn.textContent = dark ? 'Ljust' : 'Mörkt';
-  }
-  btn.addEventListener('click', function() {
-    if (window.ReceptTheme) ReceptTheme.toggle();
-    sync();
-  });
-  sync();
-})();
-</script>
+<main class="page-body">
+  <div class="add-content">
+    <h1 class="page-heading" id="page-heading">Lägg till recept</h1>
+
+    <div class="mode-tabs">
+      <button type="button" id="tab-create" class="active">Skapa</button>
+      <button type="button" id="tab-edit">Redigera</button>
+    </div>
+
+    <div id="panel-create">
+      <div class="mode-tabs sub-tabs">
+        <button type="button" id="tab-text" class="active">Text + bild</button>
+        <button type="button" id="tab-url">URL</button>
+        <button type="button" id="tab-from-image">Från bild</button>
+      </div>
+
+      <div id="panel-text">
+        <div class="field">
+          <label for="text">Recepttext eller caption</label>
+          <textarea id="text" placeholder="Klistra in caption, ingredienslista eller fritext…"></textarea>
+        </div>
+        <div class="field">
+          <label for="source-label">Källa (valfritt)</label>
+          <input type="text" id="source-label" placeholder="t.ex. @namn på Instagram eller NYT Cooking">
+        </div>
+        <div class="field">
+          <label>Bild (valfritt)</label>
+          <div class="image-drop" id="drop-text" tabindex="0">
+            <span class="image-drop-hint">Klicka, dra eller klistra in (Ctrl+V)</span>
+            <img id="thumb-text" class="hidden" alt="">
+          </div>
+          <input type="file" id="file-text" accept="image/*" class="hidden">
+          <p class="field-hint">Bilden sparas som den är — ingen AI vid skapande.</p>
+        </div>
+        <div class="actions">
+          <button type="button" class="primary" id="btn-parse-text">Granska recept</button>
+        </div>
+      </div>
+
+      <div id="panel-url" class="hidden">
+        <p class="flow-hint">
+          Hämtar receptsida. Endast <em>matfoto</em> från sidan sparas — inte ingrediensbilder eller text.
+        </p>
+        <div class="field">
+          <label for="recipe-url">Recept-URL</label>
+          <input type="url" id="recipe-url" placeholder="https://cooking.nytimes.com/recipes/…">
+          <p class="field-hint">Instagram/TikTok fungerar inte — använd Text + bild.</p>
+        </div>
+        <div class="actions">
+          <button type="button" class="primary" id="btn-parse-url">Hämta och tolka</button>
+        </div>
+      </div>
+
+      <div id="panel-from-image" class="hidden">
+        <p class="flow-hint">
+          AI läser recept från bilden. Endast matfoto sparas med receptet — ingredienslistor och text sparas inte som bild.
+        </p>
+        <div class="field">
+          <label>Bild med recept</label>
+          <div class="image-drop" id="drop-image" tabindex="0">
+            <span class="image-drop-hint">Klicka, dra eller klistra in (Ctrl+V)</span>
+            <img id="thumb-image" class="hidden" alt="">
+          </div>
+          <input type="file" id="file-image" accept="image/*" class="hidden">
+        </div>
+        <div class="actions">
+          <button type="button" class="primary" id="btn-parse-image">Tolka recept från bild</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-edit" class="hidden">
+      <div class="field">
+        <label for="edit-select">Välj recept</label>
+        <select id="edit-select">
+          <option value="">Välj recept…</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="preview" id="preview">
+      <h2 id="preview-title">Granska recept</h2>
+      <p class="field-hint" id="preview-hint" style="margin-top:0;margin-bottom:0.75rem;">Redigera fält nedan och spara.</p>
+      <div class="preview-detail-top">
+        <div class="preview-hero preview-image-wrap no-image" id="preview-image-wrap">
+          <div class="preview-image-placeholder">Ingen bild</div>
+          <img id="preview-img" class="hidden" alt="">
+          <div class="preview-image-actions">
+            <button type="button" class="preview-image-btn" id="btn-upload-image">ladda upp bild</button>
+            <button type="button" class="preview-image-btn hidden" id="btn-regen-image">förbättra bild med AI</button>
+          </div>
+          <input type="file" id="file-preview" accept="image/*" class="hidden">
+        </div>
+        <div class="preview-summary" id="preview-meta-fields"></div>
+      </div>
+      <div id="preview-form"></div>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-save">Spara recept</button>
+        <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8125rem;margin-left:0.25rem;">
+          <input type="checkbox" id="featured-new"> Visa som Nytt!
+        </label>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="site-shell.js"></script>
 <script src="add.js"></script>
 </body>
 </html>
