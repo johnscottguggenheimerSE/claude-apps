@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Macro-friendly recipes</title>
 <script src="theme.js"></script>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700&display=swap">
+<link rel="stylesheet" href="fonts.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root, [data-theme="light"] {
@@ -23,7 +25,7 @@
     --info: #5ba3e8;
     --star: #f0efe8;
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
+  body { background: var(--bg2); color: var(--text); min-height: 100vh; }
   .app { max-width: 1120px; margin: 0 auto; }
   .site-shell {
     position: sticky; top: 0; z-index: 40;
@@ -216,7 +218,6 @@
   .browse-link:hover { color: var(--info); }
   .browse-link.active { color: var(--info); font-weight: 600; }
   .list-heading {
-    font-family: Georgia, 'Times New Roman', serif;
     font-size: 1.75rem; font-weight: 700;
     letter-spacing: -0.02em;
     margin: 0 0 0.85rem;

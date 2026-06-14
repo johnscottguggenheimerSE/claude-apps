@@ -173,7 +173,6 @@
 .browse-link:hover { color: var(--info); }
 .browse-link.active { color: var(--info); font-weight: 600; }
 .page-heading {
-  font-family: Georgia, 'Times New Roman', serif;
   font-size: 1.75rem; font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0 0 1.15rem;
