@@ -297,6 +297,25 @@ function badgeTime(r) {
   return '';
 }
 
+function formatRecipeTimeMinutes(raw) {
+  if (!raw) return '';
+  var m = String(raw).match(/(\d+)(?:[–-](\d+))?\s*min/i);
+  if (!m) return '';
+  var mins = m[2] ? parseInt(m[2], 10) : parseInt(m[1], 10);
+  return mins + ' min';
+}
+
+function formatRecipeTime(r) {
+  return formatRecipeTimeMinutes(badgeTime(r));
+}
+
+function formatBadgeLabel(b) {
+  if (/kcal|protein/i.test(b)) return b;
+  var time = formatRecipeTimeMinutes(b);
+  if (time) return time;
+  return b;
+}
+
 function cardMetricTags(r) {
   var tags = [];
   if (r.macros) {
@@ -304,7 +323,7 @@ function cardMetricTags(r) {
     tags.push(Math.round(r.macros.kcal / n) + ' kcal/port');
     tags.push(Math.round(r.macros.prot / n) + 'g protein/port');
   }
-  var time = badgeTime(r);
+  var time = formatRecipeTime(r);
   if (time) tags.push(time);
   return tags;
 }
@@ -381,7 +400,7 @@ function createRecipeCard(r) {
     ratingRow.appendChild(count);
     body.appendChild(ratingRow);
   }
-  var time = badgeTime(r);
+  var time = formatRecipeTime(r);
   if (time) {
     var timeEl = mk('div', 'recipe-card-time');
     timeEl.textContent = time;
@@ -504,7 +523,7 @@ function showDetail(id, skipHistory) {
   }
   (r.badges || []).forEach(function(b) {
     var badge = mk('span', 'badge');
-    badge.textContent = b;
+    badge.textContent = formatBadgeLabel(b);
     badgesDiv.appendChild(badge);
   });
   metaRow.appendChild(badgesDiv);
