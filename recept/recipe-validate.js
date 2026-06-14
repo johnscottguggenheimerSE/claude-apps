@@ -37,6 +37,23 @@ var RecipeValidate = (function() {
     return null;
   }
 
+  function extractMinutesFromText(text) {
+    var m = String(text).match(/(\d+)(?:[–-](\d+))?\s*min/i);
+    if (!m) return null;
+    return m[2] ? parseInt(m[2], 10) : parseInt(m[1], 10);
+  }
+
+  function normalizeBadgeLabel(b) {
+    if (/kcal|protein/i.test(b)) return b;
+    var mins = extractMinutesFromText(b);
+    if (mins != null) return mins + ' min';
+    return b;
+  }
+
+  function normalizeBadgeTimes(badges) {
+    return badges.map(normalizeBadgeLabel);
+  }
+
   function inferBadges(r) {
     var badges = [];
     var n = r.baseServings && r.baseServings > 0 ? r.baseServings : 1;
@@ -49,7 +66,8 @@ var RecipeValidate = (function() {
       for (var si = 0; si < r.steps.length; si++) {
         var m = r.steps[si].text && r.steps[si].text.match(/(?:ca\s+)?(?:under\s+)?(\d+(?:[–-]\d+)?)\s*min/i);
         if (m) {
-          badges.push(m[0].trim());
+          var mins = extractMinutesFromText(m[0]);
+          if (mins != null) badges.push(mins + ' min');
           break;
         }
       }
@@ -62,6 +80,7 @@ var RecipeValidate = (function() {
     if (r.sourceUrl == null) r.sourceUrl = '';
     if (!r.baseServings || r.baseServings < 1) r.baseServings = 1;
     if (!r.badges || !r.badges.length) r.badges = inferBadges(r);
+    else r.badges = normalizeBadgeTimes(r.badges);
     if (r.tags && r.tags.length) {
       var deprecated = { ugn: 1, airfryer: 1, stekpanna: 1, tillbehor: 1 };
       r.tags = r.tags.filter(function(t) { return !deprecated[t]; });

@@ -28,7 +28,7 @@ Fält (inget emoji-fält):
 - tags: array — endast från: hog-protein, snabb, laggkolhydrat, vegetarisk, meal-prep, kyckling, notkott, flask, fisk, skaldjur (inte ugn/airfryer/stekpanna/tillbehör — kategori täcker måltidstyp)
 - title, source (läsbar källa: sajtnamn, «Ali Slagle, NYT Cooking», «@handle på Instagram»), sourceUrl
 - sourceUrl: publik recept-URL (matblogg, NYT Cooking, etc.). Tom sträng för Instagram/TikTok — vi kan inte läsa inloggade sociala länkar; använd @handle i source istället
-- badges: array med minst portioner (t.ex. «4 portioner») och tidsuppskattning (t.ex. «30 min»)
+- badges: array med minst portioner (t.ex. «4 portioner») och tidsuppskattning som **endast** «XX min» (t.ex. «30 min») — aldrig «ca», «under» eller intervall i badge; vid intervall i källan använd högsta minut
 - macros: { kcal, prot, carb, fat } för HELA receptet
 - groups med ingredients (name lowercase, amount number, unit: g|msk|tsk|st|pinch|näve|strimlor)
 - steps: [{ title, text }]

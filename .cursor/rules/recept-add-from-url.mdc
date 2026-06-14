@@ -16,7 +16,7 @@ När användaren klistrar in en **recept-URL** (Instagram-inlägg/reel, blogg, t
 ## Arbetsgång
 
 1. **Hämta innehåll:** Använd `WebFetch`/curl eller webbläsarverktyg om sidan kräver JS. **Instagram** ger ofta begränsad HTML — om caption saknas, be användaren klistra in text från appen eller en skärmdump.
-2. **Bygg objektet:** `id` i kebab-case (unikt), `category`, **`baseServings`** (portioner som listan och macros avser), **`tags`** från `TAG_FILTER_ORDER` / `TAG_LABELS` i `recept/app.js`, `emoji`, `title`, `source` + `sourceUrl` (http(s) eller tom för eget), `badges`, `macros` för **hela receptet**, `groups`, `steps`, **fyra** `tips` med första **Seattle**.
+2. **Bygg objektet:** `id` i kebab-case (unikt), `category`, **`baseServings`** (portioner som listan och macros avser), **`tags`** från `TAG_FILTER_ORDER` / `TAG_LABELS` i `recept/app.js`, `emoji`, `title`, `source` + `sourceUrl` (http(s) eller tom för eget), `badges` (tid alltid **«XX min»** — inga ca/under/intervall), `macros` för **hela receptet**, `groups`, `steps`, **fyra** `tips` med första **Seattle**.
 3. **Mått:** Endast `g`, `msk`, `tsk`, `st`, ev. `pinch`/`näve`/`strimlor` — **lowercase** på ingrediensnamn. Valfritt `macros` per ingrediens för automatisk makrokontroll.
 4. **Infoga:** Nytt element sist i `RECIPES` i `recept/recipes.js`. Uppdatera **`FEATURED_NEW_IDS`** i `recept/app.js` för "Nytt!".
 5. **Validera:** `node scripts/validate-recipes.mjs` ska passera.

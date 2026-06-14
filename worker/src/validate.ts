@@ -30,6 +30,29 @@ function isUrl(s: unknown): boolean {
   return typeof s === 'string' && /^https?:\/\//i.test(s);
 }
 
+/** Minuter från badge- eller stegtext; intervall → högsta värde. */
+function extractMinutesFromText(text: string): number | null {
+  const m = text.match(/(\d+)(?:[–-](\d+))?\s*min/i);
+  if (!m) return null;
+  return m[2] ? parseInt(m[2], 10) : parseInt(m[1], 10);
+}
+
+function formatMinutesBadge(mins: number): string {
+  return `${mins} min`;
+}
+
+/** Tid i badges: alltid «XX min» — inga ca/under/intervall i badge-text. */
+export function normalizeBadgeLabel(b: string): string {
+  if (/kcal|protein/i.test(b)) return b;
+  const mins = extractMinutesFromText(b);
+  if (mins != null) return formatMinutesBadge(mins);
+  return b;
+}
+
+export function normalizeBadgeTimes(badges: string[]): string[] {
+  return badges.map(normalizeBadgeLabel);
+}
+
 export function inferBadges(r: Recipe): string[] {
   const badges: string[] = [];
   const n = typeof r.baseServings === 'number' && r.baseServings > 0 ? r.baseServings : 1;
@@ -45,7 +68,8 @@ export function inferBadges(r: Recipe): string[] {
     for (const step of steps) {
       const m = step.text?.match(/(?:ca\s+)?(?:under\s+)?(\d+(?:[–-]\d+)?)\s*min/i);
       if (m) {
-        badges.push(m[0].trim());
+        const mins = extractMinutesFromText(m[0]);
+        if (mins != null) badges.push(formatMinutesBadge(mins));
         break;
       }
     }
@@ -130,6 +154,8 @@ export function normalizeRecipe(r: Recipe): Recipe {
   r.category = migrateCategory(r);
   if (!Array.isArray(r.badges) || r.badges.length === 0) {
     r.badges = inferBadges(r);
+  } else {
+    r.badges = normalizeBadgeTimes(r.badges as string[]);
   }
   let tags = Array.isArray(r.tags) ? sanitizeTags(r.tags as string[]) : [];
   if (!tags.length) tags = inferTags(r);

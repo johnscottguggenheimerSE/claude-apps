@@ -46,7 +46,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
   title: 'Receptnamn',
   source: '@kontonamn på Instagram',
   sourceUrl: 'https://www.instagram.com/p/...',
-  badges: ['X portioner', 'temp/tid', 'kategori'],
+  badges: ['4 portioner', '30 min', 'hög protein'], // tid alltid «XX min» (inga ca/under/intervall)
   macros: { kcal: 0, prot: 0, carb: 0, fat: 0 }, // hela receptet
   groups: [
     {
