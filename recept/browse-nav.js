@@ -57,7 +57,7 @@
   };
   var ANIMAL_INGREDIENT = /kyckling|nötkött|nötfärs|malet nötkött|fläsk|tonfisk|räkor|ägg|keso|ost|grädd|majonnäs|honung|smör|mjölk|yoghurt|fisk|skaldjur|biff|fläskkött|kycklingbröst|kycklingfärs|ventresca|malet fläsk/i;
 
-  var BROWSE_MENUS = [
+  var HEADER_MENUS = [
     {
       id: 'type',
       label: 'Typ',
@@ -80,7 +80,10 @@
           { type: 'diet', value: 'vegan', label: 'Vegan' }
         ]
       }]
-    },
+    }
+  ];
+
+  var LIST_FILTER_MENUS = [
     {
       id: 'protein',
       label: 'Proteinkälla',
@@ -179,8 +182,27 @@
     return false;
   }
 
-  function filterMenus(recipes) {
-    return BROWSE_MENUS.map(function(menu) {
+  function recipeMatchesMultiFilters(r, multi) {
+    if (!multi) return true;
+    var protein = multi.protein || [];
+    var cuisine = multi.cuisine || [];
+    if (protein.length) {
+      var hasProtein = protein.some(function(tag) {
+        return !!(r.tags && r.tags.indexOf(tag) !== -1);
+      });
+      if (!hasProtein) return false;
+    }
+    if (cuisine.length) {
+      var hasCuisine = cuisine.some(function(id) {
+        return recipeMatchesCuisine(r, id);
+      });
+      if (!hasCuisine) return false;
+    }
+    return true;
+  }
+
+  function filterMenus(recipes, menus) {
+    return menus.map(function(menu) {
       var sections = menu.sections.map(function(section) {
         var items = section.items.filter(function(item) {
           return itemAvailable(recipes, item);
@@ -239,69 +261,68 @@
     return 'Alla recept';
   }
 
-  function closeAllMenus(nav) {
-    nav.querySelectorAll('.browse-menu.is-open').forEach(function(el) {
+  function closeAllMenus(root) {
+    root.querySelectorAll('.browse-menu.is-open, .list-filter-menu.is-open').forEach(function(el) {
       el.classList.remove('is-open');
-      var btn = el.querySelector('.browse-trigger');
+      var btn = el.querySelector('.browse-trigger, .list-filter-trigger');
       if (btn) btn.setAttribute('aria-expanded', 'false');
     });
   }
 
-  function bindDropdownBehavior(nav) {
-    if (!nav._browseBound) {
-      nav._browseBound = true;
-      var closeTimer = null;
+  function bindDropdownBehavior(root) {
+    if (!root || root._browseBound) return;
+    root._browseBound = true;
+    var closeTimer = null;
 
-      nav.addEventListener('mouseover', function(e) {
-        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-        var menu = e.target.closest('.browse-menu');
-        if (!menu || !nav.contains(menu)) return;
-        if (closeTimer) {
-          clearTimeout(closeTimer);
-          closeTimer = null;
+    root.addEventListener('mouseover', function(e) {
+      if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      var menu = e.target.closest('.browse-menu, .list-filter-menu');
+      if (!menu || !root.contains(menu)) return;
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+      closeAllMenus(root);
+      menu.classList.add('is-open');
+      var btn = menu.querySelector('.browse-trigger, .list-filter-trigger');
+      if (btn) btn.setAttribute('aria-expanded', 'true');
+    });
+
+    root.addEventListener('mouseout', function(e) {
+      if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      var menu = e.target.closest('.browse-menu, .list-filter-menu');
+      if (!menu || !root.contains(menu)) return;
+      if (e.relatedTarget && menu.contains(e.relatedTarget)) return;
+      closeTimer = setTimeout(function() {
+        menu.classList.remove('is-open');
+        var btn = menu.querySelector('.browse-trigger, .list-filter-trigger');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }, 140);
+    });
+
+    root.addEventListener('click', function(e) {
+      var trigger = e.target.closest('.browse-trigger, .list-filter-trigger');
+      if (trigger) {
+        e.preventDefault();
+        var menu = trigger.closest('.browse-menu, .list-filter-menu');
+        var open = menu.classList.contains('is-open');
+        closeAllMenus(root);
+        if (!open) {
+          menu.classList.add('is-open');
+          trigger.setAttribute('aria-expanded', 'true');
         }
-        closeAllMenus(nav);
-        menu.classList.add('is-open');
-        var btn = menu.querySelector('.browse-trigger');
-        if (btn) btn.setAttribute('aria-expanded', 'true');
-      });
+        return;
+      }
+      if (e.target.closest('.browse-link')) closeAllMenus(root);
+    });
 
-      nav.addEventListener('mouseout', function(e) {
-        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-        var menu = e.target.closest('.browse-menu');
-        if (!menu || !nav.contains(menu)) return;
-        if (e.relatedTarget && menu.contains(e.relatedTarget)) return;
-        closeTimer = setTimeout(function() {
-          menu.classList.remove('is-open');
-          var btn = menu.querySelector('.browse-trigger');
-          if (btn) btn.setAttribute('aria-expanded', 'false');
-        }, 140);
-      });
+    document.addEventListener('click', function(e) {
+      if (!root.contains(e.target)) closeAllMenus(root);
+    });
 
-      nav.addEventListener('click', function(e) {
-        var trigger = e.target.closest('.browse-trigger');
-        if (trigger) {
-          e.preventDefault();
-          var menu = trigger.closest('.browse-menu');
-          var open = menu.classList.contains('is-open');
-          closeAllMenus(nav);
-          if (!open) {
-            menu.classList.add('is-open');
-            trigger.setAttribute('aria-expanded', 'true');
-          }
-          return;
-        }
-        if (e.target.closest('.browse-link')) closeAllMenus(nav);
-      });
-
-      document.addEventListener('click', function(e) {
-        if (!nav.contains(e.target)) closeAllMenus(nav);
-      });
-
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeAllMenus(nav);
-      });
-    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeAllMenus(root);
+    });
   }
 
   function renderPanel(section) {
@@ -325,12 +346,89 @@
     return block;
   }
 
+  function listFilterTriggerLabel(menu, selected) {
+    var values = selected[menu.id] || [];
+    if (!values.length) return menu.label;
+    var labels = [];
+    menu.sections.forEach(function(section) {
+      section.items.forEach(function(item) {
+        if (values.indexOf(item.value) !== -1) labels.push(item.label);
+      });
+    });
+    if (labels.length <= 2) return menu.label + ': ' + labels.join(', ');
+    return menu.label + ' (' + labels.length + ')';
+  }
+
+  function renderListFilters(container, options) {
+    options = options || {};
+    var recipes = options.recipes || null;
+    var activeMulti = options.activeMulti || { protein: [], cuisine: [] };
+    var menus = filterMenus(recipes, LIST_FILTER_MENUS);
+    container.replaceChildren();
+    if (!menus.length) {
+      container.hidden = true;
+      return;
+    }
+    container.hidden = false;
+
+    menus.forEach(function(menu) {
+      var wrap = mk('div', 'list-filter-menu');
+      var selected = activeMulti[menu.id] || [];
+      var trigger = mk('button', 'list-filter-trigger');
+      trigger.type = 'button';
+      trigger.textContent = listFilterTriggerLabel(menu, activeMulti);
+      trigger.setAttribute('aria-haspopup', 'true');
+      trigger.setAttribute('aria-expanded', 'false');
+      if (selected.length) trigger.classList.add('has-selection');
+      wrap.appendChild(trigger);
+
+      var panel = mk('div', 'list-filter-panel');
+      var list = mk('ul', 'list-filter-options');
+      menu.sections.forEach(function(section) {
+        section.items.forEach(function(item) {
+          var li = mk('li');
+          var label = mk('label', 'list-filter-option');
+          var input = document.createElement('input');
+          input.type = 'checkbox';
+          input.value = item.value;
+          input.checked = selected.indexOf(item.value) !== -1;
+          label.appendChild(input);
+          var span = document.createElement('span');
+          span.textContent = item.label;
+          label.appendChild(span);
+          li.appendChild(label);
+          list.appendChild(li);
+
+          input.addEventListener('change', function() {
+            var next = {
+              protein: (activeMulti.protein || []).slice(),
+              cuisine: (activeMulti.cuisine || []).slice()
+            };
+            var bucket = next[menu.id] || [];
+            if (input.checked) {
+              if (bucket.indexOf(item.value) === -1) bucket.push(item.value);
+            } else {
+              bucket = bucket.filter(function(v) { return v !== item.value; });
+            }
+            next[menu.id] = bucket;
+            if (options.onChange) options.onChange(next);
+          });
+        });
+      });
+      panel.appendChild(list);
+      wrap.appendChild(panel);
+      container.appendChild(wrap);
+    });
+
+    bindDropdownBehavior(container);
+  }
+
   function render(nav, options) {
     options = options || {};
     var recipes = options.recipes || null;
     var activeFilter = options.activeFilter || { type: 'all', value: null };
     var linkMode = !!options.linkMode;
-    var menus = filterMenus(recipes);
+    var menus = filterMenus(recipes, HEADER_MENUS);
     nav.replaceChildren();
 
     function wirePick(el, filter) {
@@ -349,7 +447,7 @@
 
     var allBtn = mk('button', 'browse-tab browse-tab-all');
     allBtn.type = 'button';
-    allBtn.textContent = 'Alla recept';
+    allBtn.textContent = 'Alla';
     if (isAllFilter(activeFilter)) allBtn.classList.add('active');
     wirePick(allBtn, { type: 'all', value: null });
     nav.appendChild(allBtn);
@@ -389,6 +487,8 @@
     filterLabel: filterLabel,
     readStoredFilter: readStoredFilter,
     recipeMatchesFilter: recipeMatchesFilter,
-    render: render
+    recipeMatchesMultiFilters: recipeMatchesMultiFilters,
+    render: render,
+    renderListFilters: renderListFilters
   };
 })(window);

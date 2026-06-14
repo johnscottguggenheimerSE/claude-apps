@@ -220,8 +220,53 @@
   .list-heading {
     font-size: 1.75rem; font-weight: 700;
     letter-spacing: -0.02em;
-    margin: 0 0 0.85rem;
+    margin: 0 0 0.65rem;
     color: var(--text);
+  }
+  .list-filters {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 0.5rem 0.65rem;
+    margin-bottom: 1.15rem;
+  }
+  .list-filter-menu { position: relative; }
+  .list-filter-trigger {
+    font: inherit; font-size: 0.8125rem; font-weight: 500;
+    padding: 0.38rem 0.7rem; border-radius: var(--radius);
+    border: 1px solid var(--border2); background: var(--bg);
+    color: var(--text); cursor: pointer; white-space: nowrap;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  .list-filter-trigger:hover { border-color: var(--text3); color: var(--info); }
+  .list-filter-trigger.has-selection {
+    border-color: var(--text); font-weight: 600;
+  }
+  .list-filter-panel {
+    display: none;
+    position: absolute; top: calc(100% + 4px); left: 0;
+    min-width: 11.5rem; z-index: 30;
+    padding: 0.45rem 0.35rem;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius);
+  }
+  [data-theme="dark"] .list-filter-panel {
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  }
+  .list-filter-menu.is-open .list-filter-panel { display: block; }
+  .list-filter-options {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 0.1rem;
+  }
+  .list-filter-option {
+    display: flex; align-items: center; gap: 0.45rem;
+    padding: 0.32rem 0.45rem; font-size: 0.8125rem;
+    color: var(--text); cursor: pointer; border-radius: 4px;
+  }
+  .list-filter-option:hover { background: var(--bg2); }
+  .list-filter-option input {
+    width: 0.9rem; height: 0.9rem; margin: 0; flex-shrink: 0;
+    accent-color: var(--info);
   }
   .list-body { padding: 1.5rem 1.25rem 4rem; }
   .recipe-grid {
@@ -497,6 +542,7 @@
   <div id="view-list">
     <div class="list-body">
       <h1 class="list-heading" id="list-heading">Alla recept</h1>
+      <div class="list-filters" id="list-filters" aria-label="Filtrera recept"></div>
       <div id="recipe-list"></div>
     </div>
   </div>

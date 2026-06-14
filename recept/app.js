@@ -190,6 +190,7 @@ function setRecipeUrl(id, replace) {
 var recipes = [];
 var reviewSummaries = {};
 var activeFilter = { type: 'all', value: null };
+var activeMultiFilter = { protein: [], cuisine: [] };
 var searchQuery = '';
 var showFavoritesOnly = false;
 var currentServings = 1;
@@ -369,7 +370,8 @@ function isAllFilter() {
 
 function recipeMatchesFilter(r) {
   if (window.ReceptBrowseNav) {
-    return ReceptBrowseNav.recipeMatchesFilter(r, activeFilter);
+    if (!ReceptBrowseNav.recipeMatchesFilter(r, activeFilter)) return false;
+    return ReceptBrowseNav.recipeMatchesMultiFilters(r, activeMultiFilter);
   }
   if (isAllFilter()) return true;
   if (activeFilter.type === 'category') return r.category === activeFilter.value;
@@ -384,6 +386,20 @@ function updateListHeading() {
   if (el) el.textContent = listHeadingText();
 }
 
+function renderListFilters() {
+  var el = document.getElementById('list-filters');
+  if (!el || !window.ReceptBrowseNav) return;
+  ReceptBrowseNav.renderListFilters(el, {
+    recipes: recipes,
+    activeMulti: activeMultiFilter,
+    onChange: function(multi) {
+      activeMultiFilter = multi;
+      renderListFilters();
+      renderList();
+    }
+  });
+}
+
 function renderBrowseNav() {
   var nav = document.getElementById('browse-nav');
   if (!nav || !window.ReceptBrowseNav) return;
@@ -396,9 +412,11 @@ function renderBrowseNav() {
     onSelect: function(filter) {
       activeFilter = filter;
       renderBrowseNav();
+      renderListFilters();
       renderList();
     }
   });
+  renderListFilters();
 }
 
 function inferBaseServingsFromBadges(r) {
