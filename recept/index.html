@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Proteinrika recept</title>
+<title>Macro-friendly recipes</title>
 <script src="theme.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,93 +27,111 @@
   .app { max-width: 1120px; margin: 0 auto; }
   .site-top {
     position: sticky; top: 0; z-index: 40;
-    background: var(--bg); border-bottom: 0.5px solid var(--border);
-    padding: 0.65rem 1rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
   }
-  .site-top-inner {
+  .site-top-bar,
+  .site-nav-row,
+  .filter-strip {
     max-width: 1120px; margin: 0 auto;
-    display: flex; flex-direction: column; gap: 0.35rem;
+    padding-left: 1.25rem; padding-right: 1.25rem;
   }
-  .site-top-primary {
-    display: flex; align-items: center; gap: 1rem 1.5rem; flex-wrap: wrap;
+  .site-top-bar {
+    display: grid;
+    grid-template-columns: 1fr minmax(220px, 560px) 1fr;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+  }
+  .site-brand { justify-self: start; }
+  .site-brand-link { text-decoration: none; color: inherit; display: block; line-height: 0; }
+  .site-logo { display: block; height: 2.1rem; width: auto; }
+  .site-search {
+    grid-column: 2;
     width: 100%;
+    position: relative;
   }
-  .site-brand-link { text-decoration: none; color: inherit; display: block; line-height: 1.1; }
-  .site-title { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.02em; display: block; }
-  .site-tagline { font-size: 0.6875rem; color: var(--text2); letter-spacing: 0.04em; }
+  .site-search-icon {
+    position: absolute; left: 0.75rem; top: 50%;
+    transform: translateY(-50%);
+    width: 1rem; height: 1rem;
+    color: var(--text3); pointer-events: none;
+  }
+  .site-search-input {
+    width: 100%;
+    font: inherit; font-size: 0.9375rem;
+    padding: 0.62rem 0.85rem 0.62rem 2.35rem;
+    border: 1px solid var(--border2);
+    border-radius: 2px;
+    background: var(--bg);
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+  .site-search-input::placeholder { color: var(--text3); }
+  .site-search-input:focus {
+    outline: none;
+    border-color: var(--text2);
+  }
+  .site-actions {
+    grid-column: 3;
+    justify-self: end;
+    display: flex; align-items: center; gap: 1.1rem;
+    font-size: 0.8125rem; flex-shrink: 0;
+  }
+  .site-action-link {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    color: var(--text); text-decoration: none; font-weight: 600;
+    white-space: nowrap;
+  }
+  .site-action-link:hover { color: var(--info); }
+  .site-action-icon { width: 1rem; height: 1rem; flex-shrink: 0; }
+  .site-action-btn {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font: inherit; font-size: inherit; font-weight: 600;
+    background: none; border: none;
+    color: var(--text); cursor: pointer; padding: 0;
+    white-space: nowrap;
+  }
+  .site-action-btn:hover { color: var(--info); }
+  .site-nav-row {
+    border-top: 1px solid var(--border);
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
   .meal-nav {
-    display: flex; align-items: center; gap: 0.25rem 1.25rem;
+    display: flex; align-items: center; gap: 0.25rem 1.75rem;
     width: 100%; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
   .meal-nav::-webkit-scrollbar { display: none; }
   .meal-tab {
-    font-size: 0.9375rem; font-weight: 500; font-family: inherit;
-    padding: 0.4rem 0; background: none; border: none;
-    border-bottom: 2px solid transparent; color: var(--text2);
+    font-size: 0.9375rem; font-weight: 700; font-family: inherit;
+    padding: 0.35rem 0; background: none; border: none;
+    border-bottom: 2px solid transparent; color: var(--text);
     cursor: pointer; white-space: nowrap; flex-shrink: 0;
     transition: color 0.12s, border-color 0.12s;
   }
-  .meal-tab:hover { color: var(--text); }
-  .meal-tab.active { color: var(--text); border-bottom-color: var(--info); }
-  .site-actions {
-    display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0;
-    font-size: 0.8125rem; margin-left: auto;
-  }
-  .site-action-link { color: var(--info); text-decoration: none; font-weight: 500; }
-  .site-action-btn {
-    font: inherit; font-size: inherit; background: none; border: none;
-    color: var(--text2); cursor: pointer; padding: 0;
-  }
+  .meal-tab:hover { color: var(--info); }
+  .meal-tab.active { border-bottom-color: var(--text); }
   .filter-strip {
-    max-width: 1120px; margin: 0 auto;
-    padding: 0.85rem 1rem 0;
+    background: var(--bg);
+    padding-top: 0.65rem; padding-bottom: 0.65rem;
     display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
-    margin-bottom: 1.75rem; padding-bottom: 0.85rem;
-    border-bottom: 0.5px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
   .filter-bar {
     display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
     flex: 1; min-width: 0;
   }
-  .filter-theme {
-    display: flex; align-items: center; gap: 0.45rem;
-    flex-shrink: 0; margin-left: auto;
+  .list-heading {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.75rem; font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 1.25rem;
+    color: var(--text);
   }
-  .filter-theme-label {
-    font-size: 11px; font-weight: 500; color: var(--text2);
-    white-space: nowrap;
-  }
-  .theme-switch {
-    position: relative; display: inline-flex; align-items: center;
-    cursor: pointer; -webkit-tap-highlight-color: transparent;
-  }
-  .theme-switch input {
-    position: absolute; opacity: 0; width: 0; height: 0;
-    pointer-events: none;
-  }
-  .theme-switch-track {
-    display: block; width: 44px; height: 24px;
-    background: var(--bg3); border: 0.5px solid var(--border2);
-    border-radius: 999px; position: relative;
-    transition: background 0.2s ease, border-color 0.2s ease;
-  }
-  .theme-switch-thumb {
-    position: absolute; top: 2px; left: 2px;
-    width: 19px; height: 19px; border-radius: 50%;
-    background: var(--bg); box-shadow: 0 1px 3px rgba(0,0,0,0.22);
-    transition: transform 0.2s ease;
-  }
-  .theme-switch input:checked + .theme-switch-track {
-    background: var(--info); border-color: var(--info);
-  }
-  .theme-switch input:checked + .theme-switch-track .theme-switch-thumb {
-    transform: translateX(20px);
-  }
-  .theme-switch input:focus-visible + .theme-switch-track {
-    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--info);
-  }
-  .list-body { padding: 0 1rem 4rem; }
+  .list-body { padding: 1.5rem 1.25rem 4rem; }
   .tag-pill {
     font-size: 11px; font-family: inherit; font-weight: 500; padding: 0.32rem 0.65rem;
     border-radius: 999px; border: 0.5px dashed var(--border2); background: var(--bg);
@@ -315,20 +333,29 @@
   @media (max-width: 720px) {
     .detail-top { grid-template-columns: 1fr; }
     .detail-hero { min-height: 220px; aspect-ratio: 16 / 9; height: auto; }
-    .list-body, .detail-body { padding: 0.85rem 0.75rem 3rem; }
-    .site-top { padding: 0.55rem 0.75rem; }
+    .list-body, .detail-body { padding: 1.15rem 0.85rem 3rem; }
+    .site-top-bar {
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto;
+      padding: 0.65rem 0.85rem;
+    }
+    .site-brand { grid-column: 1; grid-row: 1; }
+    .site-actions { grid-column: 2; grid-row: 1; gap: 0.75rem; }
+    .site-search {
+      grid-column: 1 / -1; grid-row: 2;
+      margin-top: 0.15rem;
+    }
+    .site-nav-row { padding-left: 0.85rem; padding-right: 0.85rem; }
+    .filter-strip { padding-left: 0.85rem; padding-right: 0.85rem; }
+    .list-heading { font-size: 1.45rem; margin-bottom: 1rem; }
     .recipe-card-title { font-size: 1rem; }
     .detail-summary-title { font-size: 20px; }
     .detail-meta-row { flex-direction: column; align-items: stretch; }
     .serv-ctrl { align-self: flex-end; }
     .meal-nav { margin: 0 -0.25rem; padding-bottom: 0.1rem; }
-    .filter-strip {
-      padding: 0.75rem 0.75rem 0; margin-bottom: 1.5rem;
-      padding-bottom: 0.65rem;
-    }
     .filter-bar {
       flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
-      gap: 8px; margin-right: -0.75rem; padding-right: 0.75rem;
+      gap: 8px; margin-right: -0.85rem; padding-right: 0.85rem;
     }
     .tag-pill { flex-shrink: 0; font-size: 12px; padding: 0.4rem 0.75rem; }
     .detail-hero-tag { font-size: 10px; padding: 4px 6px; }
@@ -342,36 +369,43 @@
 </style>
 </head>
 <body>
-<div class="app">
-  <header class="site-top" id="site-top">
-    <div class="site-top-inner">
-      <div class="site-top-primary">
-        <div class="site-brand">
-          <a href="/" class="site-brand-link" id="brand-home">
-            <span class="site-title">Proteinrika recept</span>
-            <span class="site-tagline">by Jånn</span>
-          </a>
-        </div>
-        <div class="site-actions">
-          <a href="/add" class="site-action-link">+ Lägg till</a>
-          <button type="button" id="logout-btn" class="site-action-btn">Logga ut</button>
-        </div>
-      </div>
-      <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
+<header class="site-top" id="site-top">
+  <div class="site-top-bar">
+    <div class="site-brand">
+      <a href="/" class="site-brand-link" id="brand-home">
+        <img src="images/logo.png" alt="Macro-friendly recipes by Jann" class="site-logo" width="280" height="187">
+      </a>
     </div>
-  </header>
-  <div class="filter-strip" id="filter-strip">
-    <nav class="filter-bar tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
-    <div class="filter-theme">
-      <span class="filter-theme-label" id="theme-label">Mörkt läge</span>
-      <label class="theme-switch">
-        <input type="checkbox" id="theme-toggle" role="switch" aria-labelledby="theme-label">
-        <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
-      </label>
+    <div class="site-search">
+      <svg class="site-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+      <input type="search" id="recipe-search" class="site-search-input" placeholder="Vad vill du laga?" autocomplete="off" enterkeyhint="search">
+    </div>
+    <div class="site-actions">
+      <a href="/add" class="site-action-link">
+        <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        Lägg till
+      </a>
+      <button type="button" id="theme-toggle-btn" class="site-action-btn" aria-label="Byt tema">
+        <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="theme-toggle-label">Mörkt</span>
+      </button>
+      <button type="button" id="logout-btn" class="site-action-btn">
+        <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Logga ut
+      </button>
     </div>
   </div>
+  <div class="site-nav-row">
+    <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
+  </div>
+</header>
+<div class="filter-strip" id="filter-strip">
+  <nav class="filter-bar tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
+</div>
+<div class="app">
   <div id="view-list">
     <div class="list-body">
+      <h1 class="list-heading" id="list-heading">Alla recept</h1>
       <div id="recipe-list"></div>
     </div>
   </div>
@@ -389,15 +423,14 @@
 <script src="app.js"></script>
 <script>
 function syncThemeToggle() {
-  var input = document.getElementById('theme-toggle');
-  var label = document.getElementById('theme-label');
-  if (!input) return;
+  var label = document.getElementById('theme-toggle-label');
+  if (!label) return;
   var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  input.checked = dark;
-  if (label) label.textContent = dark ? 'Ljust läge' : 'Mörkt läge';
+  label.textContent = dark ? 'Ljust' : 'Mörkt';
 }
-document.getElementById('theme-toggle').addEventListener('change', function() {
-  if (window.ReceptTheme) ReceptTheme.set(this.checked ? 'dark' : 'light');
+document.getElementById('theme-toggle-btn').addEventListener('click', function() {
+  var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (window.ReceptTheme) ReceptTheme.set(dark ? 'light' : 'dark');
   syncThemeToggle();
 });
 syncThemeToggle();

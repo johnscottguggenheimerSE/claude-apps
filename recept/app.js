@@ -120,7 +120,7 @@ function setListUrl(replace) {
   var url = BASE_PATH + location.search;
   if (replace) history.replaceState({ view: 'list' }, '', url);
   else history.pushState({ view: 'list' }, '', url);
-  document.title = 'Proteinrika recept';
+  document.title = 'Macro-friendly recipes';
 }
 
 function setRecipeUrl(id, replace) {
@@ -133,6 +133,7 @@ var recipes = [];
 var reviewSummaries = {};
 var activeCategory = 'all';
 var activeTagFilters = [];
+var searchQuery = '';
 var currentServings = 1;
 var currentId = null;
 
@@ -167,6 +168,38 @@ function formatStars(avg) {
   var s = '';
   for (var i = 1; i <= 5; i++) s += i <= full ? '★' : '☆';
   return s;
+}
+
+function recipeMatchesSearch(r, q) {
+  if (!q) return true;
+  q = q.toLowerCase().trim();
+  if (r.title && r.title.toLowerCase().indexOf(q) !== -1) return true;
+  if (r.tags) {
+    for (var i = 0; i < r.tags.length; i++) {
+      var tagLabel = (TAG_LABELS[r.tags[i]] || r.tags[i]).toLowerCase();
+      if (tagLabel.indexOf(q) !== -1) return true;
+    }
+  }
+  if (r.groups) {
+    for (var g = 0; g < r.groups.length; g++) {
+      var ings = r.groups[g].ingredients || [];
+      for (var j = 0; j < ings.length; j++) {
+        if (ings[j].name && ings[j].name.toLowerCase().indexOf(q) !== -1) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function listHeadingText() {
+  if (searchQuery.trim()) return 'Sökresultat';
+  if (activeCategory === 'all') return 'Alla recept';
+  return categoryLabel(activeCategory);
+}
+
+function updateListHeading() {
+  var el = document.getElementById('list-heading');
+  if (el) el.textContent = listHeadingText();
 }
 
 function renderCategoryNav() {
@@ -429,11 +462,13 @@ function createRecipeCard(r) {
 function renderList() {
   var container = document.getElementById('recipe-list');
   container.replaceChildren();
+  updateListHeading();
   var list = recipes;
   if (activeCategory !== 'all') {
     list = recipes.filter(function(r) { return r.category === activeCategory; });
   }
   list = list.filter(recipeHasAllActiveTags);
+  list = list.filter(function(r) { return recipeMatchesSearch(r, searchQuery); });
   list = sortRecipesForList(list);
   var grid = mk('div', 'recipe-grid');
   list.forEach(function(r) { grid.appendChild(createRecipeCard(r)); });
@@ -443,8 +478,8 @@ function renderList() {
 function showList(skipHistory) {
   document.getElementById('view-list').classList.remove('hidden');
   document.getElementById('view-detail').classList.add('hidden');
-  var tagNav = document.getElementById('tag-nav');
-  if (tagNav) tagNav.classList.remove('hidden');
+  var filterStrip = document.getElementById('filter-strip');
+  if (filterStrip) filterStrip.classList.remove('hidden');
   currentId = null;
   if (!skipHistory) setListUrl(false);
   else setListUrl(true);
@@ -481,7 +516,7 @@ function showDetail(id, skipHistory) {
   if (!r) return;
   markRecipeVisited(id);
   currentId = id;
-  document.title = r.title + ' — Proteinrika recept';
+  document.title = r.title + ' — Macro-friendly recipes';
   if (!skipHistory) setRecipeUrl(id, false);
   else setRecipeUrl(id, true);
   var editLink = document.getElementById('detail-edit-link');
@@ -638,8 +673,8 @@ function showDetail(id, skipHistory) {
 
   document.getElementById('view-list').classList.add('hidden');
   document.getElementById('view-detail').classList.remove('hidden');
-  var tagNav = document.getElementById('tag-nav');
-  if (tagNav) tagNav.classList.add('hidden');
+  var filterStrip = document.getElementById('filter-strip');
+  if (filterStrip) filterStrip.classList.add('hidden');
   applyServingsScale();
   window.scrollTo(0, 0);
 }
@@ -822,5 +857,13 @@ if (brandHome) {
     if (document.getElementById('view-detail').classList.contains('hidden')) return;
     e.preventDefault();
     showList();
+  });
+}
+
+var recipeSearch = document.getElementById('recipe-search');
+if (recipeSearch) {
+  recipeSearch.addEventListener('input', function() {
+    searchQuery = recipeSearch.value;
+    renderList();
   });
 }
