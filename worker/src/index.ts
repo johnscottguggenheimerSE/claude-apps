@@ -420,6 +420,8 @@ async function handleImage(env: Env, key: string): Promise<Response> {
 
 async function handleApi(request: Request, env: Env, url: URL): Promise<Response | null> {
   const path = url.pathname;
+  if (!path.startsWith('/api/')) return null;
+
   const pw = adminPassword(env);
 
   if (path === '/api/health') {

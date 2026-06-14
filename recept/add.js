@@ -340,11 +340,18 @@
   }
 
   function addRouteUrl(route) {
-    if (route === 'redigera') return ADD_BASE + '/redigera' + location.search;
+    if (route === 'redigera') {
+      var editId = new URLSearchParams(location.search).get('edit');
+      return editId
+        ? ADD_BASE + '/redigera?edit=' + encodeURIComponent(editId)
+        : ADD_BASE + '/redigera';
+    }
     return ADD_BASE + '/' + route;
   }
 
   function parseAddRoute() {
+    var editId = new URLSearchParams(location.search).get('edit');
+    if (editId) return 'redigera';
     var p = location.pathname.replace(/\/$/, '');
     if (p.endsWith('/redigera')) return 'redigera';
     if (p.endsWith('/bild')) return 'bild';
@@ -355,9 +362,15 @@
   }
 
   function syncTabLinks() {
+    var editId = new URLSearchParams(location.search).get('edit');
     document.querySelectorAll('[data-add-route]').forEach(function(el) {
       var route = el.getAttribute('data-add-route');
-      if (route) el.href = ADD_BASE + '/' + route;
+      if (!route) return;
+      var href = ADD_BASE + '/' + route;
+      if (route === 'redigera' && editId) {
+        href += '?edit=' + encodeURIComponent(editId);
+      }
+      el.href = href;
     });
   }
 
@@ -386,6 +399,7 @@
   function navigateAddRoute(route, replace) {
     var url = addRouteUrl(route);
     applyAddRoute(route);
+    syncTabLinks();
     var state = { addRoute: route };
     if (replace) history.replaceState(state, '', url);
     else history.pushState(state, '', url);
@@ -402,22 +416,25 @@
     });
     window.addEventListener('popstate', function() {
       applyAddRoute(parseAddRoute());
+      bootEditFromQuery();
     });
   }
 
   function bootAddRoute() {
     var route = parseAddRoute();
     var p = location.pathname.replace(/\/$/, '');
-    var legacyEdit = new URLSearchParams(location.search).get('edit');
-    if (legacyEdit && !p.endsWith('/redigera')) {
+    var editId = new URLSearchParams(location.search).get('edit');
+
+    if (editId && route !== 'redigera') {
       navigateAddRoute('redigera', true);
-      return route;
+      return 'redigera';
     }
     if (/\/add(\.html)?$/i.test(p)) {
       navigateAddRoute(route, true);
       return route;
     }
     applyAddRoute(route);
+    syncTabLinks();
     return route;
   }
 
@@ -1055,7 +1072,12 @@
   function bootEditFromQuery() {
     var editId = new URLSearchParams(location.search).get('edit');
     if (!editId) return;
-    showEditPanel();
+    if (parseAddRoute() !== 'redigera') {
+      navigateAddRoute('redigera', true);
+    } else {
+      showEditPanel();
+      syncTabActive('redigera');
+    }
     populateEditSelect(editId);
     editSelect.value = editId;
     loadRecipeById(editId);
