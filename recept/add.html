@@ -43,8 +43,18 @@
     background: var(--bg);
   }
   .preview-image-wrap img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
+  .preview-image-wrap.no-image img { display: none; }
+  .preview-image-placeholder {
+    min-height: 160px; display: flex; align-items: center; justify-content: center;
+    color: var(--text2); font-size: 0.8125rem; background: var(--bg2);
+  }
+  .preview-image-wrap.no-image .preview-image-placeholder { display: flex; }
+  .preview-image-wrap:not(.no-image) .preview-image-placeholder { display: none; }
+  .preview-image-actions {
+    position: absolute; bottom: 10px; right: 10px; left: 10px;
+    display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end;
+  }
   .preview-image-btn {
-    position: absolute; bottom: 10px; right: 10px;
     font: inherit; font-size: 0.75rem; font-weight: 600;
     padding: 0.45rem 0.7rem; border: none; border-radius: 6px;
     background: rgba(0, 0, 0, 0.72); color: #fff; cursor: pointer;
@@ -53,10 +63,45 @@
   .preview-image-btn:hover { background: rgba(0, 0, 0, 0.85); }
   .preview-image-btn:disabled { opacity: 0.55; cursor: default; }
   .preview h2 { font-size: 1.125rem; margin-bottom: 0.5rem; }
-  .preview pre {
-    font-size: 0.75rem; background: var(--bg); border: 0.5px solid var(--border);
-    border-radius: var(--radius); padding: 0.75rem; overflow: auto; max-height: 320px;
-    white-space: pre-wrap; word-break: break-word;
+  .preview-detail-top {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: stretch; margin-bottom: 1.25rem;
+  }
+  .preview-hero {
+    position: relative; min-height: 200px; border-radius: var(--radius); overflow: hidden;
+    background: var(--bg2); background-size: cover; background-position: center;
+  }
+  .preview-summary { display: flex; flex-direction: column; gap: 0.65rem; min-width: 0; }
+  .preview-summary .field { margin-bottom: 0; }
+  .preview-summary label { margin-bottom: 0.25rem; }
+  .preview-summary input, .preview-summary select { margin-bottom: 0; }
+  .recipe-edit-tags { display: flex; flex-wrap: wrap; gap: 0.35rem 0.65rem; margin-bottom: 0.5rem; }
+  .recipe-edit-tags label {
+    display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; font-weight: 400;
+    color: var(--text); margin: 0; cursor: pointer;
+  }
+  .macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 1.25rem; }
+  .mac { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 0.5rem; text-align: center; }
+  .mac input { width: 100%; text-align: center; font-size: 0.9375rem; font-weight: 500; margin: 0; padding: 0.25rem; border: none; background: transparent; }
+  .mac-lbl { font-size: 10px; color: var(--text2); display: block; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .sec-title { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); margin-bottom: 0.5rem; }
+  .ing-grp { margin-bottom: 0.75rem; }
+  .ing-grp-head { display: flex; gap: 0.35rem; align-items: center; margin-bottom: 0.35rem; }
+  .ing-grp-head input { flex: 1; margin: 0; font-size: 0.8125rem; }
+  .ing-edit-row { display: grid; grid-template-columns: 1fr 4rem 3.5rem auto; gap: 0.35rem; margin-bottom: 0.35rem; align-items: center; }
+  .ing-edit-row input, .ing-edit-row select { margin: 0; font-size: 0.8125rem; padding: 0.4rem 0.45rem; }
+  .ing-edit-row button { padding: 0.35rem 0.5rem; font-size: 0.75rem; }
+  .step-edit { margin-bottom: 0.65rem; padding: 0.5rem; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); }
+  .step-edit input { margin-bottom: 0.35rem; font-size: 0.8125rem; }
+  .step-edit textarea { min-height: 56px; font-size: 0.8125rem; margin: 0; }
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 0.5rem; }
+  .tip-edit { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 0.5rem; }
+  .tip-edit input { margin-bottom: 0.35rem; font-size: 0.8125rem; }
+  .tip-edit textarea { min-height: 52px; font-size: 0.8125rem; margin: 0; }
+  .btn-ghost { font-size: 0.75rem; padding: 0.35rem 0.6rem; }
+  @media (max-width: 640px) {
+    .preview-detail-top, .two-col, .tips-grid { grid-template-columns: 1fr; }
+    .macros { grid-template-columns: repeat(2, 1fr); }
   }
   .mode-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
   .mode-tabs button.active { background: var(--info); color: #fff; border-color: var(--info); }
@@ -168,13 +213,21 @@
   <div class="status" id="status"></div>
 
   <div class="preview" id="preview">
-    <h2 id="preview-title">Förhandsgranskning</h2>
-    <p class="field-hint" id="preview-hint" style="margin-top:0;margin-bottom:0.75rem;">Justera JSON om du vill, sedan spara.</p>
-    <div class="preview-image-wrap hidden" id="preview-image-wrap">
-      <img id="preview-img" alt="">
-      <button type="button" class="preview-image-btn hidden" id="btn-regen-image">förbättra bild med AI</button>
+    <h2 id="preview-title">Granska recept</h2>
+    <p class="field-hint" id="preview-hint" style="margin-top:0;margin-bottom:0.75rem;">Redigera fält nedan och spara.</p>
+    <div class="preview-detail-top">
+      <div class="preview-hero preview-image-wrap no-image" id="preview-image-wrap">
+        <div class="preview-image-placeholder">Ingen bild</div>
+        <img id="preview-img" class="hidden" alt="">
+        <div class="preview-image-actions">
+          <button type="button" class="preview-image-btn" id="btn-upload-image">ladda upp bild</button>
+          <button type="button" class="preview-image-btn hidden" id="btn-regen-image">förbättra bild med AI</button>
+        </div>
+        <input type="file" id="file-preview" accept="image/*" class="hidden">
+      </div>
+      <div class="preview-summary" id="preview-meta-fields"></div>
     </div>
-    <pre id="preview-json"></pre>
+    <div id="preview-form"></div>
     <div class="actions">
       <button type="button" class="primary" id="btn-save">Spara recept</button>
       <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8125rem;margin-left:0.25rem;">
