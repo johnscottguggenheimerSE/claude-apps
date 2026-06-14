@@ -25,8 +25,28 @@
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
   .app { max-width: 1120px; margin: 0 auto; }
-  .site-top {
+  .site-shell {
     position: sticky; top: 0; z-index: 40;
+  }
+  .admin-bar {
+    background: var(--text); color: var(--bg);
+    font-size: 0.75rem; font-weight: 600;
+  }
+  .admin-bar-inner {
+    max-width: 1120px; margin: 0 auto;
+    padding: 0.38rem 1.25rem;
+    display: flex; align-items: center; gap: 1.35rem;
+  }
+  .admin-bar-link {
+    color: inherit; text-decoration: none; opacity: 0.88;
+    transition: opacity 0.12s;
+  }
+  .admin-bar-link:hover { opacity: 1; }
+  [data-theme="dark"] .admin-bar {
+    background: var(--bg3); color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+  .site-top {
     background: var(--bg);
     border-bottom: 1px solid var(--border);
   }
@@ -96,6 +116,41 @@
     white-space: nowrap;
   }
   .site-action-btn:hover { color: var(--info); }
+  .site-action-btn.active { color: var(--info); }
+  .fav-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2.15rem; height: 2.15rem; padding: 0;
+    border: none; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--text2); cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+    transition: color 0.12s, background 0.12s, transform 0.12s;
+    flex-shrink: 0;
+  }
+  .fav-btn:hover { color: var(--text); transform: scale(1.04); }
+  .fav-btn.active { color: var(--info); }
+  .fav-btn-icon {
+    width: 1rem; height: 1rem;
+    fill: none; stroke: currentColor; stroke-width: 2;
+  }
+  .fav-btn.active .fav-btn-icon { fill: currentColor; }
+  .fav-btn--card {
+    position: absolute; top: 0.55rem; right: 0.55rem; z-index: 2;
+  }
+  .fav-btn--detail {
+    width: 2.35rem; height: 2.35rem;
+    background: var(--bg2);
+    box-shadow: none; border: 0.5px solid var(--border);
+  }
+  .detail-summary-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .detail-summary-head .detail-summary-title { flex: 1; min-width: 0; }
+  .list-empty {
+    color: var(--text2); font-size: 0.9375rem; line-height: 1.5;
+    padding: 1.5rem 0 0.5rem;
+  }
   .site-nav-row {
     border-top: 1px solid var(--border);
     padding-top: 0.55rem;
@@ -372,6 +427,7 @@
       margin-top: 0.15rem;
     }
     .site-nav-row { padding-left: 0.85rem; padding-right: 0.85rem; }
+    .admin-bar-inner { padding-left: 0.85rem; padding-right: 0.85rem; }
     .list-heading { font-size: 1.45rem; margin-bottom: 0.75rem; }
     .filter-strip { margin-bottom: 1.1rem; }
     .recipe-card-title { font-size: 1rem; }
@@ -391,7 +447,14 @@
 </style>
 </head>
 <body>
-<header class="site-top" id="site-top">
+<div class="site-shell">
+  <div class="admin-bar">
+    <div class="admin-bar-inner">
+      <a href="/add" class="admin-bar-link">+ Lägg till</a>
+      <a href="#" class="admin-bar-link" id="admin-manage-link">Administrera</a>
+    </div>
+  </div>
+  <header class="site-top" id="site-top">
   <div class="site-top-bar">
     <div class="site-brand">
       <a href="/" class="site-brand-link" id="brand-home">
@@ -404,10 +467,10 @@
       <input type="search" id="recipe-search" class="site-search-input" placeholder="Vad vill du laga?" autocomplete="off" enterkeyhint="search">
     </div>
     <div class="site-actions">
-      <a href="/add" class="site-action-link">
+      <button type="button" id="favorites-toggle-btn" class="site-action-btn">
         <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        Lägg till
-      </a>
+        Favoriter
+      </button>
       <button type="button" id="theme-toggle-btn" class="site-action-btn" aria-label="Byt tema">
         <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <span id="theme-toggle-label">Mörkt</span>
@@ -421,7 +484,8 @@
   <div class="site-nav-row">
     <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
   </div>
-</header>
+  </header>
+</div>
 <div class="app">
   <div id="view-list">
     <div class="list-body">
@@ -461,6 +525,10 @@ syncThemeToggle();
 document.getElementById('logout-btn').addEventListener('click', function() {
   fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
     .then(function() { location.href = '/login.html'; });
+});
+
+document.getElementById('admin-manage-link').addEventListener('click', function(e) {
+  e.preventDefault();
 });
 </script>
 </body>

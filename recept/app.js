@@ -74,19 +74,81 @@ function addPageUrl(editId) {
 
 var FEATURED_NEW_IDS = [];
 var VISIT_COOKIE_NAME = 'recept_seen_new';
+var FAVORITES_COOKIE_NAME = 'recept_favorites';
 var VISIT_COOKIE_MAX_AGE = String(365 * 24 * 60 * 60);
 
-function getSeenRecipeIds() {
+function readIdCookie(name) {
   try {
     var parts = document.cookie.split(';');
     for (var i = 0; i < parts.length; i++) {
       var s = parts[i].trim();
-      if (s.indexOf(VISIT_COOKIE_NAME + '=') === 0) {
-        return JSON.parse(decodeURIComponent(s.slice(VISIT_COOKIE_NAME.length + 1)));
+      if (s.indexOf(name + '=') === 0) {
+        return JSON.parse(decodeURIComponent(s.slice(name.length + 1)));
       }
     }
   } catch (e) {}
   return {};
+}
+
+function writeIdCookie(name, data) {
+  document.cookie = name + '=' + encodeURIComponent(JSON.stringify(data)) + ';path=' + RECEPT_COOKIE_PATH + ';max-age=' + VISIT_COOKIE_MAX_AGE + ';SameSite=Lax';
+}
+
+function getSeenRecipeIds() {
+  return readIdCookie(VISIT_COOKIE_NAME);
+}
+
+function getFavoriteIds() {
+  return readIdCookie(FAVORITES_COOKIE_NAME);
+}
+
+function isFavorite(id) {
+  return !!getFavoriteIds()[id];
+}
+
+function toggleFavorite(id) {
+  var favs = getFavoriteIds();
+  if (favs[id]) delete favs[id];
+  else favs[id] = 1;
+  writeIdCookie(FAVORITES_COOKIE_NAME, favs);
+}
+
+function syncFavoriteButton(btn, recipeId) {
+  var on = isFavorite(recipeId);
+  btn.classList.toggle('active', on);
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  btn.setAttribute('aria-label', on ? 'Ta bort från favoriter' : 'Spara som favorit');
+}
+
+function createFavoriteButton(recipeId, extraClass) {
+  var btn = mk('button', 'fav-btn' + (extraClass ? ' ' + extraClass : ''));
+  btn.type = 'button';
+  syncFavoriteButton(btn, recipeId);
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'fav-btn-icon');
+  var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z');
+  svg.appendChild(path);
+  btn.appendChild(svg);
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(recipeId);
+    syncFavoriteButton(btn, recipeId);
+    updateFavoritesToggleBtn();
+    if (showFavoritesOnly && !document.getElementById('view-detail').classList.contains('hidden')) return;
+    if (showFavoritesOnly) renderList();
+  });
+  return btn;
+}
+
+function updateFavoritesToggleBtn() {
+  var btn = document.getElementById('favorites-toggle-btn');
+  if (!btn) return;
+  btn.classList.toggle('active', showFavoritesOnly);
+  btn.setAttribute('aria-pressed', showFavoritesOnly ? 'true' : 'false');
 }
 
 function markRecipeVisited(id) {
@@ -134,6 +196,7 @@ var reviewSummaries = {};
 var activeCategory = 'all';
 var activeTagFilters = [];
 var searchQuery = '';
+var showFavoritesOnly = false;
 var currentServings = 1;
 var currentId = null;
 
@@ -192,6 +255,11 @@ function recipeMatchesSearch(r, q) {
 }
 
 function listHeadingText() {
+  if (showFavoritesOnly) {
+    if (searchQuery.trim()) return 'Favoriter — sökresultat';
+    if (activeCategory !== 'all') return 'Favoriter — ' + categoryLabel(activeCategory);
+    return 'Favoriter';
+  }
   if (searchQuery.trim()) return 'Sökresultat';
   if (activeCategory === 'all') return 'Alla recept';
   return categoryLabel(activeCategory);
@@ -405,6 +473,7 @@ function createRecipeCard(r) {
     emojiEl.textContent = r.emoji;
     media.appendChild(emojiEl);
   }
+  media.appendChild(createFavoriteButton(r.id, 'fav-btn--card'));
   card.appendChild(media);
 
   var body = mk('div', 'recipe-card-body');
@@ -452,6 +521,7 @@ function createRecipeCard(r) {
   card.appendChild(body);
 
   card.addEventListener('click', function(e) {
+    if (e.target.closest('.fav-btn')) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
     showDetail(r.id);
@@ -469,7 +539,16 @@ function renderList() {
   }
   list = list.filter(recipeHasAllActiveTags);
   list = list.filter(function(r) { return recipeMatchesSearch(r, searchQuery); });
+  if (showFavoritesOnly) list = list.filter(function(r) { return isFavorite(r.id); });
   list = sortRecipesForList(list);
+  if (!list.length) {
+    var empty = mk('p', 'list-empty');
+    empty.textContent = showFavoritesOnly
+      ? 'Inga favoriter ännu — tryck på bokmärket på ett recept.'
+      : 'Inga recept matchar filtret.';
+    container.appendChild(empty);
+    return;
+  }
   var grid = mk('div', 'recipe-grid');
   list.forEach(function(r) { grid.appendChild(createRecipeCard(r)); });
   container.appendChild(grid);
@@ -527,10 +606,13 @@ function showDetail(id, skipHistory) {
   var top = mk('div', 'detail-top');
   top.appendChild(buildDetailHero(r, { includeTitle: false }));
   var summary = mk('div', 'detail-summary');
+  var summaryHead = mk('div', 'detail-summary-head');
   var summaryTitle = document.createElement('h1');
   summaryTitle.className = 'detail-summary-title';
   summaryTitle.textContent = r.title;
-  summary.appendChild(summaryTitle);
+  summaryHead.appendChild(summaryTitle);
+  summaryHead.appendChild(createFavoriteButton(r.id, 'fav-btn--detail'));
+  summary.appendChild(summaryHead);
   var sourceDiv = mk('div', 'source');
   sourceDiv.appendChild(document.createTextNode('Källa: '));
   if (r.sourceUrl && r.sourceUrl !== '#') {
@@ -866,4 +948,18 @@ if (recipeSearch) {
     searchQuery = recipeSearch.value;
     renderList();
   });
+}
+
+var favoritesToggleBtn = document.getElementById('favorites-toggle-btn');
+if (favoritesToggleBtn) {
+  favoritesToggleBtn.addEventListener('click', function() {
+    showFavoritesOnly = !showFavoritesOnly;
+    updateFavoritesToggleBtn();
+    if (showFavoritesOnly && !document.getElementById('view-detail').classList.contains('hidden')) {
+      showList(true);
+      return;
+    }
+    renderList();
+  });
+  updateFavoritesToggleBtn();
 }
