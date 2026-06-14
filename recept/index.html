@@ -35,7 +35,8 @@
   .admin-bar-inner {
     max-width: 1120px; margin: 0 auto;
     padding: 0.38rem 1.25rem;
-    display: flex; align-items: center; gap: 1.35rem;
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 1.35rem;
   }
   .admin-bar-link {
     color: inherit; text-decoration: none; opacity: 0.88;
@@ -450,8 +451,7 @@
 <div class="site-shell">
   <div class="admin-bar">
     <div class="admin-bar-inner">
-      <a href="/add" class="admin-bar-link">+ Lägg till</a>
-      <a href="#" class="admin-bar-link" id="admin-manage-link">Administrera</a>
+      <a href="/add" class="admin-bar-link">Lägg till +</a>
     </div>
   </div>
   <header class="site-top" id="site-top">
@@ -525,10 +525,6 @@ syncThemeToggle();
 document.getElementById('logout-btn').addEventListener('click', function() {
   fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
     .then(function() { location.href = '/login.html'; });
-});
-
-document.getElementById('admin-manage-link').addEventListener('click', function(e) {
-  e.preventDefault();
 });
 </script>
 </body>
