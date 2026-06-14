@@ -145,8 +145,20 @@ export function migrateCategory(r: Recipe): string {
   return 'middag';
 }
 
+/** Privata vidarebefordrare — aldrig receptkälla om de inte är @handle/sajt. */
+const FORWARDER_SOURCES = new Set([
+  'antonia mariassy',
+  'john scott',
+  'john scott guggenheimer',
+]);
+
 export function normalizeRecipe(r: Recipe): Recipe {
   if (!r.source || (typeof r.source === 'string' && !String(r.source).trim())) {
+    r.source = 'Okänd källa';
+  } else if (
+    !String(r.source).includes('@') &&
+    FORWARDER_SOURCES.has(String(r.source).trim().toLowerCase())
+  ) {
     r.source = 'Okänd källa';
   }
   if (r.sourceUrl == null) r.sourceUrl = '';

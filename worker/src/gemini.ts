@@ -27,6 +27,8 @@ Fält (inget emoji-fält):
 - baseServings: number
 - tags: array — endast från: hog-protein, snabb, laggkolhydrat, vegetarisk, meal-prep, kyckling, notkott, flask, fisk, skaldjur (inte ugn/airfryer/stekpanna/tillbehör — kategori täcker måltidstyp)
 - title, source (läsbar källa: sajtnamn, «Ali Slagle, NYT Cooking», «@handle på Instagram»), sourceUrl
+- **source:** alltid **ursprunglig receptskapare** — @handle på Instagram/TikTok, blogg/sajtnamn, kock + publikation. **Aldrig** personen som vidarebefordrat receptet privat (vän/familj) om de inte själva är kreatören
+- **source:** vid skärmdump/reel/caption — läs @handle, kontonamn eller vattenstämpel synligt i bilden/texten; prioritera det. Om okänt: «Okänd källa» — gissa inte vidarebefordrare
 - **title:** alltid på **svenska** — översätt engelska/internationella receptnamn till naturlig svenska (behåll etablerade lånord som gochujang, teriyaki, buffalo där det passar)
 - **title:** inkludera **aldrig** ordet «protein» (eller «högprotein») — proteinhalt visas via tagg hog-protein, badges och makros
 - sourceUrl: publik recept-URL (matblogg, NYT Cooking, etc.). Tom sträng för Instagram/TikTok — vi kan inte läsa inloggade sociala länkar; använd @handle i source istället
@@ -194,6 +196,9 @@ export async function parseRecipe(
   }
   const prompt = [
     text.trim() ? `Recepttext/beskrivning:\n${text.trim()}` : 'Extrahera recept från bilden.',
+    imageBase64 && mimeType
+      ? 'Bilden kan vara skärmdump från Instagram/TikTok eller matblogg. Leta efter @handle, kontonamn eller vattenstämpel i bilden och sätt som source (t.ex. @handle på Instagram). source = receptets skapare, inte den som skickat skärmdumpen.'
+      : '',
     sourceUrl ? `Källa-URL: ${sourceUrl}` : '',
   ]
     .filter(Boolean)

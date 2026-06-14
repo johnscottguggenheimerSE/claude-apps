@@ -600,12 +600,14 @@
   document.getElementById('btn-parse-text').addEventListener('click', function() {
     var btn = document.getElementById('btn-parse-text');
     var text = document.getElementById('text').value.trim();
-    var sourceLabel = document.getElementById('source-label').value.trim();
+    var sourceHint = document.getElementById('source-hint').value.trim();
     if (!text && !pendingImageBase64) {
       setStatus('Klistra in text eller lägg till en bild.', true);
       return;
     }
-    if (sourceLabel) text = (text ? text + '\n\n' : '') + 'Källa: ' + sourceLabel;
+    if (sourceHint) {
+      text = (text ? text + '\n\n' : '') + 'Synlig originalkälla i caption/bild: ' + sourceHint;
+    }
     btn.disabled = true;
     setStatus('Bygger recept…');
     fetch('/api/parse', {
@@ -624,9 +626,6 @@
       });
     }).then(function(data) {
       editMode = false;
-      if (sourceLabel && (!data.recipe.source || data.recipe.source === 'Okänd källa')) {
-        data.recipe.source = sourceLabel;
-      }
       showPreview(data.recipe);
       setStatus('Granska receptet och spara när du är nöjd.');
     }).catch(function(ex) {

@@ -44,7 +44,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
   image: 'images/recept.png', // valfritt; annars emoji-bakgrund
   emoji: '🍕',
   title: 'Receptnamn', // alltid svenska — översätt engelska källtitlar; aldrig «protein» i namnet
-  source: '@kontonamn på Instagram',
+  source: '@kontonamn på Instagram', // ursprunglig skapare — aldrig den som vidarebefordrat receptet
   sourceUrl: 'https://www.instagram.com/p/...',
   badges: ['4 portioner', '30 min', 'hög protein'], // tid alltid «XX min» (inga ca/under/intervall)
   macros: { kcal: 0, prot: 0, carb: 0, fat: 0 }, // hela receptet
@@ -82,6 +82,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 - Makros gäller hela receptet, inte per portion
 - **`title` alltid på svenska** — översätt engelska/internationella källnamn (etablerade matlånord som gochujang, teriyaki, buffalo får stanna)
 - **`title` utan «protein»** — använd aldrig protein/högprotein i receptnamn; proteinhalt via tagg `hog-protein`, badges och makros
+- **`source` = ursprunglig skapare** — @handle, blogg/sajt eller kock + publikation. Läs av caption, URL och synlig @handle på skärmdumpar. **Aldrig** vän/familj som vidarebefordrat (t.ex. Antonia) om de inte själva postat receptet. Vid okänd: «Okänd källa»
 
 ## Makros
 
