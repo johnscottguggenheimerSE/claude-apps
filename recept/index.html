@@ -31,8 +31,7 @@
     border-bottom: 1px solid var(--border);
   }
   .site-top-bar,
-  .site-nav-row,
-  .filter-strip {
+  .site-nav-row {
     max-width: 1120px; margin: 0 auto;
     padding-left: 1.25rem; padding-right: 1.25rem;
   }
@@ -118,35 +117,59 @@
   .meal-tab:hover { color: var(--info); }
   .meal-tab.active { border-bottom-color: var(--text); }
   .filter-strip {
-    background: var(--bg);
-    padding-top: 0.65rem; padding-bottom: 0.65rem;
-    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
-    border-bottom: 1px solid var(--border);
+    background: transparent;
+    padding: 0;
+    margin: 0 0 1.35rem;
+    display: block;
+    border-bottom: none;
   }
   .filter-bar {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 0.45rem 0.55rem;
     flex: 1; min-width: 0;
   }
   .list-heading {
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 1.75rem; font-weight: 700;
     letter-spacing: -0.02em;
-    margin: 0 0 1.25rem;
+    margin: 0 0 0.85rem;
     color: var(--text);
   }
   .list-body { padding: 1.5rem 1.25rem 4rem; }
   .tag-pill {
-    font-size: 11px; font-family: inherit; font-weight: 500; padding: 0.32rem 0.65rem;
-    border-radius: 999px; border: 0.5px dashed var(--border2); background: var(--bg);
+    font-size: 12px; font-family: inherit; font-weight: 500;
+    padding: 0.38rem 0.8rem;
+    border-radius: 999px; border: none;
+    background: var(--bg);
     color: var(--text2); cursor: pointer;
-    transition: background 0.12s, color 0.12s, border-color 0.12s, border-style 0.12s; flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    transition: transform 0.12s, box-shadow 0.12s, color 0.12s, background 0.12s;
+    flex-shrink: 0;
   }
-  .tag-pill:hover { background: var(--bg3); color: var(--text); border-style: solid; }
+  .tag-pill:hover {
+    color: var(--text);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
   .tag-pill.active {
-    border-style: solid; border-color: var(--info); color: var(--text);
-    background: var(--bg); box-shadow: inset 0 0 0 1px var(--info);
+    background: var(--text); color: var(--bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   }
-  .tag-pill.tag-clear:not(:disabled):hover { border-color: var(--text3); color: var(--text); }
+  [data-theme="dark"] .tag-pill {
+    background: var(--bg3);
+    box-shadow: none;
+  }
+  [data-theme="dark"] .tag-pill:hover { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
+  [data-theme="dark"] .tag-pill.active { background: var(--text); color: var(--bg); }
+  .tag-pill.tag-clear {
+    background: transparent; box-shadow: none;
+    color: var(--text3); font-size: 11px;
+    padding: 0.38rem 0.35rem;
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .tag-pill.tag-clear:not(:disabled):hover {
+    color: var(--text); transform: none; box-shadow: none;
+  }
   .tag-pill.tag-clear:disabled { opacity: 0.45; cursor: default; }
   .cat-section { margin-bottom: 1.75rem; }
   .cat-heading { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); margin-bottom: 0.65rem; padding-bottom: 0.35rem; border-bottom: 0.5px solid var(--border); }
@@ -349,18 +372,14 @@
       margin-top: 0.15rem;
     }
     .site-nav-row { padding-left: 0.85rem; padding-right: 0.85rem; }
-    .filter-strip { padding-left: 0.85rem; padding-right: 0.85rem; }
-    .list-heading { font-size: 1.45rem; margin-bottom: 1rem; }
+    .list-heading { font-size: 1.45rem; margin-bottom: 0.75rem; }
+    .filter-strip { margin-bottom: 1.1rem; }
     .recipe-card-title { font-size: 1rem; }
     .detail-summary-title { font-size: 20px; }
     .detail-meta-row { flex-direction: column; align-items: stretch; }
     .serv-ctrl { align-self: flex-end; }
     .meal-nav { margin: 0 -0.25rem; padding-bottom: 0.1rem; }
-    .filter-bar {
-      flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
-      gap: 8px; margin-right: -0.85rem; padding-right: 0.85rem;
-    }
-    .tag-pill { flex-shrink: 0; font-size: 12px; padding: 0.4rem 0.75rem; }
+    .tag-pill { font-size: 11px; padding: 0.35rem 0.7rem; }
     .detail-hero-tag { font-size: 10px; padding: 4px 6px; }
   }
   @media (max-width: 520px) {
@@ -403,13 +422,13 @@
     <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
   </div>
 </header>
-<div class="filter-strip" id="filter-strip">
-  <nav class="filter-bar tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
-</div>
 <div class="app">
   <div id="view-list">
     <div class="list-body">
       <h1 class="list-heading" id="list-heading">Alla recept</h1>
+      <div class="filter-strip" id="filter-strip">
+        <nav class="filter-bar tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
+      </div>
       <div id="recipe-list"></div>
     </div>
   </div>
