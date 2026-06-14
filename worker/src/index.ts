@@ -6,6 +6,7 @@ import {
   verifyPassword,
 } from './auth';
 import {
+  detectFoodPhoto,
   enhanceFoodImage,
   generateFoodImage,
   parseRecipe,
@@ -187,7 +188,13 @@ async function handleParse(request: Request, env: Env): Promise<Response> {
     );
     delete recipe.emoji;
     if (!recipe.id) recipe.id = slugify(String(recipe.title || 'recept'));
-    return json({ recipe });
+
+    let saveImage = false;
+    if (body.imageBase64 && body.mimeType) {
+      saveImage = await detectFoodPhoto(env.GEMINI_API_KEY, body.imageBase64, body.mimeType);
+    }
+
+    return json({ recipe, saveImage });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Parse misslyckades' }, 502);
   }
@@ -218,8 +225,11 @@ async function handleParseUrl(request: Request, env: Env): Promise<Response> {
     if (page.imageUrl) {
       const img = await fetchImageAsBase64(page.imageUrl, url);
       if (img) {
-        imageBase64 = img.data;
-        mimeType = img.mimeType;
+        const hasFood = await detectFoodPhoto(env.GEMINI_API_KEY, img.data, img.mimeType);
+        if (hasFood) {
+          imageBase64 = img.data;
+          mimeType = img.mimeType;
+        }
       }
     }
     const recipe = await parseRecipe(

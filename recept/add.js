@@ -26,6 +26,18 @@
     pendingMimeType = null;
   }
 
+  function clearImageDrop(dropId, thumbId, fileId) {
+    var drop = document.getElementById(dropId);
+    var thumb = document.getElementById(thumbId);
+    var file = document.getElementById(fileId);
+    if (thumb) {
+      thumb.removeAttribute('src');
+      thumb.classList.add('hidden');
+    }
+    if (drop) drop.classList.remove('has-image');
+    if (file) file.value = '';
+  }
+
   function setPendingImage(data, mime, dropId, thumbId) {
     pendingImageBase64 = data;
     pendingMimeType = mime;
@@ -334,8 +346,8 @@
       showPreview(data.recipe);
       setStatus(
         data.imageFromUrl
-          ? 'Bild från sidan ingår vid sparning. Granska och spara.'
-          : 'Ingen bild hittades på sidan — lägg till i Redigera efter sparning.'
+          ? 'Matfoto från sidan ingår vid sparning. Granska och spara.'
+          : 'Ingen matfoto på sidan — recept utan bild tills du lägger till en i Redigera.'
       );
     }).catch(function(ex) {
       setStatus(ex.message, true);
@@ -366,8 +378,16 @@
       });
     }).then(function(data) {
       editMode = false;
+      if (!data.saveImage) {
+        clearPendingImage();
+        clearImageDrop('drop-image', 'thumb-image', 'file-image');
+      }
       showPreview(data.recipe);
-      setStatus('Granska och spara. Samma bild sparas utan AI om du vill.');
+      setStatus(
+        data.saveImage
+          ? 'Granska och spara — matfotot sparas med receptet.'
+          : 'Recept tolkat från bilden, men ingen matfoto sparas (lägg till i Redigera vid behov).'
+      );
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() { btn.disabled = false; });

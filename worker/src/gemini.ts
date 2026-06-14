@@ -163,7 +163,10 @@ export async function detectFoodPhoto(
     [
       { inlineData: { mimeType, data: imageBase64 } },
       {
-        text: 'Finns en tydlig maträtt/foto av mat i bilden (inte bara text/UI)? Svara JSON: {"hasFoodPhoto": true|false}',
+        text:
+          'Ska denna bild användas som receptfoto (färdig maträtt på tallrik/skål, serverad mat, aptitretande matfoto)? ' +
+          'Svara false om bilden visar: ingredienslista, recepttext, caption, råvaror utan tillagad rätt, steg-foto av enskild ingrediens, paket/etiketter, bara text/UI, eller nästan ingen mat. ' +
+          'Svara JSON: {"hasFoodPhoto": true|false}',
       },
     ],
     'Svara endast JSON.',
