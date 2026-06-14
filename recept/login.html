@@ -31,9 +31,23 @@
   button { width: 100%; font: inherit; font-size: 0.9375rem; font-weight: 600; padding: 0.7rem; border: none; border-radius: 8px; background: var(--info); color: #fff; cursor: pointer; }
   button:disabled { opacity: 0.6; cursor: default; }
   .err { color: #c0392b; font-size: 0.8125rem; margin-bottom: 0.75rem; min-height: 1.2em; }
+  .login-close {
+    position: fixed; top: 0.75rem; right: 0.75rem;
+    display: flex; align-items: center; justify-content: center;
+    width: 2rem; height: 2rem;
+    color: var(--text2); text-decoration: none;
+    border-radius: 50%;
+    transition: color 0.12s, background 0.12s;
+  }
+  .login-close:hover { color: var(--text); background: rgba(0,0,0,0.06); }
+  [data-theme="dark"] .login-close:hover { background: rgba(255,255,255,0.08); }
+  .login-close svg { width: 1.125rem; height: 1.125rem; stroke: currentColor; fill: none; stroke-width: 2; }
 </style>
 </head>
 <body>
+<a href="/" class="login-close" aria-label="Tillbaka till startsidan">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+</a>
 <div class="card">
   <img src="images/logo-light.png" alt="Macro-friendly recipes by Jann" class="login-logo login-logo-light" width="1024" height="262">
   <img src="images/logo-dark.png" alt="Macro-friendly recipes by Jann" class="login-logo login-logo-dark" width="1024" height="262">
