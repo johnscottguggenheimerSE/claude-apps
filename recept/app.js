@@ -946,7 +946,7 @@ window.addEventListener('hashchange', function() {
 });
 
 function updateAdminUi() {
-  var isAdmin = window.ReceptAdmin && window.ReceptAdmin.isAdmin;
+  var isAdmin = !!(window.ReceptAdmin && window.ReceptAdmin.isAdmin);
   var editLink = document.getElementById('detail-edit-link');
   if (editLink) editLink.hidden = !isAdmin;
 }

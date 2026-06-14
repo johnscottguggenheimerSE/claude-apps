@@ -364,6 +364,8 @@
   .back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--info); cursor: pointer; margin-bottom: 0.85rem; background: none; border: none; padding: 0; font-family: inherit; text-decoration: none; }
   .detail-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.85rem; }
   .detail-nav .back-btn { margin-bottom: 0; }
+  #detail-edit-link { display: none !important; }
+  html.is-admin #detail-edit-link { display: inline-flex !important; }
   .detail-top {
     display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
     align-items: stretch; margin-bottom: 1.5rem;
@@ -563,7 +565,7 @@
     <div class="detail-body">
       <div class="detail-nav">
         <button type="button" class="back-btn" id="back-btn">← Alla recept</button>
-        <a class="back-btn" id="detail-edit-link" href="/add">Redigera</a>
+        <a class="back-btn" id="detail-edit-link" href="/add" hidden>Redigera</a>
       </div>
       <div id="detail-content"></div>
     </div>
