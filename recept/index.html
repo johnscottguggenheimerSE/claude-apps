@@ -99,7 +99,8 @@
     color: var(--text);
     transition: border-color 0.15s;
   }
-  .site-search-input::placeholder { color: var(--text3); }
+  .site-search-input::placeholder { color: color-mix(in srgb, var(--text3) 55%, white); }
+  [data-theme="dark"] .site-search-input::placeholder { color: color-mix(in srgb, var(--text) 62%, transparent); }
   .site-search-input:focus {
     outline: none;
     border-color: var(--text2);
