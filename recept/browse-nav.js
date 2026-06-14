@@ -279,12 +279,11 @@
     var trigger = menu.querySelector('.browse-trigger');
     if (!panel || !trigger) return;
     var rect = trigger.getBoundingClientRect();
-    var width = Math.min(360, window.innerWidth - 24);
-    var left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12));
+    var left = Math.max(12, Math.min(rect.left, window.innerWidth - 200));
     panel.style.position = 'fixed';
     panel.style.top = (rect.bottom + 6) + 'px';
     panel.style.left = left + 'px';
-    panel.style.width = width + 'px';
+    panel.style.width = '';
     panel.style.right = 'auto';
     panel.style.zIndex = '60';
   }

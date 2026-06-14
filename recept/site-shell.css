@@ -138,8 +138,9 @@
 .browse-panel {
   display: none;
   position: absolute; top: 100%; left: 0;
-  width: min(720px, calc(100vw - 2.5rem));
-  min-width: 0;
+  width: max-content;
+  max-width: min(720px, calc(100vw - 2.5rem));
+  min-width: 9.5rem;
   padding-top: 0.45rem;
   z-index: 50;
 }
@@ -150,8 +151,10 @@
   border-radius: var(--radius-lg);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(9rem, max-content));
   gap: 1rem 1.75rem;
+  width: max-content;
+  max-width: min(720px, calc(100vw - 2.5rem));
 }
 [data-theme="dark"] .browse-panel-inner {
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
