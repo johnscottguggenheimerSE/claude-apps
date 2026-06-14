@@ -25,9 +25,9 @@ export const SWEDISH_TITLES = {
   'smashed-pickle-salad': 'Smashad picklesallad',
   'one-pan-dumplings-with-greens': 'Dumplings med grönsaker i en panna',
   'thai-basil-beef-rolls': 'Thailändska basilikarullar med nötkött',
-  'hoagie-brod': 'Runda proteinbullar',
+  'hoagie-brod': 'Runda hoagiebullar',
   'rice-paper-shrimp-pancake': 'Räkpannkaka i rispapper',
-  'chicken-kebab-wraps': 'Högprotein kycklingkebab-wraps',
+  'chicken-kebab-wraps': 'Kycklingkebab-wraps',
   'mexican-chicken-corn-salad': 'Mexikansk kyckling- och majssallad',
   'honey-lime-teriyaki-beef-noodles': 'Nudlar med honung, lime och teriyakinötkött',
 };

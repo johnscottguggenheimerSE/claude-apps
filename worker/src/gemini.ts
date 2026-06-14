@@ -28,6 +28,7 @@ Fält (inget emoji-fält):
 - tags: array — endast från: hog-protein, snabb, laggkolhydrat, vegetarisk, meal-prep, kyckling, notkott, flask, fisk, skaldjur (inte ugn/airfryer/stekpanna/tillbehör — kategori täcker måltidstyp)
 - title, source (läsbar källa: sajtnamn, «Ali Slagle, NYT Cooking», «@handle på Instagram»), sourceUrl
 - **title:** alltid på **svenska** — översätt engelska/internationella receptnamn till naturlig svenska (behåll etablerade lånord som gochujang, teriyaki, buffalo där det passar)
+- **title:** inkludera **aldrig** ordet «protein» (eller «högprotein») — proteinhalt visas via tagg `hog-protein`, badges och makros
 - sourceUrl: publik recept-URL (matblogg, NYT Cooking, etc.). Tom sträng för Instagram/TikTok — vi kan inte läsa inloggade sociala länkar; använd @handle i source istället
 - badges: array med minst portioner (t.ex. «4 portioner») och tidsuppskattning som **endast** «XX min» (t.ex. «30 min») — aldrig «ca», «under» eller intervall i badge; vid intervall i källan använd högsta minut
 - macros: { kcal, prot, carb, fat } för HELA receptet

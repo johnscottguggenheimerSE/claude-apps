@@ -177,6 +177,9 @@ export function validateRecipe(
   else seenIds[r.id] = 1;
 
   if (!r.title) errors.push(`${prefix}saknar title`);
+  else if (/\bprotein/i.test(String(r.title))) {
+    errors.push(`${prefix}title får inte innehålla «protein» — använd tagg hog-protein/badges istället`);
+  }
   if (!r.source) errors.push(`${prefix}saknar source`);
   if (r.sourceUrl && r.sourceUrl !== '#' && !isUrl(r.sourceUrl)) {
     errors.push(`${prefix}sourceUrl ogiltig`);
