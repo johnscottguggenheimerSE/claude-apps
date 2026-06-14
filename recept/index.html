@@ -20,23 +20,62 @@
       --info: #5ba3e8;
     }
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
-  .app { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
-  .list-header { margin-bottom: 1rem; }
-  .list-title {
-    font-size: clamp(2.125rem, 9vw, 3.75rem); font-weight: 700; line-height: 1.05;
-    letter-spacing: -0.035em; color: var(--text);
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
+  .app { max-width: 1120px; margin: 0 auto; }
+  .site-top {
+    position: sticky; top: 0; z-index: 40;
+    background: var(--bg); border-bottom: 0.5px solid var(--border);
+    padding: 0.65rem 1rem;
   }
-  .list-tagline { font-size: 0.8125rem; font-weight: 400; color: var(--text2); margin-top: 0.4rem; letter-spacing: 0.02em; }
-  .cat-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0.5rem; }
-  .cat-pill { font-size: 12px; font-family: inherit; padding: 0.35rem 0.7rem; border-radius: 999px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text2); cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s; }
-  .cat-pill:hover { background: var(--bg2); color: var(--text); }
-  .cat-pill.active { background: var(--info); color: #fff; border-color: var(--info); }
-  .tag-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 1.25rem; }
-  .tag-pill { font-size: 11px; font-family: inherit; font-weight: 500; padding: 0.32rem 0.65rem; border-radius: 999px; border: 0.5px dashed var(--border2); background: var(--bg); color: var(--text2); cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s, border-style 0.12s; flex-shrink: 0; }
-  .tag-pill:hover { background: var(--bg2); color: var(--text); border-style: solid; }
-  .tag-pill.active { border-style: solid; border-color: var(--info); color: var(--text); background: var(--bg2); box-shadow: inset 0 0 0 1px var(--info); }
-  .tag-pill.tag-clear { border-style: solid; border-color: var(--border2); font-weight: 400; }
+  .site-top-inner {
+    max-width: 1120px; margin: 0 auto;
+    display: flex; align-items: center; gap: 1rem 1.5rem; flex-wrap: wrap;
+  }
+  .site-brand-link { text-decoration: none; color: inherit; display: block; line-height: 1.1; }
+  .site-title { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.02em; display: block; }
+  .site-tagline { font-size: 0.6875rem; color: var(--text2); letter-spacing: 0.04em; }
+  .meal-nav {
+    display: flex; align-items: center; gap: 0.25rem 1.25rem;
+    flex: 1; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .meal-nav::-webkit-scrollbar { display: none; }
+  .meal-tab {
+    font-size: 0.9375rem; font-weight: 500; font-family: inherit;
+    padding: 0.4rem 0; background: none; border: none;
+    border-bottom: 2px solid transparent; color: var(--text2);
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: color 0.12s, border-color 0.12s;
+  }
+  .meal-tab:hover { color: var(--text); }
+  .meal-tab.active { color: var(--text); border-bottom-color: var(--info); }
+  .site-actions {
+    display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0;
+    font-size: 0.8125rem;
+  }
+  .site-action-link { color: var(--info); text-decoration: none; font-weight: 500; }
+  .site-action-btn {
+    font: inherit; font-size: inherit; background: none; border: none;
+    color: var(--text2); cursor: pointer; padding: 0;
+  }
+  .list-body { padding: 1rem 1rem 4rem; }
+  .filter-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    margin-bottom: 1.25rem; padding-bottom: 0.75rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .tag-nav { display: contents; }
+  .tag-pill {
+    font-size: 11px; font-family: inherit; font-weight: 500; padding: 0.32rem 0.65rem;
+    border-radius: 999px; border: 0.5px dashed var(--border2); background: var(--bg);
+    color: var(--text2); cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s, border-style 0.12s; flex-shrink: 0;
+  }
+  .tag-pill:hover { background: var(--bg3); color: var(--text); border-style: solid; }
+  .tag-pill.active {
+    border-style: solid; border-color: var(--info); color: var(--text);
+    background: var(--bg); box-shadow: inset 0 0 0 1px var(--info);
+  }
   .tag-pill.tag-clear:not(:disabled):hover { border-color: var(--text3); color: var(--text); }
   .tag-pill.tag-clear:disabled { opacity: 0.45; cursor: default; }
   .cat-section { margin-bottom: 1.75rem; }
@@ -91,6 +130,14 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.35);
     pointer-events: none;
   }
+  .recipe-card-rating {
+    position: absolute; top: 8px; left: 8px; z-index: 3;
+    font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+    color: #fff; background: rgba(0,0,0,0.62); border: 0.5px solid rgba(255,255,255,0.2);
+    pointer-events: none;
+  }
+  .recipe-card-new + .recipe-card-rating,
+  .recipe-card-rating.has-new-offset { left: auto; right: 8px; top: 36px; }
   .recipe-card-title {
     position: absolute; right: 14px; bottom: 14px; left: 14px; z-index: 2;
     margin: 0; padding: 10px 12px; font-size: 18px; font-weight: 600; line-height: 1.2;
@@ -181,6 +228,37 @@
   .tip-box { background: var(--bg2); border-radius: var(--radius); padding: 0.65rem 0.85rem; }
   .tip-title { font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
   .tip-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .reviews-panel {
+    margin-top: 1.5rem; padding: 1rem; border-radius: var(--radius-lg);
+    background: var(--bg); border: 0.5px solid var(--border);
+  }
+  .reviews-summary { font-size: 14px; font-weight: 500; margin-bottom: 0.75rem; }
+  .star-picker { display: flex; gap: 0.25rem; margin-bottom: 0.65rem; }
+  .star-btn {
+    font: inherit; font-size: 1.35rem; line-height: 1; padding: 0.15rem 0.2rem;
+    background: none; border: none; color: var(--text3); cursor: pointer;
+  }
+  .star-btn.active { color: #e8a317; }
+  .review-comment {
+    width: 100%; min-height: 72px; font: inherit; font-size: 0.875rem;
+    padding: 0.6rem 0.75rem; border: 0.5px solid var(--border); border-radius: var(--radius);
+    background: var(--bg2); color: var(--text); margin-bottom: 0.65rem; resize: vertical;
+  }
+  .review-submit {
+    font: inherit; font-size: 0.8125rem; font-weight: 600;
+    padding: 0.5rem 0.85rem; border-radius: var(--radius);
+    background: var(--info); color: #fff; border: none; cursor: pointer;
+  }
+  .review-submit:disabled { opacity: 0.55; cursor: default; }
+  .review-list { margin-top: 1rem; }
+  .review-item {
+    padding: 0.55rem 0; border-bottom: 0.5px solid var(--border);
+    font-size: 0.8125rem; line-height: 1.45;
+  }
+  .review-item:last-child { border-bottom: none; }
+  .review-item-stars { color: #e8a317; font-weight: 600; margin-bottom: 0.15rem; }
+  .review-item-text { color: var(--text2); }
+  .detail-body { padding: 1rem 1rem 4rem; max-width: 1120px; margin: 0 auto; }
   .hidden { display: none !important; }
   @media (min-width: 521px) {
     .recipe-grid { grid-template-columns: repeat(2, 1fr); }
@@ -191,28 +269,23 @@
   @media (max-width: 720px) {
     .detail-top { grid-template-columns: 1fr; }
     .detail-hero { min-height: 220px; aspect-ratio: 16 / 9; height: auto; }
-    .app { padding: 1rem 0.75rem 3rem; }
+    .list-body, .detail-body { padding: 0.85rem 0.75rem 3rem; }
+    .site-top { padding: 0.55rem 0.75rem; }
     .recipe-card { min-height: 225px; }
     .recipe-card-title { font-size: 16px; padding: 8px 10px; }
     .detail-summary-title { font-size: 20px; }
     .detail-meta-row { flex-direction: column; align-items: stretch; }
     .serv-ctrl { align-self: flex-end; }
-    .cat-nav, .tag-nav {
+    .meal-nav {
+      order: 3; width: 100%; margin: 0 -0.25rem; padding-bottom: 0.15rem;
+    }
+    .filter-bar {
       flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
-      gap: 10px; padding-bottom: 6px;
-      margin-left: 0; margin-right: -0.75rem;
-      padding-left: 0; padding-right: 0.75rem;
-      scroll-snap-type: x proximity;
+      gap: 8px; padding-bottom: 0.5rem; margin-right: -0.75rem; padding-right: 0.75rem;
     }
-    .cat-nav { margin-bottom: 0.45rem; }
-    .tag-nav { margin-bottom: 1.1rem; }
-    .cat-pill, .tag-pill {
-      flex-shrink: 0; scroll-snap-align: start;
-    }
-    .cat-pill {
-      font-size: 15px; font-weight: 500; padding: 0.55rem 1.05rem;
-    }
-    .tag-pill { font-size: 13px; padding: 0.48rem 0.95rem; }
+    .tag-pill { flex-shrink: 0; font-size: 12px; padding: 0.4rem 0.75rem; }
+    .recipe-card-tag { font-size: 9px; padding: 3px 5px; }
+    .detail-hero-tag { font-size: 10px; padding: 4px 6px; }
   }
   @media (max-width: 520px) {
     .two-col { grid-template-columns: 1fr; }
@@ -225,29 +298,35 @@
 </head>
 <body>
 <div class="app">
-  <div id="view-list">
-    <div class="list-header">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-        <div>
-          <h1 class="list-title">Proteinrika recept</h1>
-          <p class="list-tagline">by Jånn</p>
-        </div>
-        <nav style="display:flex;gap:0.75rem;font-size:0.8125rem;padding-top:0.35rem;">
-          <a href="/add" style="color:var(--info);text-decoration:none;">+ Lägg till</a>
-          <button type="button" id="logout-btn" style="font:inherit;font-size:0.8125rem;background:none;border:none;color:var(--text2);cursor:pointer;padding:0;">Logga ut</button>
-        </nav>
+  <header class="site-top" id="site-top">
+    <div class="site-top-inner">
+      <div class="site-brand">
+        <a href="/" class="site-brand-link" id="brand-home">
+          <span class="site-title">Proteinrika recept</span>
+          <span class="site-tagline">by Jånn</span>
+        </a>
+      </div>
+      <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
+      <div class="site-actions">
+        <a href="/add" class="site-action-link">+ Lägg till</a>
+        <button type="button" id="logout-btn" class="site-action-btn">Logga ut</button>
       </div>
     </div>
-    <nav class="cat-nav" id="cat-nav" aria-label="Kategorier"></nav>
-    <nav class="tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
-    <div id="recipe-list"></div>
+  </header>
+  <div id="view-list">
+    <div class="list-body">
+      <nav class="filter-bar tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
+      <div id="recipe-list"></div>
+    </div>
   </div>
   <div id="view-detail" class="hidden">
-    <div class="detail-nav">
-      <button type="button" class="back-btn" id="back-btn">← Alla recept</button>
-      <a class="back-btn" id="detail-edit-link" href="/add">Redigera</a>
+    <div class="detail-body">
+      <div class="detail-nav">
+        <button type="button" class="back-btn" id="back-btn">← Alla recept</button>
+        <a class="back-btn" id="detail-edit-link" href="/add">Redigera</a>
+      </div>
+      <div id="detail-content"></div>
     </div>
-    <div id="detail-content"></div>
   </div>
 </div>
 <script src="recipe-validate.js"></script>

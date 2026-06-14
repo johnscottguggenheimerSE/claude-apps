@@ -13,6 +13,12 @@ import {
 } from './gemini';
 import { fetchImageAsBase64, fetchRecipePage, isSocialMediaUrl } from './fetch-url';
 import { getRecipe, idExists, insertRecipe, listRecipes, updateRecipe } from './db';
+import {
+  ensureVisitor,
+  getRecipeReviewData,
+  listReviewSummaries,
+  upsertReview,
+} from './reviews';
 import { slugify, normalizeRecipe, validateRecipe, type Recipe } from './validate';
 
 export interface Env {
@@ -146,9 +152,40 @@ async function handleAuthCheck(request: Request, env: Env): Promise<Response> {
   return json({ ok: await isAuthed(request, env.AUTH_PASSWORD || '') });
 }
 
-async function handleListRecipes(env: Env): Promise<Response> {
-  const data = await listRecipes(env.DB);
-  return json(data);
+async function handleListRecipes(request: Request, env: Env): Promise<Response> {
+  const recipes = await listRecipes(env.DB);
+  const reviewSummaries = await listReviewSummaries(env.DB);
+  const visitor = ensureVisitor(request);
+  const headers = visitor.setCookie ? { 'Set-Cookie': visitor.setCookie } : undefined;
+  return json({ ...recipes, reviewSummaries }, 200, headers);
+}
+
+async function handleGetReviews(request: Request, env: Env, recipeId: string): Promise<Response> {
+  if (!(await getRecipe(env.DB, recipeId))) return json({ error: 'Hittades inte' }, 404);
+  const visitor = ensureVisitor(request);
+  const data = await getRecipeReviewData(env.DB, recipeId, visitor.visitorId);
+  const headers = visitor.setCookie ? { 'Set-Cookie': visitor.setCookie } : undefined;
+  return json(data, 200, headers);
+}
+
+async function handlePostReview(request: Request, env: Env, recipeId: string): Promise<Response> {
+  if (!(await getRecipe(env.DB, recipeId))) return json({ error: 'Hittades inte' }, 404);
+  let body: { rating?: number; comment?: string };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return json({ error: 'Ogiltig JSON' }, 400);
+  }
+  const rating = body.rating;
+  if (typeof rating !== 'number' || rating < 1 || rating > 5 || !Number.isInteger(rating)) {
+    return json({ error: 'Betyg ska vara 1–5' }, 400);
+  }
+  const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 500) : '';
+  const visitor = ensureVisitor(request);
+  await upsertReview(env.DB, recipeId, visitor.visitorId, rating, comment);
+  const data = await getRecipeReviewData(env.DB, recipeId, visitor.visitorId);
+  const headers = visitor.setCookie ? { 'Set-Cookie': visitor.setCookie } : undefined;
+  return json(data, 200, headers);
 }
 
 async function handleGetRecipe(env: Env, id: string): Promise<Response> {
@@ -403,7 +440,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (authErr) return authErr;
 
   if (path === '/api/recipes' && request.method === 'GET') {
-    return handleListRecipes(env);
+    return handleListRecipes(request, env);
   }
   if (path === '/api/recipes' && request.method === 'POST') {
     return handleCreateRecipe(request, env);
@@ -413,6 +450,13 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   }
   if (path === '/api/parse-url' && request.method === 'POST') {
     return handleParseUrl(request, env);
+  }
+
+  const reviewMatch = path.match(/^\/api\/recipes\/([^/]+)\/reviews$/);
+  if (reviewMatch) {
+    const id = decodeURIComponent(reviewMatch[1]);
+    if (request.method === 'GET') return handleGetReviews(request, env, id);
+    if (request.method === 'POST') return handlePostReview(request, env, id);
   }
 
   const recipeMatch = path.match(/^\/api\/recipes\/([^/]+)$/);

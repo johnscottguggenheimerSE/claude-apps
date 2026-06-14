@@ -130,6 +130,7 @@ function setRecipeUrl(id, replace) {
 }
 
 var recipes = [];
+var reviewSummaries = {};
 var activeCategory = 'all';
 var activeTagFilters = [];
 var currentServings = 1;
@@ -161,13 +162,20 @@ function categoryLabel(key) {
   return CATEGORY_LABELS[key] || key;
 }
 
+function formatStars(avg) {
+  var full = Math.round(avg);
+  var s = '';
+  for (var i = 1; i <= 5; i++) s += i <= full ? '★' : '☆';
+  return s;
+}
+
 function renderCategoryNav() {
   var nav = document.getElementById('cat-nav');
   nav.replaceChildren();
   if (activeCategory !== 'all' && !recipes.some(function(r) { return r.category === activeCategory; })) {
     activeCategory = 'all';
   }
-  var allBtn = mk('button', 'cat-pill');
+  var allBtn = mk('button', 'meal-tab');
   allBtn.type = 'button';
   allBtn.textContent = 'Alla';
   if (activeCategory === 'all') allBtn.classList.add('active');
@@ -180,7 +188,7 @@ function renderCategoryNav() {
   CATEGORY_ORDER.forEach(function(cat) {
     var has = recipes.some(function(r) { return r.category === cat; });
     if (!has) return;
-    var btn = mk('button', 'cat-pill');
+    var btn = mk('button', 'meal-tab');
     btn.type = 'button';
     btn.textContent = categoryLabel(cat);
     if (activeCategory === cat) btn.classList.add('active');
@@ -341,6 +349,13 @@ function createRecipeCard(r) {
     var newLbl = mk('span', 'recipe-card-new');
     newLbl.textContent = 'Nytt!';
     card.appendChild(newLbl);
+  }
+  var rev = reviewSummaries[r.id];
+  if (rev && rev.count > 0) {
+    var ratingEl = mk('span', 'recipe-card-rating');
+    if (shouldShowNewBadge(r.id)) ratingEl.classList.add('has-new-offset');
+    ratingEl.textContent = formatStars(rev.average) + ' ' + rev.average.toFixed(1);
+    card.appendChild(ratingEl);
   }
   var title = document.createElement('h2');
   title.className = 'recipe-card-title';
@@ -556,10 +571,140 @@ function showDetail(id, skipHistory) {
     tipsGrid.appendChild(box);
   });
   c.appendChild(tipsGrid);
+
+  var reviewsHost = mk('div', 'reviews-panel');
+  reviewsHost.id = 'reviews-host';
+  c.appendChild(reviewsHost);
+  loadReviewsPanel(id, reviewsHost);
+
   document.getElementById('view-list').classList.add('hidden');
   document.getElementById('view-detail').classList.remove('hidden');
   applyServingsScale();
   window.scrollTo(0, 0);
+}
+
+function loadReviewsPanel(recipeId, host) {
+  host.textContent = 'Hämtar betyg…';
+  fetch('/api/recipes/' + encodeURIComponent(recipeId) + '/reviews', { credentials: 'same-origin' })
+    .then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Kunde inte hämta betyg');
+        return data;
+      });
+    })
+    .then(function(data) {
+      if (data.summary) {
+        reviewSummaries[recipeId] = data.summary;
+      }
+      renderReviewsPanel(recipeId, host, data);
+    })
+    .catch(function(ex) {
+      host.textContent = ex.message;
+    });
+}
+
+function renderReviewsPanel(recipeId, host, data) {
+  host.replaceChildren();
+  var title = mk('div', 'sec-title');
+  title.textContent = 'Betyg & recensioner';
+  host.appendChild(title);
+
+  var summaryEl = mk('div', 'reviews-summary');
+  if (data.summary && data.summary.count > 0) {
+    summaryEl.textContent =
+      formatStars(data.summary.average) + ' ' + data.summary.average.toFixed(1) +
+      ' · ' + data.summary.count + ' betyg';
+  } else {
+    summaryEl.textContent = 'Inga betyg än — ge det första!';
+  }
+  host.appendChild(summaryEl);
+
+  var selected = data.mine ? data.mine.rating : 0;
+  var starsRow = mk('div', 'star-picker');
+  var starBtns = [];
+  for (var s = 1; s <= 5; s++) {
+    var starBtn = mk('button', 'star-btn');
+    starBtn.type = 'button';
+    starBtn.textContent = s <= selected ? '★' : '☆';
+    if (s <= selected) starBtn.classList.add('active');
+    starBtn.setAttribute('data-star', String(s));
+    starBtn.addEventListener('click', (function(val) {
+      return function() {
+        starBtns.forEach(function(b) {
+          var n = parseInt(b.getAttribute('data-star'), 10);
+          b.textContent = n <= val ? '★' : '☆';
+          b.classList.toggle('active', n <= val);
+        });
+      };
+    })(s));
+    starBtns.push(starBtn);
+    starsRow.appendChild(starBtn);
+  }
+  host.appendChild(starsRow);
+
+  var comment = document.createElement('textarea');
+  comment.className = 'review-comment';
+  comment.placeholder = 'Valfri kommentar (syns för familjen)…';
+  comment.value = data.mine && data.mine.comment ? data.mine.comment : '';
+  host.appendChild(comment);
+
+  var submitBtn = mk('button', 'review-submit');
+  submitBtn.type = 'button';
+  submitBtn.textContent = 'Spara betyg';
+  submitBtn.addEventListener('click', function() {
+    var rating = 0;
+    starBtns.forEach(function(b) {
+      if (b.classList.contains('active')) {
+        var n = parseInt(b.getAttribute('data-star'), 10);
+        if (n > rating) rating = n;
+      }
+    });
+    if (!rating) {
+      submitBtn.textContent = 'Välj stjärnor först';
+      return;
+    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sparar…';
+    fetch('/api/recipes/' + encodeURIComponent(recipeId) + '/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ rating: rating, comment: comment.value.trim() })
+    }).then(function(res) {
+      return res.json().then(function(d) {
+        if (!res.ok) throw new Error(d.error || 'Sparning misslyckades');
+        return d;
+      });
+    }).then(function(d) {
+      if (d.summary) reviewSummaries[recipeId] = d.summary;
+      renderReviewsPanel(recipeId, host, d);
+    }).catch(function(ex) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = ex.message;
+    });
+  });
+  host.appendChild(submitBtn);
+
+  if (data.recent && data.recent.length) {
+    var listTitle = mk('div', 'sec-title');
+    listTitle.textContent = 'Senaste kommentarer';
+    listTitle.style.marginTop = '1rem';
+    host.appendChild(listTitle);
+    var list = mk('div', 'review-list');
+    data.recent.forEach(function(item) {
+      var row = mk('div', 'review-item');
+      var stars = mk('div', 'review-item-stars');
+      stars.textContent = formatStars(item.rating);
+      row.appendChild(stars);
+      if (item.comment) {
+        var txt = mk('div', 'review-item-text');
+        txt.textContent = item.comment;
+        row.appendChild(txt);
+      }
+      list.appendChild(row);
+    });
+    host.appendChild(list);
+  }
 }
 
 function routeFromLocation() {
@@ -581,6 +726,7 @@ window.addEventListener('hashchange', function() {
 
 function bootApp(data) {
   recipes = data.recipes || [];
+  reviewSummaries = data.reviewSummaries || {};
   FEATURED_NEW_IDS.length = 0;
   (data.featuredNewIds || []).forEach(function(id) { FEATURED_NEW_IDS.push(id); });
   RecipeValidate.reportAtLoad(recipes, TAG_FILTER_ORDER, CATEGORY_ORDER);
@@ -608,3 +754,12 @@ fetch('/api/recipes', { credentials: 'same-origin' })
     banner.textContent = 'Kunde inte ladda recept. Försök ladda om sidan.';
     document.body.insertBefore(banner, document.body.firstChild);
   });
+
+var brandHome = document.getElementById('brand-home');
+if (brandHome) {
+  brandHome.addEventListener('click', function(e) {
+    if (document.getElementById('view-detail').classList.contains('hidden')) return;
+    e.preventDefault();
+    showList();
+  });
+}
