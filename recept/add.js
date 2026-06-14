@@ -23,6 +23,8 @@
   var previewImg = document.getElementById('preview-img');
   var previewImageWrap = document.getElementById('preview-image-wrap');
   var btnRegenImage = document.getElementById('btn-regen-image');
+  var regenProgressTimer = null;
+  var regenUndoSnapshot = null;
   var editSelect = document.getElementById('edit-select');
   var recipeList = [];
   var previewForm = document.getElementById('preview-form');
@@ -61,9 +63,135 @@
     return wrap;
   }
 
+  function clearRegenProgress() {
+    if (regenProgressTimer) {
+      clearInterval(regenProgressTimer);
+      regenProgressTimer = null;
+    }
+  }
+
+  function renderStatusBusy(msg, pct) {
+    statusEl.className = 'status status-busy';
+    statusEl.replaceChildren();
+    var spinner = mk('span', 'status-spinner');
+    spinner.setAttribute('aria-hidden', 'true');
+    var text = mk('span', 'status-busy-text');
+    text.textContent = msg;
+    var pctEl = mk('span', 'status-pct');
+    pctEl.textContent = Math.round(pct) + '%';
+    statusEl.appendChild(spinner);
+    statusEl.appendChild(text);
+    statusEl.appendChild(pctEl);
+  }
+
+  function setStatusBusy(msg, pct) {
+    clearRegenProgress();
+    renderStatusBusy(msg, pct);
+  }
+
+  function startRegenProgress() {
+    clearRegenProgress();
+    var pct = 0;
+    renderStatusBusy('Förbättrar bild med AI…', pct);
+    regenProgressTimer = setInterval(function() {
+      if (pct < 55) pct += 2;
+      else if (pct < 82) pct += 1;
+      else if (pct < 92) pct += 0.35;
+      renderStatusBusy('Förbättrar bild med AI…', pct);
+    }, 450);
+  }
+
+  function finishRegenProgress() {
+    clearRegenProgress();
+    renderStatusBusy('Förbättrar bild med AI…', 100);
+  }
+
+  function setStatusWithUndo(msg, onUndo, isErr) {
+    clearRegenProgress();
+    statusEl.className = 'status' + (isErr ? ' err' : '');
+    statusEl.replaceChildren();
+    statusEl.appendChild(document.createTextNode(msg + ' '));
+    var link = mk('button', 'status-undo-link');
+    link.type = 'button';
+    link.textContent = 'Ångra';
+    link.addEventListener('click', onUndo);
+    statusEl.appendChild(link);
+  }
+
+  function clearRegenUndo() {
+    regenUndoSnapshot = null;
+  }
+
   function setStatus(msg, isErr) {
+    clearRegenProgress();
+    clearRegenUndo();
     statusEl.textContent = msg || '';
     statusEl.className = 'status' + (isErr ? ' err' : '');
+  }
+
+  function fetchImageAsBase64(url) {
+    return fetch(url, { credentials: 'same-origin' }).then(function(res) {
+      if (!res.ok) throw new Error('Kunde inte läsa bild');
+      return res.blob();
+    }).then(function(blob) {
+      return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function() {
+          var dataUrl = String(reader.result || '');
+          var m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+          if (!m) {
+            reject(new Error('Kunde inte läsa bild'));
+            return;
+          }
+          resolve({ mimeType: m[1], data: m[2] });
+        };
+        reader.onerror = function() { reject(new Error('Kunde inte läsa bild')); };
+        reader.readAsDataURL(blob);
+      });
+    });
+  }
+
+  function putRecipeUpdate(recipe, extra) {
+    var body = { recipe: recipe, featuredNew: document.getElementById('featured-new').checked };
+    if (extra) {
+      Object.keys(extra).forEach(function(k) { body[k] = extra[k]; });
+    }
+    return fetch('/api/recipes/' + encodeURIComponent(recipe.id), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(body)
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) {
+          throw new Error((data.details && data.details.join(' · ')) || data.error || 'Uppdatering misslyckades');
+        }
+        return data;
+      });
+    });
+  }
+
+  function undoRegenImage() {
+    if (!regenUndoSnapshot || !currentRecipe || !currentRecipe.id) return;
+    var undoBtn = statusEl.querySelector('.status-undo-link');
+    if (undoBtn) undoBtn.disabled = true;
+    btnRegenImage.disabled = true;
+    setStatus('Återställer bild…');
+    var recipe = readRecipeFromForm();
+    putRecipeUpdate(recipe, {
+      uploadImage: true,
+      imageBase64: regenUndoSnapshot.data,
+      mimeType: regenUndoSnapshot.mimeType
+    }).then(function(data) {
+      editMode = true;
+      clearPendingImage();
+      clearRegenUndo();
+      showPreview(data.recipe);
+      previewImg.src = imageSrcForRecipe(data.recipe, true);
+      setStatus('Tidigare bild återställd.');
+    }).catch(function(ex) {
+      setStatusWithUndo(ex.message, undoRegenImage, true);
+    }).finally(function() { btnRegenImage.disabled = false; });
   }
 
   function clearPendingImage() {
@@ -693,36 +821,53 @@
       setStatus('Spara receptet först innan du genererar ny bild.', true);
       return;
     }
-    btnRegenImage.disabled = true;
-      setStatus('Förbättrar befintlig bild med AI…');
-    var regenBody = {
-      recipe: recipe,
-      regenerateImage: true,
-      featuredNew: document.getElementById('featured-new').checked
-    };
-    if (pendingImageBase64 && pendingMimeType) {
-      regenBody.imageBase64 = pendingImageBase64;
-      regenBody.mimeType = pendingMimeType;
+    if (!recipe.image && !(pendingImageBase64 && pendingMimeType)) {
+      setStatus('Receptet saknar bild att förbättra.', true);
+      return;
     }
-    fetch('/api/recipes/' + encodeURIComponent(recipe.id), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(regenBody)
-    }).then(function(res) {
-      return res.json().then(function(data) {
-        if (!res.ok) {
-          throw new Error((data.details && data.details.join(' · ')) || data.error || 'Bildgenerering misslyckades');
-        }
-        return data;
+    btnRegenImage.disabled = true;
+    clearRegenUndo();
+
+    var snapshotPromise = pendingImageBase64 && pendingMimeType
+      ? Promise.resolve({ mimeType: pendingMimeType, data: pendingImageBase64 })
+      : fetchImageAsBase64(imageSrcForRecipe(recipe));
+
+    snapshotPromise.then(function(snapshot) {
+      regenUndoSnapshot = snapshot;
+      startRegenProgress();
+      var regenBody = {
+        recipe: recipe,
+        regenerateImage: true,
+        featuredNew: document.getElementById('featured-new').checked
+      };
+      if (pendingImageBase64 && pendingMimeType) {
+        regenBody.imageBase64 = pendingImageBase64;
+        regenBody.mimeType = pendingMimeType;
+      }
+      return fetch('/api/recipes/' + encodeURIComponent(recipe.id), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(regenBody)
+      }).then(function(res) {
+        return res.json().then(function(data) {
+          if (!res.ok) {
+            throw new Error((data.details && data.details.join(' · ')) || data.error || 'Bildgenerering misslyckades');
+          }
+          return data;
+        });
       });
     }).then(function(data) {
+      finishRegenProgress();
       editMode = true;
       clearPendingImage();
       showPreview(data.recipe);
       previewImg.src = imageSrcForRecipe(data.recipe, true);
-      setStatus('Bild förbättrad och sparad.');
+      setTimeout(function() {
+        setStatusWithUndo('Bild förbättrad och sparad.', undoRegenImage);
+      }, 250);
     }).catch(function(ex) {
+      clearRegenUndo();
       setStatus(ex.message, true);
     }).finally(function() { btnRegenImage.disabled = false; });
   });
