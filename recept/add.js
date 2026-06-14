@@ -785,7 +785,11 @@
   fetch('/api/auth/check', { credentials: 'same-origin' })
     .then(function(res) { return res.json(); })
     .then(function(d) {
-      if (!d.ok) { location.href = '/login.html'; return; }
+      if (!d.ok) {
+        var next = encodeURIComponent(location.pathname + location.search);
+        location.href = '/login.html?next=' + next;
+        return;
+      }
       return fetch('/api/recipes', { credentials: 'same-origin' })
         .then(function(res) { return res.json(); })
         .then(function(data) {
@@ -794,5 +798,8 @@
           bootEditFromQuery();
         });
     })
-    .catch(function() { location.href = '/login.html'; });
+    .catch(function() {
+      var next = encodeURIComponent(location.pathname + location.search);
+      location.href = '/login.html?next=' + next;
+    });
 })();

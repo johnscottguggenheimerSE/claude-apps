@@ -24,12 +24,16 @@ import { slugify, normalizeRecipe, validateRecipe, type Recipe } from './validat
 export interface Env {
   ASSETS: Fetcher;
   GEMINI_API_KEY?: string;
+  ADMIN_PASSWORD?: string;
+  /** @deprecated use ADMIN_PASSWORD */
   AUTH_PASSWORD?: string;
   DB: D1Database;
   IMAGES: R2Bucket;
 }
 
-const PUBLIC_PATHS = new Set(['/login.html', '/favicon.ico']);
+function adminPassword(env: Env): string {
+  return env.ADMIN_PASSWORD || env.AUTH_PASSWORD || '';
+}
 
 function json(data: unknown, status = 200, extraHeaders?: HeadersInit): Response {
   return Response.json(data, { status, headers: extraHeaders });
@@ -137,10 +141,10 @@ async function handleLogin(request: Request, env: Env): Promise<Response> {
   } catch {
     return json({ error: 'Ogiltig JSON' }, 400);
   }
-  if (!(await verifyPassword(body.password || '', env.AUTH_PASSWORD || ''))) {
+  if (!(await verifyPassword(body.password || '', adminPassword(env)))) {
     return json({ error: 'Fel lösenord' }, 401);
   }
-  const cookie = await makeSessionCookie(env.AUTH_PASSWORD || '');
+  const cookie = await makeSessionCookie(adminPassword(env));
   return json({ ok: true }, 200, { 'Set-Cookie': cookie });
 }
 
@@ -149,7 +153,7 @@ async function handleLogout(): Promise<Response> {
 }
 
 async function handleAuthCheck(request: Request, env: Env): Promise<Response> {
-  return json({ ok: await isAuthed(request, env.AUTH_PASSWORD || '') });
+  return json({ ok: await isAuthed(request, adminPassword(env)) });
 }
 
 async function handleListRecipes(request: Request, env: Env): Promise<Response> {
@@ -413,6 +417,7 @@ async function handleImage(env: Env, key: string): Promise<Response> {
 
 async function handleApi(request: Request, env: Env, url: URL): Promise<Response | null> {
   const path = url.pathname;
+  const pw = adminPassword(env);
 
   if (path === '/api/health') {
     return json({ ok: true, service: 'receptbok' });
@@ -428,28 +433,14 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     return handleAuthCheck(request, env);
   }
 
-  if (path.startsWith('/api/images/')) {
+  if (path.startsWith('/api/images/') && request.method === 'GET') {
     const key = path.slice('/api/images/'.length);
     if (!key || key.includes('..')) return new Response('Bad request', { status: 400 });
-    const authErr = await requireAuth(request, env.AUTH_PASSWORD || '');
-    if (authErr) return authErr;
     return handleImage(env, key);
   }
 
-  const authErr = await requireAuth(request, env.AUTH_PASSWORD || '');
-  if (authErr) return authErr;
-
   if (path === '/api/recipes' && request.method === 'GET') {
     return handleListRecipes(request, env);
-  }
-  if (path === '/api/recipes' && request.method === 'POST') {
-    return handleCreateRecipe(request, env);
-  }
-  if (path === '/api/parse' && request.method === 'POST') {
-    return handleParse(request, env);
-  }
-  if (path === '/api/parse-url' && request.method === 'POST') {
-    return handleParseUrl(request, env);
   }
 
   const reviewMatch = path.match(/^\/api\/recipes\/([^/]+)\/reviews$/);
@@ -463,6 +454,29 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (recipeMatch) {
     const id = decodeURIComponent(recipeMatch[1]);
     if (request.method === 'GET') return handleGetRecipe(env, id);
+  }
+
+  const authErr = await requireAuth(request, pw);
+  if (authErr) return authErr;
+
+  if (path.startsWith('/api/images/')) {
+    const key = path.slice('/api/images/'.length);
+    if (!key || key.includes('..')) return new Response('Bad request', { status: 400 });
+    return handleImage(env, key);
+  }
+
+  if (path === '/api/recipes' && request.method === 'POST') {
+    return handleCreateRecipe(request, env);
+  }
+  if (path === '/api/parse' && request.method === 'POST') {
+    return handleParse(request, env);
+  }
+  if (path === '/api/parse-url' && request.method === 'POST') {
+    return handleParseUrl(request, env);
+  }
+
+  if (recipeMatch) {
+    const id = decodeURIComponent(recipeMatch[1]!);
     if (request.method === 'PUT') return handleUpdateRecipe(request, env, id);
   }
 
@@ -475,18 +489,19 @@ export default {
     const apiResponse = await handleApi(request, env, url);
     if (apiResponse) return apiResponse;
 
-    const path = url.pathname === '/' ? '/index.html' : url.pathname;
-    if (!PUBLIC_PATHS.has(path) && path !== '/api/health') {
-      const authed = await isAuthed(request, env.AUTH_PASSWORD || '');
+    const rawPath = url.pathname;
+    const path = rawPath === '/' ? '/index.html' : rawPath;
+    const isAdminPage = path === '/add.html' || rawPath === '/add' || rawPath === '/recept/add';
+
+    if (isAdminPage) {
+      const authed = await isAuthed(request, adminPassword(env));
       if (!authed) {
-        if (path.endsWith('.html') || path === '/index.html' || !path.includes('.')) {
-          return Response.redirect(new URL('/login.html', url.origin), 302);
-        }
-        return new Response('Unauthorized', { status: 401 });
+        const next = encodeURIComponent(rawPath + url.search);
+        return Response.redirect(new URL('/login.html?next=' + next, url.origin).href, 302);
       }
     }
 
-    if (path === '/add' || path === '/recept/add') {
+    if (path === '/add' || path === '/recept/add' || rawPath === '/add' || rawPath === '/recept/add') {
       return env.ASSETS.fetch(new Request(new URL('/add.html', url.origin), request));
     }
 

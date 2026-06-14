@@ -1,4 +1,6 @@
 (function() {
+  window.ReceptAdmin = { isAdmin: false };
+
   function syncThemeToggle() {
     var label = document.getElementById('theme-toggle-label');
     if (!label) return;
@@ -16,13 +18,66 @@
     syncThemeToggle();
   }
 
-  var logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', function() {
-      fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
-        .then(function() { location.href = '/login.html'; });
-    });
+  function adminLink(href, text, extraClass) {
+    var a = document.createElement('a');
+    a.href = href;
+    a.className = 'admin-bar-link' + (extraClass ? ' ' + extraClass : '');
+    a.textContent = text;
+    return a;
   }
+
+  function adminButton(text, onClick) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'admin-bar-btn';
+    btn.textContent = text;
+    btn.addEventListener('click', onClick);
+    return btn;
+  }
+
+  function setAdminState(isAdmin) {
+    window.ReceptAdmin.isAdmin = isAdmin;
+    document.documentElement.classList.toggle('is-admin', isAdmin);
+    window.dispatchEvent(new CustomEvent('recept-auth', { detail: { ok: isAdmin } }));
+  }
+
+  function renderAdminBar(bar, isAdmin) {
+    bar.replaceChildren();
+    if (isAdmin) {
+      var page = document.body.getAttribute('data-page') || 'home';
+      bar.appendChild(adminLink('/add', 'Lägg till +', page === 'add' ? 'is-current' : ''));
+      bar.appendChild(adminButton('Logga ut', function() {
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+          .then(function() {
+            setAdminState(false);
+            renderAdminBar(bar, false);
+            if (document.body.getAttribute('data-page') === 'add') {
+              location.href = '/';
+            }
+          });
+      }));
+    } else {
+      var next = encodeURIComponent(location.pathname + location.search);
+      bar.appendChild(adminLink('/login.html?next=' + next, 'Logga in'));
+    }
+  }
+
+  function initAdminBar() {
+    var bar = document.querySelector('.admin-bar-inner');
+    if (!bar) return;
+    fetch('/api/auth/check', { credentials: 'same-origin' })
+      .then(function(res) { return res.json(); })
+      .then(function(d) {
+        setAdminState(!!d.ok);
+        renderAdminBar(bar, !!d.ok);
+      })
+      .catch(function() {
+        setAdminState(false);
+        renderAdminBar(bar, false);
+      });
+  }
+
+  initAdminBar();
 
   var page = document.body.getAttribute('data-page') || 'home';
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Logga in — Macro-friendly recipes</title>
+<title>Admin — Logga in</title>
 <script src="theme.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,15 +41,23 @@
 <div class="card">
   <img src="images/logo-light.png" alt="Macro-friendly recipes by Jann" class="login-logo login-logo-light" width="1024" height="262">
   <img src="images/logo-dark.png" alt="Macro-friendly recipes by Jann" class="login-logo login-logo-dark" width="1024" height="262">
-  <p>Logga in för att se och lägga till recept.</p>
+  <p>Admin — logga in för att lägga till och redigera recept.</p>
   <div class="err" id="err" role="alert"></div>
   <form id="form">
-    <label for="pw">Lösenord</label>
+    <label for="pw">Adminlösenord</label>
     <input type="password" id="pw" name="password" autocomplete="current-password" required autofocus>
     <button type="submit" id="btn">Logga in</button>
   </form>
 </div>
 <script>
+(function() {
+  function safeNext(raw) {
+    if (!raw || raw.charAt(0) !== '/') return '/';
+    if (raw.indexOf('//') === 0) return '/';
+    return raw;
+  }
+  var next = safeNext(new URLSearchParams(location.search).get('next'));
+
 document.getElementById('form').addEventListener('submit', function(e) {
   e.preventDefault();
   var btn = document.getElementById('btn');
@@ -62,13 +70,14 @@ document.getElementById('form').addEventListener('submit', function(e) {
     credentials: 'same-origin',
     body: JSON.stringify({ password: document.getElementById('pw').value })
   }).then(function(res) {
-    if (res.ok) { location.href = '/'; return; }
+    if (res.ok) { location.href = next; return; }
     return res.json().then(function(d) { throw new Error(d.error || 'Fel lösenord'); });
   }).catch(function(ex) {
     err.textContent = ex.message || 'Något gick fel';
     btn.disabled = false;
   });
 });
+})();
 (function() {
   var btn = document.getElementById('theme-toggle');
   function sync() {

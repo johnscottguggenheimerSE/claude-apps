@@ -43,6 +43,12 @@
     transition: opacity 0.12s;
   }
   .admin-bar-link:hover { opacity: 1; }
+  .admin-bar-btn {
+    font: inherit; font-size: inherit; font-weight: inherit;
+    color: inherit; background: none; border: none; padding: 0;
+    cursor: pointer; opacity: 0.88; transition: opacity 0.12s;
+  }
+  .admin-bar-btn:hover { opacity: 1; }
   [data-theme="dark"] .admin-bar {
     background: var(--bg3); color: var(--text);
     border-bottom: 1px solid var(--border);
@@ -456,9 +462,7 @@
 <body>
 <div class="site-shell">
   <div class="admin-bar">
-    <div class="admin-bar-inner">
-      <a href="/add" class="admin-bar-link">Lägg till +</a>
-    </div>
+    <div class="admin-bar-inner"></div>
   </div>
   <header class="site-top" id="site-top">
   <div class="site-top-bar">
@@ -480,10 +484,6 @@
       <button type="button" id="theme-toggle-btn" class="site-action-btn" aria-label="Byt tema">
         <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <span id="theme-toggle-label">Mörkt</span>
-      </button>
-      <button type="button" id="logout-btn" class="site-action-btn">
-        <svg class="site-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Logga ut
       </button>
     </div>
   </div>
@@ -511,25 +511,7 @@
 </div>
 <script src="recipe-validate.js"></script>
 <script src="browse-nav.js"></script>
+<script src="site-shell.js"></script>
 <script src="app.js"></script>
-<script>
-function syncThemeToggle() {
-  var label = document.getElementById('theme-toggle-label');
-  if (!label) return;
-  var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  label.textContent = dark ? 'Ljust' : 'Mörkt';
-}
-document.getElementById('theme-toggle-btn').addEventListener('click', function() {
-  var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-  if (window.ReceptTheme) ReceptTheme.set(dark ? 'light' : 'dark');
-  syncThemeToggle();
-});
-syncThemeToggle();
-
-document.getElementById('logout-btn').addEventListener('click', function() {
-  fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
-    .then(function() { location.href = '/login.html'; });
-});
-</script>
 </body>
 </html>

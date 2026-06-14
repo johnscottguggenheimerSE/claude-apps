@@ -631,6 +631,7 @@ function showDetail(id, skipHistory) {
   else setRecipeUrl(id, true);
   var editLink = document.getElementById('detail-edit-link');
   if (editLink) editLink.href = addPageUrl(id);
+  updateAdminUi();
   currentServings = getBaseServings(r);
   var c = document.getElementById('detail-content');
   c.replaceChildren();
@@ -919,6 +920,18 @@ window.addEventListener('hashchange', function() {
   else showList(true);
 });
 
+function updateAdminUi() {
+  var isAdmin = window.ReceptAdmin && window.ReceptAdmin.isAdmin;
+  var editLink = document.getElementById('detail-edit-link');
+  if (editLink) editLink.hidden = !isAdmin;
+}
+
+window.addEventListener('recept-auth', function() {
+  updateAdminUi();
+});
+
+updateAdminUi();
+
 function bootApp(data) {
   recipes = data.recipes || [];
   reviewSummaries = data.reviewSummaries || {};
@@ -948,10 +961,6 @@ function bootApp(data) {
 
 fetch('/api/recipes', { credentials: 'same-origin' })
   .then(function(res) {
-    if (res.status === 401) {
-      location.href = '/login.html';
-      return null;
-    }
     if (!res.ok) throw new Error('Kunde inte hämta recept');
     return res.json();
   })
