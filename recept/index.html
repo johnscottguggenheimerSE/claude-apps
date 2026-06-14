@@ -191,14 +191,15 @@
   .browse-panel-inner {
     padding: 1rem 1.15rem 1.1rem;
     background: var(--bg);
-    border: 1px solid var(--border2);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1rem 1.75rem;
   }
   [data-theme="dark"] .browse-panel-inner {
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
   }
   .browse-menu.is-open .browse-panel { display: block; }
   .browse-section-name {
