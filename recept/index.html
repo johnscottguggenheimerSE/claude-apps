@@ -14,7 +14,7 @@
     --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eeedea;
     --text: #1a1a18; --text2: #6b6b65; --text3: #9a9a94;
     --border: rgba(0,0,0,0.09); --border2: rgba(0,0,0,0.16);
-    --info: #1a5fa8; --radius: 8px; --radius-lg: 12px;
+    --info: #1a5fa8; --brand-jann: #c5a58a; --radius: 8px; --radius-lg: 12px;
     --star: #1a1a18;
   }
   [data-theme="dark"] {
@@ -23,6 +23,7 @@
     --text: #f0efe8; --text2: #a0a09a; --text3: #6a6a64;
     --border: rgba(255,255,255,0.09); --border2: rgba(255,255,255,0.16);
     --info: #5ba3e8;
+    --brand-jann: #6482a2;
     --star: #f0efe8;
   }
   body { background: var(--bg2); color: var(--text); min-height: 100vh; }
@@ -179,7 +180,7 @@
     transition: color 0.12s, border-color 0.12s;
   }
   .browse-tab:hover { color: var(--info); }
-  .browse-tab.active { border-bottom-color: var(--text); }
+  .browse-tab.active { border-bottom-color: var(--brand-jann); }
   .browse-menu { position: relative; flex-shrink: 0; }
   .browse-panel {
     display: none;

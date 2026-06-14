@@ -4,6 +4,7 @@
   --text: #1a1a18; --text2: #6b6b65; --text3: #9a9a94;
   --border: rgba(0,0,0,0.09); --border2: rgba(0,0,0,0.16);
   --info: #1a5fa8;
+  --brand-jann: #c5a58a;
 }
 [data-theme="dark"] {
   color-scheme: dark;
@@ -11,6 +12,7 @@
   --text: #f0efe8; --text2: #a0a09a; --text3: #6a6a64;
   --border: rgba(255,255,255,0.09); --border2: rgba(255,255,255,0.16);
   --info: #5ba3e8;
+  --brand-jann: #6482a2;
 }
 .site-shell {
   position: sticky; top: 0; z-index: 40;
