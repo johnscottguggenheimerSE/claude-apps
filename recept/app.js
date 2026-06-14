@@ -228,6 +228,87 @@ function formatStars(avg) {
   return s;
 }
 
+function sourceKind(r) {
+  var url = String(r.sourceUrl || '').toLowerCase();
+  var src = String(r.source || '').toLowerCase();
+  if (/^eget recept$/i.test(String(r.source || '').trim())) return 'own';
+  if (url.indexOf('instagram.com') !== -1 || /\binstagram\b/.test(src)) return 'instagram';
+  if (url.indexOf('tiktok.com') !== -1 || /\btiktok\b/.test(src)) return 'tiktok';
+  if (/^https?:\/\//i.test(url) || /\bnyt cooking\b/.test(src)) return 'web';
+  if (/^@[\w.]+/.test(String(r.source || '').trim())) return 'instagram';
+  return 'web';
+}
+
+function formatSourceLabel(source) {
+  if (!source) return '';
+  return String(source).trim()
+    .replace(/\s+på Instagram\s*$/i, '')
+    .replace(/\s+on Instagram\s*$/i, '')
+    .replace(/\s+på TikTok\s*$/i, '')
+    .replace(/\s+on TikTok\s*$/i, '');
+}
+
+function svgEl(tag, attrs) {
+  var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  if (attrs) {
+    Object.keys(attrs).forEach(function(k) { el.setAttribute(k, attrs[k]); });
+  }
+  return el;
+}
+
+function createSourceIcon(kind) {
+  var svg = svgEl('svg', {
+    class: 'source-type-icon',
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    'stroke-width': '2',
+    'aria-hidden': 'true'
+  });
+  if (kind === 'instagram') {
+    svg.appendChild(svgEl('rect', { x: '2', y: '2', width: '20', height: '20', rx: '5', ry: '5' }));
+    svg.appendChild(svgEl('circle', { cx: '12', cy: '12', r: '4' }));
+    svg.appendChild(svgEl('circle', { cx: '17.5', cy: '6.5', r: '1', fill: 'currentColor', stroke: 'none' }));
+  } else if (kind === 'tiktok') {
+    svg.appendChild(svgEl('path', {
+      d: 'M9 6v12a3 3 0 1 0 3-3V7h4V4h-7v2z',
+      fill: 'currentColor',
+      stroke: 'none'
+    }));
+  } else if (kind === 'own') {
+    svg.appendChild(svgEl('path', { d: 'M12 20h9' }));
+    svg.appendChild(svgEl('path', { d: 'M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z' }));
+  } else {
+    svg.appendChild(svgEl('circle', { cx: '12', cy: '12', r: '10' }));
+    svg.appendChild(svgEl('path', { d: 'M2 12h20' }));
+    svg.appendChild(svgEl('path', { d: 'M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z' }));
+  }
+  return svg;
+}
+
+function appendSourceLine(container, r, opts) {
+  if (!r.source) return;
+  opts = opts || {};
+  var kind = sourceKind(r);
+  var label = formatSourceLabel(r.source);
+  var row = mk('div', opts.className || 'recipe-card-source');
+  row.appendChild(createSourceIcon(kind));
+  var hasUrl = r.sourceUrl && r.sourceUrl !== '#';
+  if (hasUrl) {
+    var a = mk('a', 'recipe-card-source-label');
+    a.href = r.sourceUrl;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = label;
+    row.appendChild(a);
+  } else {
+    var span = mk('span', 'recipe-card-source-label');
+    span.textContent = label;
+    row.appendChild(span);
+  }
+  container.appendChild(row);
+}
+
 function recipeMatchesSearch(r, q) {
   if (!q) return true;
   q = q.toLowerCase().trim();
@@ -431,11 +512,7 @@ function createRecipeCard(r) {
   title.className = 'recipe-card-title';
   title.textContent = r.title;
   body.appendChild(title);
-  if (r.source) {
-    var src = mk('div', 'recipe-card-source');
-    src.textContent = r.source;
-    body.appendChild(src);
-  }
+  if (r.source) appendSourceLine(body, r);
   var rev = reviewSummaries[r.id];
   if (rev && rev.count > 0) {
     var ratingRow = mk('div', 'recipe-card-rating-row');
@@ -552,19 +629,7 @@ function showDetail(id, skipHistory) {
   summaryHead.appendChild(summaryTitle);
   summaryHead.appendChild(createFavoriteButton(r.id, 'fav-btn--detail'));
   summary.appendChild(summaryHead);
-  var sourceDiv = mk('div', 'source');
-  sourceDiv.appendChild(document.createTextNode('Källa: '));
-  if (r.sourceUrl && r.sourceUrl !== '#') {
-    var a = mk('a');
-    a.href = r.sourceUrl;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.textContent = r.source;
-    sourceDiv.appendChild(a);
-  } else {
-    sourceDiv.appendChild(document.createTextNode(r.source));
-  }
-  summary.appendChild(sourceDiv);
+  appendSourceLine(summary, r, { className: 'source' });
   var metaRow = mk('div', 'detail-meta-row');
   var badgesDiv = mk('div', 'badges');
   if (r.category) {

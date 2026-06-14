@@ -26,7 +26,7 @@ Fält (inget emoji-fält):
 - category: frukost | lunch | middag | tillbehor | fika (måltidstyp — inte kök/stil som asiatisk)
 - baseServings: number
 - tags: array — endast från: kyckling, notkott, flask, fisk, skaldjur, vegetarisk, vegan (proteinkälla + diet — inte tid/makro som hög protein, snabb, meal prep)
-- title, source (läsbar källa: sajtnamn, «Ali Slagle, NYT Cooking», «@handle på Instagram»), sourceUrl
+- source (läsbar källa: @handle, «Ali Slagle, NYT Cooking», sajtnamn — **utan** «på Instagram/TikTok» i texten)
 - **source:** alltid **ursprunglig receptskapare** — @handle på Instagram/TikTok, blogg/sajtnamn, kock + publikation. **Aldrig** personen som vidarebefordrat receptet privat (vän/familj) om de inte själva är kreatören
 - **source:** vid skärmdump/reel/caption — läs @handle, kontonamn eller vattenstämpel synligt i bilden/texten; prioritera det. Om okänt: «Okänd källa» — gissa inte vidarebefordrare
 - **title:** alltid på **svenska** — översätt engelska/internationella receptnamn till naturlig svenska (behåll etablerade lånord som gochujang, teriyaki, buffalo där det passar)
