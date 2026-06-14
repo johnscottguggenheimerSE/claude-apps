@@ -249,6 +249,11 @@ function formatSourceLabel(source) {
     .replace(/\s+on TikTok\s*$/i, '');
 }
 
+function isKnownSource(source) {
+  if (!source) return false;
+  return !/^okänd källa$/i.test(String(source).trim());
+}
+
 function svgEl(tag, attrs) {
   var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
   if (attrs) {
@@ -302,7 +307,7 @@ function createSourceIcon(kind) {
 }
 
 function appendSourceLine(container, r, opts) {
-  if (!r.source) return;
+  if (!isKnownSource(r.source)) return;
   opts = opts || {};
   var kind = sourceKind(r);
   var label = formatSourceLabel(r.source);
@@ -527,7 +532,7 @@ function createRecipeCard(r) {
   title.className = 'recipe-card-title';
   title.textContent = r.title;
   body.appendChild(title);
-  if (r.source) appendSourceLine(body, r);
+  appendSourceLine(body, r);
   var rev = reviewSummaries[r.id];
   if (rev && rev.count > 0) {
     var ratingRow = mk('div', 'recipe-card-rating-row');
