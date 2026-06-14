@@ -157,33 +157,57 @@
     padding-top: 0.55rem;
     padding-bottom: 0.55rem;
   }
-  .meal-nav {
-    display: flex; align-items: center; gap: 0.25rem 1.75rem;
-    width: 100%; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+  .browse-nav {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 0.15rem 1.35rem;
+    width: 100%; min-width: 0;
   }
-  .meal-nav::-webkit-scrollbar { display: none; }
-  .meal-tab {
+  .browse-tab {
     font-size: 0.9375rem; font-weight: 700; font-family: inherit;
     padding: 0.35rem 0; background: none; border: none;
     border-bottom: 2px solid transparent; color: var(--text);
     cursor: pointer; white-space: nowrap; flex-shrink: 0;
     transition: color 0.12s, border-color 0.12s;
   }
-  .meal-tab:hover { color: var(--info); }
-  .meal-tab.active { border-bottom-color: var(--text); }
-  .filter-strip {
-    background: transparent;
-    padding: 0;
-    margin: 0 0 1.35rem;
-    display: block;
-    border-bottom: none;
+  .browse-tab:hover { color: var(--info); }
+  .browse-tab.active { border-bottom-color: var(--text); }
+  .browse-menu { position: relative; flex-shrink: 0; }
+  .browse-panel {
+    display: none;
+    position: absolute; top: calc(100% + 0.55rem); left: 0;
+    min-width: min(720px, calc(100vw - 2.5rem));
+    padding: 1rem 1.15rem 1.1rem;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem 1.75rem;
+    z-index: 50;
   }
-  .filter-bar {
-    display: flex; flex-wrap: wrap; align-items: center;
-    gap: 0.45rem 0.55rem;
-    flex: 1; min-width: 0;
+  [data-theme="dark"] .browse-panel {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   }
+  .browse-menu.is-open .browse-panel { display: grid; }
+  @media (hover: hover) and (pointer: fine) {
+    .browse-menu:hover .browse-panel { display: grid; }
+  }
+  .browse-section-name {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text3);
+    margin: 0 0 0.45rem;
+  }
+  .browse-section-links {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 0.15rem;
+  }
+  .browse-link {
+    font: inherit; font-size: 0.875rem; font-weight: 400;
+    padding: 0.28rem 0; background: none; border: none;
+    color: var(--text); cursor: pointer; text-align: left;
+    transition: color 0.12s;
+  }
+  .browse-link:hover { color: var(--info); }
+  .browse-link.active { color: var(--info); font-weight: 600; }
   .list-heading {
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 1.75rem; font-weight: 700;
@@ -192,43 +216,6 @@
     color: var(--text);
   }
   .list-body { padding: 1.5rem 1.25rem 4rem; }
-  .tag-pill {
-    font-size: 12px; font-family: inherit; font-weight: 500;
-    padding: 0.38rem 0.8rem;
-    border-radius: 999px; border: none;
-    background: var(--bg);
-    color: var(--text2); cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
-    transition: transform 0.12s, box-shadow 0.12s, color 0.12s, background 0.12s;
-    flex-shrink: 0;
-  }
-  .tag-pill:hover {
-    color: var(--text);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
-  }
-  .tag-pill.active {
-    background: var(--text); color: var(--bg);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  }
-  [data-theme="dark"] .tag-pill {
-    background: var(--bg3);
-    box-shadow: none;
-  }
-  [data-theme="dark"] .tag-pill:hover { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
-  [data-theme="dark"] .tag-pill.active { background: var(--text); color: var(--bg); }
-  .tag-pill.tag-clear {
-    background: transparent; box-shadow: none;
-    color: var(--text3); font-size: 11px;
-    padding: 0.38rem 0.35rem;
-    text-decoration: underline; text-underline-offset: 2px;
-  }
-  .tag-pill.tag-clear:not(:disabled):hover {
-    color: var(--text); transform: none; box-shadow: none;
-  }
-  .tag-pill.tag-clear:disabled { opacity: 0.45; cursor: default; }
-  .cat-section { margin-bottom: 1.75rem; }
-  .cat-heading { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); margin-bottom: 0.65rem; padding-bottom: 0.35rem; border-bottom: 0.5px solid var(--border); }
   .recipe-grid {
     display: grid; grid-template-columns: 1fr; gap: 1.5rem;
     align-items: start;
@@ -430,13 +417,14 @@
     .site-nav-row { padding-left: 0.85rem; padding-right: 0.85rem; }
     .admin-bar-inner { padding-left: 0.85rem; padding-right: 0.85rem; }
     .list-heading { font-size: 1.45rem; margin-bottom: 0.75rem; }
-    .filter-strip { margin-bottom: 1.1rem; }
     .recipe-card-title { font-size: 1rem; }
     .detail-summary-title { font-size: 20px; }
     .detail-meta-row { flex-direction: column; align-items: stretch; }
     .serv-ctrl { align-self: flex-end; }
-    .meal-nav { margin: 0 -0.25rem; padding-bottom: 0.1rem; }
-    .tag-pill { font-size: 11px; padding: 0.35rem 0.7rem; }
+    .browse-panel {
+      position: fixed; left: 0.85rem; right: 0.85rem; top: auto;
+      min-width: 0; max-height: min(60vh, 420px); overflow: auto;
+    }
     .detail-hero-tag { font-size: 10px; padding: 4px 6px; }
   }
   @media (max-width: 520px) {
@@ -482,7 +470,7 @@
     </div>
   </div>
   <div class="site-nav-row">
-    <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
+    <nav class="browse-nav" id="browse-nav" aria-label="Bläddra recept"></nav>
   </div>
   </header>
 </div>
@@ -490,9 +478,6 @@
   <div id="view-list">
     <div class="list-body">
       <h1 class="list-heading" id="list-heading">Alla recept</h1>
-      <div class="filter-strip" id="filter-strip">
-        <nav class="filter-bar tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
-      </div>
       <div id="recipe-list"></div>
     </div>
   </div>
@@ -507,6 +492,7 @@
   </div>
 </div>
 <script src="recipe-validate.js"></script>
+<script src="browse-nav.js"></script>
 <script src="app.js"></script>
 <script>
 function syncThemeToggle() {

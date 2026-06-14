@@ -111,25 +111,58 @@
   padding-top: 0.55rem;
   padding-bottom: 0.55rem;
 }
-.meal-nav {
-  display: flex; align-items: center; gap: 0.25rem 1.75rem;
-  width: 100%; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+.browse-nav {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 0.15rem 1.35rem;
+  width: 100%; min-width: 0;
 }
-.meal-nav::-webkit-scrollbar { display: none; }
-.meal-tab,
-a.meal-tab {
+.browse-tab {
   font-size: 0.9375rem; font-weight: 700; font-family: inherit;
   padding: 0.35rem 0; background: none; border: none;
   border-bottom: 2px solid transparent; color: var(--text);
   cursor: pointer; white-space: nowrap; flex-shrink: 0;
   transition: color 0.12s, border-color 0.12s;
-  text-decoration: none;
 }
-.meal-tab:hover,
-a.meal-tab:hover { color: var(--info); }
-.meal-tab.active,
-a.meal-tab.active { border-bottom-color: var(--text); }
+.browse-tab:hover { color: var(--info); }
+.browse-tab.active { border-bottom-color: var(--text); }
+.browse-menu { position: relative; flex-shrink: 0; }
+.browse-panel {
+  display: none;
+  position: absolute; top: calc(100% + 0.55rem); left: 0;
+  min-width: min(720px, calc(100vw - 2.5rem));
+  padding: 1rem 1.15rem 1.1rem;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem 1.75rem;
+  z-index: 50;
+}
+[data-theme="dark"] .browse-panel {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+.browse-menu.is-open .browse-panel { display: grid; }
+@media (hover: hover) and (pointer: fine) {
+  .browse-menu:hover .browse-panel { display: grid; }
+  .browse-menu.is-open .browse-panel { display: grid; }
+}
+.browse-section-name {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text3);
+  margin: 0 0 0.45rem;
+}
+.browse-section-links {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 0.15rem;
+}
+.browse-link {
+  font: inherit; font-size: 0.875rem; font-weight: 400;
+  padding: 0.28rem 0; background: none; border: none;
+  color: var(--text); cursor: pointer; text-align: left;
+  transition: color 0.12s;
+}
+.browse-link:hover { color: var(--info); }
+.browse-link.active { color: var(--info); font-weight: 600; }
 .page-heading {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 1.75rem; font-weight: 700;
@@ -157,4 +190,8 @@ a.meal-tab.active { border-bottom-color: var(--text); }
   .admin-bar-inner { padding-left: 0.85rem; padding-right: 0.85rem; }
   .page-body { padding: 1.15rem 0.85rem 3rem; }
   .page-heading { font-size: 1.45rem; margin-bottom: 1rem; }
+  .browse-panel {
+    position: fixed; left: 0.85rem; right: 0.85rem;
+    min-width: 0; max-height: min(60vh, 420px); overflow: auto;
+  }
 }

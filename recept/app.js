@@ -193,8 +193,7 @@ function setRecipeUrl(id, replace) {
 
 var recipes = [];
 var reviewSummaries = {};
-var activeCategory = 'all';
-var activeTagFilters = [];
+var activeFilter = { type: 'all', value: null };
 var searchQuery = '';
 var showFavoritesOnly = false;
 var currentServings = 1;
@@ -255,14 +254,29 @@ function recipeMatchesSearch(r, q) {
 }
 
 function listHeadingText() {
+  var label = window.ReceptBrowseNav
+    ? ReceptBrowseNav.filterLabel(activeFilter)
+    : 'Alla recept';
   if (showFavoritesOnly) {
     if (searchQuery.trim()) return 'Favoriter — sökresultat';
-    if (activeCategory !== 'all') return 'Favoriter — ' + categoryLabel(activeCategory);
+    if (!isAllFilter()) return 'Favoriter — ' + label;
     return 'Favoriter';
   }
   if (searchQuery.trim()) return 'Sökresultat';
-  if (activeCategory === 'all') return 'Alla recept';
-  return categoryLabel(activeCategory);
+  return label;
+}
+
+function isAllFilter() {
+  return !activeFilter || activeFilter.type === 'all';
+}
+
+function recipeMatchesFilter(r) {
+  if (isAllFilter()) return true;
+  if (activeFilter.type === 'category') return r.category === activeFilter.value;
+  if (activeFilter.type === 'tag') {
+    return r.tags && r.tags.indexOf(activeFilter.value) !== -1;
+  }
+  return true;
 }
 
 function updateListHeading() {
@@ -270,89 +284,21 @@ function updateListHeading() {
   if (el) el.textContent = listHeadingText();
 }
 
-function renderCategoryNav() {
-  var nav = document.getElementById('cat-nav');
-  nav.replaceChildren();
-  if (activeCategory !== 'all' && !recipes.some(function(r) { return r.category === activeCategory; })) {
-    activeCategory = 'all';
+function renderBrowseNav() {
+  var nav = document.getElementById('browse-nav');
+  if (!nav || !window.ReceptBrowseNav) return;
+  if (!isAllFilter() && !recipes.some(recipeMatchesFilter)) {
+    activeFilter = { type: 'all', value: null };
   }
-  var allBtn = mk('button', 'meal-tab');
-  allBtn.type = 'button';
-  allBtn.textContent = 'Alla';
-  if (activeCategory === 'all') allBtn.classList.add('active');
-  allBtn.addEventListener('click', function() {
-    activeCategory = 'all';
-    renderCategoryNav();
-    renderList();
-  });
-  nav.appendChild(allBtn);
-  CATEGORY_ORDER.forEach(function(cat) {
-    var has = recipes.some(function(r) { return r.category === cat; });
-    if (!has) return;
-    var btn = mk('button', 'meal-tab');
-    btn.type = 'button';
-    btn.textContent = categoryLabel(cat);
-    if (activeCategory === cat) btn.classList.add('active');
-    btn.addEventListener('click', function() {
-      activeCategory = cat;
-      renderCategoryNav();
+  ReceptBrowseNav.render(nav, {
+    recipes: recipes,
+    activeFilter: activeFilter,
+    onSelect: function(filter) {
+      activeFilter = filter;
+      renderBrowseNav();
       renderList();
-    });
-    nav.appendChild(btn);
+    }
   });
-  renderTagNav();
-}
-
-function recipeHasAllActiveTags(r) {
-  if (!activeTagFilters.length) return true;
-  var rt = r.tags;
-  if (!rt || !rt.length) return false;
-  for (var i = 0; i < activeTagFilters.length; i++) {
-    if (rt.indexOf(activeTagFilters[i]) === -1) return false;
-  }
-  return true;
-}
-
-function tagIdsInUse() {
-  var counts = {};
-  recipes.forEach(function(r) {
-    if (!r.tags) return;
-    r.tags.forEach(function(t) {
-      if (TAG_FILTER_ORDER.indexOf(t) !== -1) counts[t] = 1;
-    });
-  });
-  return TAG_FILTER_ORDER.filter(function(t) { return counts[t]; });
-}
-
-function renderTagNav() {
-  var nav = document.getElementById('tag-nav');
-  if (!nav) return;
-  nav.replaceChildren();
-  tagIdsInUse().forEach(function(tagId) {
-    var btn = mk('button', 'tag-pill');
-    btn.type = 'button';
-    btn.textContent = TAG_LABELS[tagId] || tagId;
-    if (activeTagFilters.indexOf(tagId) !== -1) btn.classList.add('active');
-    btn.addEventListener('click', function() {
-      var ix = activeTagFilters.indexOf(tagId);
-      if (ix === -1) activeTagFilters.push(tagId);
-      else activeTagFilters.splice(ix, 1);
-      renderTagNav();
-      renderList();
-    });
-    nav.appendChild(btn);
-  });
-  var clearBtn = mk('button', 'tag-pill tag-clear');
-  clearBtn.type = 'button';
-  clearBtn.textContent = 'Rensa taggar';
-  clearBtn.disabled = activeTagFilters.length === 0;
-  clearBtn.addEventListener('click', function() {
-    if (!activeTagFilters.length) return;
-    activeTagFilters.length = 0;
-    renderTagNav();
-    renderList();
-  });
-  nav.appendChild(clearBtn);
 }
 
 function inferBaseServingsFromBadges(r) {
@@ -533,11 +479,7 @@ function renderList() {
   var container = document.getElementById('recipe-list');
   container.replaceChildren();
   updateListHeading();
-  var list = recipes;
-  if (activeCategory !== 'all') {
-    list = recipes.filter(function(r) { return r.category === activeCategory; });
-  }
-  list = list.filter(recipeHasAllActiveTags);
+  var list = recipes.filter(recipeMatchesFilter);
   list = list.filter(function(r) { return recipeMatchesSearch(r, searchQuery); });
   if (showFavoritesOnly) list = list.filter(function(r) { return isFavorite(r.id); });
   list = sortRecipesForList(list);
@@ -557,8 +499,6 @@ function renderList() {
 function showList(skipHistory) {
   document.getElementById('view-list').classList.remove('hidden');
   document.getElementById('view-detail').classList.add('hidden');
-  var filterStrip = document.getElementById('filter-strip');
-  if (filterStrip) filterStrip.classList.remove('hidden');
   currentId = null;
   if (!skipHistory) setListUrl(false);
   else setListUrl(true);
@@ -755,8 +695,6 @@ function showDetail(id, skipHistory) {
 
   document.getElementById('view-list').classList.add('hidden');
   document.getElementById('view-detail').classList.remove('hidden');
-  var filterStrip = document.getElementById('filter-strip');
-  if (filterStrip) filterStrip.classList.add('hidden');
   applyServingsScale();
   window.scrollTo(0, 0);
 }
@@ -920,8 +858,10 @@ function bootApp(data) {
       showFavoritesOnly = true;
       sessionStorage.removeItem('recept_show_favorites');
     }
+    var storedFilter = ReceptBrowseNav.readStoredFilter();
+    if (storedFilter && storedFilter.type) activeFilter = storedFilter;
   } catch (e) {}
-  renderCategoryNav();
+  renderBrowseNav();
   updateFavoritesToggleBtn();
   renderList();
   routeFromLocation();

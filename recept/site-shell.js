@@ -1,13 +1,4 @@
 (function() {
-  var MEAL_TABS = [
-    ['/', 'Alla'],
-    ['/', 'Frukost'],
-    ['/', 'Lunch'],
-    ['/', 'Middag'],
-    ['/', 'Tillbehör'],
-    ['/', 'Fika & bakning']
-  ];
-
   function syncThemeToggle() {
     var label = document.getElementById('theme-toggle-label');
     if (!label) return;
@@ -54,15 +45,9 @@
       });
     }
 
-    var nav = document.getElementById('cat-nav');
-    if (nav && !nav.childNodes.length) {
-      MEAL_TABS.forEach(function(pair) {
-        var a = document.createElement('a');
-        a.className = 'meal-tab';
-        a.href = pair[0];
-        a.textContent = pair[1];
-        nav.appendChild(a);
-      });
+    var nav = document.getElementById('browse-nav');
+    if (nav && window.ReceptBrowseNav && !nav.childNodes.length) {
+      ReceptBrowseNav.render(nav, { linkMode: true });
     }
   }
 })();
