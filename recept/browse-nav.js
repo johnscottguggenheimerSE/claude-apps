@@ -261,7 +261,36 @@
     return 'Alla recept';
   }
 
+  function resetBrowsePanelStyles(root) {
+    if (!root) return;
+    root.querySelectorAll('.browse-menu .browse-panel').forEach(function(panel) {
+      panel.style.position = '';
+      panel.style.top = '';
+      panel.style.left = '';
+      panel.style.right = '';
+      panel.style.width = '';
+      panel.style.zIndex = '';
+    });
+  }
+
+  function positionBrowsePanel(menu) {
+    if (!window.matchMedia('(max-width: 720px)').matches) return;
+    var panel = menu.querySelector('.browse-panel');
+    var trigger = menu.querySelector('.browse-trigger');
+    if (!panel || !trigger) return;
+    var rect = trigger.getBoundingClientRect();
+    var width = Math.min(360, window.innerWidth - 24);
+    var left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12));
+    panel.style.position = 'fixed';
+    panel.style.top = (rect.bottom + 6) + 'px';
+    panel.style.left = left + 'px';
+    panel.style.width = width + 'px';
+    panel.style.right = 'auto';
+    panel.style.zIndex = '60';
+  }
+
   function closeAllMenus(root) {
+    resetBrowsePanelStyles(root);
     root.querySelectorAll('.browse-menu.is-open, .list-filter-menu.is-open').forEach(function(el) {
       el.classList.remove('is-open');
       var btn = el.querySelector('.browse-trigger, .list-filter-trigger');
@@ -284,6 +313,7 @@
       }
       closeAllMenus(root);
       menu.classList.add('is-open');
+      if (menu.classList.contains('browse-menu')) positionBrowsePanel(menu);
       var btn = menu.querySelector('.browse-trigger, .list-filter-trigger');
       if (btn) btn.setAttribute('aria-expanded', 'true');
     });
@@ -309,6 +339,7 @@
         closeAllMenus(root);
         if (!open) {
           menu.classList.add('is-open');
+          if (menu.classList.contains('browse-menu')) positionBrowsePanel(menu);
           trigger.setAttribute('aria-expanded', 'true');
         }
         return;
@@ -322,6 +353,10 @@
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') closeAllMenus(root);
+    });
+
+    window.addEventListener('resize', function() {
+      closeAllMenus(root);
     });
   }
 
