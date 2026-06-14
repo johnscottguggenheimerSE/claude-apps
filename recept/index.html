@@ -65,9 +65,24 @@
     font: inherit; font-size: inherit; background: none; border: none;
     color: var(--text2); cursor: pointer; padding: 0;
   }
-  .site-toolbar {
-    display: flex; justify-content: flex-end; align-items: center;
-    width: 100%; padding-top: 0.1rem;
+  .filter-strip {
+    max-width: 1120px; margin: 0 auto;
+    padding: 0.85rem 1rem 0;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+    margin-bottom: 1.75rem; padding-bottom: 0.85rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .filter-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    flex: 1; min-width: 0;
+  }
+  .filter-theme {
+    display: flex; align-items: center; gap: 0.45rem;
+    flex-shrink: 0; margin-left: auto;
+  }
+  .filter-theme-label {
+    font-size: 11px; font-weight: 500; color: var(--text2);
+    white-space: nowrap;
   }
   .theme-switch {
     position: relative; display: inline-flex; align-items: center;
@@ -98,12 +113,7 @@
   .theme-switch input:focus-visible + .theme-switch-track {
     box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--info);
   }
-  .list-body { padding: 1rem 1rem 4rem; }
-  .filter-bar {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-    margin-bottom: 1.75rem; padding-bottom: 0.85rem;
-    border-bottom: 0.5px solid var(--border);
-  }
+  .list-body { padding: 0 1rem 4rem; }
   .tag-pill {
     font-size: 11px; font-family: inherit; font-weight: 500; padding: 0.32rem 0.65rem;
     border-radius: 999px; border: 0.5px dashed var(--border2); background: var(--bg);
@@ -312,10 +322,13 @@
     .detail-meta-row { flex-direction: column; align-items: stretch; }
     .serv-ctrl { align-self: flex-end; }
     .meal-nav { margin: 0 -0.25rem; padding-bottom: 0.1rem; }
+    .filter-strip {
+      padding: 0.75rem 0.75rem 0; margin-bottom: 1.5rem;
+      padding-bottom: 0.65rem;
+    }
     .filter-bar {
       flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
-      gap: 8px; padding-bottom: 0.65rem; margin-bottom: 1.5rem;
-      margin-right: -0.75rem; padding-right: 0.75rem;
+      gap: 8px; margin-right: -0.75rem; padding-right: 0.75rem;
     }
     .tag-pill { flex-shrink: 0; font-size: 12px; padding: 0.4rem 0.75rem; }
     .detail-hero-tag { font-size: 10px; padding: 4px 6px; }
@@ -345,17 +358,20 @@
         </div>
       </div>
       <nav class="meal-nav" id="cat-nav" aria-label="Måltid"></nav>
-      <div class="site-toolbar">
-        <label class="theme-switch" title="Mörkt läge">
-          <input type="checkbox" id="theme-toggle" role="switch" aria-label="Mörkt läge">
-          <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
-        </label>
-      </div>
     </div>
   </header>
+  <div class="filter-strip" id="filter-strip">
+    <nav class="filter-bar tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
+    <div class="filter-theme">
+      <span class="filter-theme-label" id="theme-label">Mörkt läge</span>
+      <label class="theme-switch">
+        <input type="checkbox" id="theme-toggle" role="switch" aria-labelledby="theme-label">
+        <span class="theme-switch-track"><span class="theme-switch-thumb"></span></span>
+      </label>
+    </div>
+  </div>
   <div id="view-list">
     <div class="list-body">
-      <nav class="filter-bar tag-nav" id="tag-nav" aria-label="Taggar och filter"></nav>
       <div id="recipe-list"></div>
     </div>
   </div>
@@ -374,9 +390,11 @@
 <script>
 function syncThemeToggle() {
   var input = document.getElementById('theme-toggle');
+  var label = document.getElementById('theme-label');
   if (!input) return;
   var dark = document.documentElement.getAttribute('data-theme') === 'dark';
   input.checked = dark;
+  if (label) label.textContent = dark ? 'Ljust läge' : 'Mörkt läge';
 }
 document.getElementById('theme-toggle').addEventListener('change', function() {
   if (window.ReceptTheme) ReceptTheme.set(this.checked ? 'dark' : 'light');

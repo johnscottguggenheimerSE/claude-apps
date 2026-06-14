@@ -443,6 +443,8 @@ function renderList() {
 function showList(skipHistory) {
   document.getElementById('view-list').classList.remove('hidden');
   document.getElementById('view-detail').classList.add('hidden');
+  var tagNav = document.getElementById('tag-nav');
+  if (tagNav) tagNav.classList.remove('hidden');
   currentId = null;
   if (!skipHistory) setListUrl(false);
   else setListUrl(true);
@@ -636,6 +638,8 @@ function showDetail(id, skipHistory) {
 
   document.getElementById('view-list').classList.add('hidden');
   document.getElementById('view-detail').classList.remove('hidden');
+  var tagNav = document.getElementById('tag-nav');
+  if (tagNav) tagNav.classList.add('hidden');
   applyServingsScale();
   window.scrollTo(0, 0);
 }
