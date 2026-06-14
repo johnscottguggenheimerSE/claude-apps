@@ -271,6 +271,9 @@ function isAllFilter() {
 }
 
 function recipeMatchesFilter(r) {
+  if (window.ReceptBrowseNav) {
+    return ReceptBrowseNav.recipeMatchesFilter(r, activeFilter);
+  }
   if (isAllFilter()) return true;
   if (activeFilter.type === 'category') return r.category === activeFilter.value;
   if (activeFilter.type === 'tag') {
