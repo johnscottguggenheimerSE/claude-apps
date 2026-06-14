@@ -4,6 +4,17 @@
   var pendingImageBase64 = null;
   var pendingMimeType = null;
   var createSubMode = 'text';
+  var ADD_BASE = (function() {
+    var p = location.pathname.replace(/\/$/, '');
+    var m = p.match(/^(.*\/add)(?:\/(?:text|url|bild|redigera))?$/);
+    if (m) return m[1];
+    if (/\/add\.html$/i.test(p)) return p.replace(/\/add\.html$/i, '/add');
+    var idx = p.indexOf('/recept');
+    if (idx !== -1) return p.slice(0, idx + 7) + '/add';
+    return '/add';
+  })();
+  var ROUTE_TO_MODE = { text: 'text', url: 'url', bild: 'image' };
+  var MODE_TO_ROUTE = { text: 'text', url: 'url', image: 'bild' };
 
   var statusEl = document.getElementById('status');
   var previewEl = document.getElementById('preview');
@@ -96,6 +107,48 @@
     });
   }
 
+  function extractImageFromClipboard(e) {
+    var cd = e.clipboardData;
+    if (!cd) return null;
+    if (cd.files && cd.files.length) {
+      for (var j = 0; j < cd.files.length; j++) {
+        if (cd.files[j].type && cd.files[j].type.indexOf('image/') === 0) return cd.files[j];
+      }
+    }
+    var items = cd.items;
+    if (!items) return null;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].kind === 'file' && items[i].type.indexOf('image/') === 0) {
+        return items[i].getAsFile();
+      }
+    }
+    return null;
+  }
+
+  function getActiveImageDropTarget() {
+    if (document.getElementById('panel-create').classList.contains('hidden')) return null;
+    var fromImage = document.getElementById('panel-from-image');
+    if (fromImage && !fromImage.classList.contains('hidden')) {
+      return { dropId: 'drop-image', thumbId: 'thumb-image' };
+    }
+    var panelText = document.getElementById('panel-text');
+    if (panelText && !panelText.classList.contains('hidden')) {
+      if (document.activeElement === document.getElementById('text')) return null;
+      return { dropId: 'drop-text', thumbId: 'thumb-text' };
+    }
+    return null;
+  }
+
+  function pasteImageToDrop(e, dropId, thumbId) {
+    var file = extractImageFromClipboard(e);
+    if (!file) return false;
+    e.preventDefault();
+    readFileAsBase64(file).then(function(r) {
+      setPendingImage(r.data, r.mimeType, dropId, thumbId);
+    }).catch(function() { setStatus('Kunde inte läsa bilden', true); });
+    return true;
+  }
+
   function bindImageDrop(dropId, fileId, thumbId) {
     var drop = document.getElementById(dropId);
     var file = document.getElementById(fileId);
@@ -126,19 +179,13 @@
       var f = e.dataTransfer.files && e.dataTransfer.files[0];
       if (f) applyFile(f);
     });
-    drop.addEventListener('paste', function(e) {
-      var items = e.clipboardData && e.clipboardData.items;
-      if (!items) return;
-      for (var i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image/') === 0) {
-          e.preventDefault();
-          var blob = items[i].getAsFile();
-          if (blob) applyFile(blob);
-          return;
-        }
-      }
-    });
   }
+
+  document.addEventListener('paste', function(e) {
+    var target = getActiveImageDropTarget();
+    if (!target) return;
+    pasteImageToDrop(e, target.dropId, target.thumbId);
+  });
 
   bindImageDrop('drop-text', 'file-text', 'thumb-text');
   bindImageDrop('drop-image', 'file-image', 'thumb-image');
@@ -164,6 +211,88 @@
     document.title = (editMode ? 'Redigera recept' : 'Lägg till recept') + ' — Macro-friendly recipes';
   }
 
+  function addRouteUrl(route) {
+    if (route === 'redigera') return ADD_BASE + '/redigera' + location.search;
+    return ADD_BASE + '/' + route;
+  }
+
+  function parseAddRoute() {
+    var p = location.pathname.replace(/\/$/, '');
+    if (p.endsWith('/redigera')) return 'redigera';
+    if (p.endsWith('/bild')) return 'bild';
+    if (p.endsWith('/url')) return 'url';
+    if (p.endsWith('/text')) return 'text';
+    if (/\/add(\.html)?$/i.test(p)) return 'text';
+    return 'text';
+  }
+
+  function syncTabLinks() {
+    document.querySelectorAll('[data-add-route]').forEach(function(el) {
+      var route = el.getAttribute('data-add-route');
+      if (route) el.href = ADD_BASE + '/' + route;
+    });
+  }
+
+  function syncTabActive(route) {
+    var isEdit = route === 'redigera';
+    document.getElementById('tab-create').classList.toggle('active', !isEdit);
+    document.getElementById('tab-edit').classList.toggle('active', isEdit);
+    ['text', 'url', 'bild'].forEach(function(r) {
+      var el = document.querySelector('[data-add-route="' + r + '"]');
+      if (el && el.id !== 'tab-create') el.classList.toggle('active', !isEdit && route === r);
+    });
+  }
+
+  function applyAddRoute(route, options) {
+    options = options || {};
+    syncTabActive(route);
+    if (route === 'redigera') {
+      showEditPanel();
+      return;
+    }
+    showCreatePanel();
+    var mode = ROUTE_TO_MODE[route] || 'text';
+    setCreateSubMode(mode, options.skipFocus);
+  }
+
+  function navigateAddRoute(route, replace) {
+    var url = addRouteUrl(route);
+    applyAddRoute(route);
+    var state = { addRoute: route };
+    if (replace) history.replaceState(state, '', url);
+    else history.pushState(state, '', url);
+  }
+
+  function bindAddTabNav() {
+    syncTabLinks();
+    document.querySelectorAll('[data-add-route]').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        e.preventDefault();
+        navigateAddRoute(el.getAttribute('data-add-route'));
+      });
+    });
+    window.addEventListener('popstate', function() {
+      applyAddRoute(parseAddRoute());
+    });
+  }
+
+  function bootAddRoute() {
+    var route = parseAddRoute();
+    var p = location.pathname.replace(/\/$/, '');
+    var legacyEdit = new URLSearchParams(location.search).get('edit');
+    if (legacyEdit && !p.endsWith('/redigera')) {
+      navigateAddRoute('redigera', true);
+      return route;
+    }
+    if (/\/add(\.html)?$/i.test(p)) {
+      navigateAddRoute(route, true);
+      return route;
+    }
+    applyAddRoute(route);
+    return route;
+  }
+
   function showCreatePanel() {
     editMode = false;
     document.getElementById('tab-create').classList.add('active');
@@ -182,10 +311,7 @@
     updatePageHeading();
   }
 
-  document.getElementById('tab-create').addEventListener('click', showCreatePanel);
-  document.getElementById('tab-edit').addEventListener('click', showEditPanel);
-
-  function setCreateSubMode(mode) {
+  function setCreateSubMode(mode, skipFocus) {
     createSubMode = mode;
     document.getElementById('tab-text').classList.toggle('active', mode === 'text');
     document.getElementById('tab-url').classList.toggle('active', mode === 'url');
@@ -193,11 +319,11 @@
     document.getElementById('panel-text').classList.toggle('hidden', mode !== 'text');
     document.getElementById('panel-url').classList.toggle('hidden', mode !== 'url');
     document.getElementById('panel-from-image').classList.toggle('hidden', mode !== 'image');
+    if (mode === 'image' && !skipFocus) {
+      var drop = document.getElementById('drop-image');
+      if (drop) drop.focus();
+    }
   }
-
-  document.getElementById('tab-text').addEventListener('click', function() { setCreateSubMode('text'); });
-  document.getElementById('tab-url').addEventListener('click', function() { setCreateSubMode('url'); });
-  document.getElementById('tab-from-image').addEventListener('click', function() { setCreateSubMode('image'); });
 
   function populateEditSelect(selectedId) {
     editSelect.replaceChildren();
@@ -305,13 +431,17 @@
       var text = stepEl.querySelector('.step-text-input').value.trim();
       if (title || text) recipe.steps.push({ title: title || 'Steg', text: text });
     });
-    previewForm.querySelectorAll('.tip-edit').forEach(function(tipEl) {
+    previewForm.querySelectorAll('.tip-edit').forEach(function(tipEl, idx) {
+      var title = tipEl.querySelector('.tip-title-input').value.trim();
+      if (idx === 0 && /^för barn$/i.test(title)) title = 'Seattle';
       recipe.tips.push({
-        title: tipEl.querySelector('.tip-title-input').value.trim(),
+        title: title,
         text: tipEl.querySelector('.tip-text-input').value.trim()
       });
     });
-    while (recipe.tips.length < 4) recipe.tips.push({ title: '', text: '' });
+    while (recipe.tips.length < 4) {
+      recipe.tips.push({ title: recipe.tips.length === 0 ? 'Seattle' : '', text: '' });
+    }
     recipe.tips = recipe.tips.slice(0, 4);
     if (currentRecipe && currentRecipe.badges) recipe.badges = currentRecipe.badges;
     return recipe;
@@ -581,7 +711,9 @@
       body: JSON.stringify(regenBody)
     }).then(function(res) {
       return res.json().then(function(data) {
-        if (!res.ok) throw new Error(data.error || 'Bildgenerering misslyckades');
+        if (!res.ok) {
+          throw new Error((data.details && data.details.join(' · ')) || data.error || 'Bildgenerering misslyckades');
+        }
         return data;
       });
     }).then(function(data) {
@@ -773,6 +905,8 @@
     }).finally(function() { btn.disabled = false; });
   });
 
+  bindAddTabNav();
+
   function bootEditFromQuery() {
     var editId = new URLSearchParams(location.search).get('edit');
     if (!editId) return;
@@ -795,6 +929,7 @@
         .then(function(data) {
           recipeList = (data.recipes || []).map(function(r) { return { id: r.id, title: r.title }; });
           populateEditSelect();
+          bootAddRoute();
           bootEditFromQuery();
         });
     })

@@ -45,7 +45,7 @@
     bar.replaceChildren();
     if (isAdmin) {
       var page = document.body.getAttribute('data-page') || 'home';
-      bar.appendChild(adminLink('/add', 'Lägg till +', page === 'add' ? 'is-current' : ''));
+      bar.appendChild(adminLink('/add/text', 'Lägg till +', page === 'add' ? 'is-current' : ''));
       bar.appendChild(adminButton('Logga ut', function() {
         fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
           .then(function() {

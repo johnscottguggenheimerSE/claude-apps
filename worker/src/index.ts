@@ -376,13 +376,16 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
   if (!recipe) return json({ error: 'Saknar recipe' }, 400);
   recipe.id = id;
   delete recipe.emoji;
+
+  const existing = await getRecipe(env.DB, id);
+  if (!existing) return json({ error: 'Hittades inte' }, 404);
+
+  if (!recipe.image && existing.image) recipe.image = existing.image as string;
+
   normalizeRecipe(recipe);
 
   const errors = validateRecipe(recipe, {});
   if (errors.length) return json({ error: 'Validering', details: errors }, 400);
-
-  const existing = await getRecipe(env.DB, id);
-  if (!existing) return json({ error: 'Hittades inte' }, 404);
 
   try {
     if (body.regenerateImage) {
@@ -483,25 +486,47 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   return null;
 }
 
+function isAddAdminPath(rawPath: string): boolean {
+  return (
+    rawPath === '/add.html'
+    || /^\/add(\/(text|url|bild|redigera))?\/?$/.test(rawPath)
+    || rawPath === '/recept/add'
+    || /^\/recept\/add(\/(text|url|bild|redigera))?\/?$/.test(rawPath)
+  );
+}
+
+function addCanonicalPath(rawPath: string, search: string): string | null {
+  if (rawPath !== '/add' && rawPath !== '/recept/add') return null;
+  const params = new URLSearchParams(search);
+  const edit = params.get('edit');
+  if (edit) {
+    params.delete('edit');
+    const rest = params.toString();
+    return `${rawPath}/redigera?edit=${encodeURIComponent(edit)}${rest ? '&' + rest : ''}`;
+  }
+  return `${rawPath}/text`;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const apiResponse = await handleApi(request, env, url);
     if (apiResponse) return apiResponse;
 
-    const rawPath = url.pathname;
+    const rawPath = url.pathname.replace(/\/$/, '') || '/';
     const path = rawPath === '/' ? '/index.html' : rawPath;
-    const isAdminPage = path === '/add.html' || rawPath === '/add' || rawPath === '/recept/add';
 
-    if (isAdminPage) {
+    const addCanonical = addCanonicalPath(rawPath, url.search);
+    if (addCanonical) {
+      return Response.redirect(new URL(addCanonical, url.origin).href, 302);
+    }
+
+    if (isAddAdminPath(rawPath)) {
       const authed = await isAuthed(request, adminPassword(env));
       if (!authed) {
         const next = encodeURIComponent(rawPath + url.search);
         return Response.redirect(new URL('/login.html?next=' + next, url.origin).href, 302);
       }
-    }
-
-    if (path === '/add' || path === '/recept/add' || rawPath === '/add' || rawPath === '/recept/add') {
       return env.ASSETS.fetch(new Request(new URL('/add.html', url.origin), request));
     }
 

@@ -60,12 +60,12 @@ function recipeLink(id) {
   return BASE_PATH + recipeHash(id);
 }
 
-function addPageUrl(editId) {
+function addPageUrl(editId, sub) {
   var base = BASE_PATH;
   if (!base.endsWith('/')) base += '/';
   var path = base === '/' ? '/add' : base + 'add';
-  if (!editId) return path;
-  return path + '?edit=' + encodeURIComponent(editId);
+  if (editId) return path + '/redigera?edit=' + encodeURIComponent(editId);
+  return path + '/' + (sub || 'text');
 }
 
 var FEATURED_NEW_IDS = [];

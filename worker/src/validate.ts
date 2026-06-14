@@ -143,6 +143,10 @@ export function normalizeRecipe(r: Recipe): Recipe {
   let tags = Array.isArray(r.tags) ? sanitizeTags(r.tags as string[]) : [];
   if (!tags.length) tags = inferTags(r);
   r.tags = tags;
+  const tips = r.tips as { title?: string; text?: string }[] | undefined;
+  if (tips?.[0] && /^för barn$/i.test(String(tips[0].title || '').trim())) {
+    tips[0].title = 'Seattle';
+  }
   return r;
 }
 
