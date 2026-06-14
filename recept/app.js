@@ -1,9 +1,10 @@
-const CATEGORY_ORDER = ['middag', 'asiatisk', 'sallad', 'bakning'];
+const CATEGORY_ORDER = ['frukost', 'lunch', 'middag', 'tillbehor', 'fika'];
 const CATEGORY_LABELS = {
+  frukost: 'Frukost',
+  lunch: 'Lunch',
   middag: 'Middag',
-  asiatisk: 'Asiatiskt',
-  sallad: 'Sallader & tillbehör',
-  bakning: 'Bakning'
+  tillbehor: 'Tillbehör',
+  fika: 'Fika & bakning'
 };
 
 var TAG_FILTER_ORDER = [
@@ -175,6 +176,9 @@ function categoryLabel(key) {
 function renderCategoryNav() {
   var nav = document.getElementById('cat-nav');
   nav.replaceChildren();
+  if (activeCategory !== 'all' && !recipes.some(function(r) { return r.category === activeCategory; })) {
+    activeCategory = 'all';
+  }
   var allBtn = mk('button', 'cat-pill');
   allBtn.type = 'button';
   allBtn.textContent = 'Alla';

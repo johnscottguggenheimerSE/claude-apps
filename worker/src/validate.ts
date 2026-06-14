@@ -1,4 +1,20 @@
-const VALID_CATEGORIES = ['middag', 'asiatisk', 'sallad', 'bakning'];
+/** Måltidstyp — inte kök/stil (asiatisk) eller mattyp (bakning som kategori). */
+const VALID_CATEGORIES = ['frukost', 'lunch', 'middag', 'tillbehor', 'fika'];
+
+const DEPRECATED_CATEGORIES: Record<string, string> = {
+  asiatisk: 'middag',
+  sallad: 'tillbehor',
+  bakning: 'fika',
+};
+
+/** Per-recept när auto-mappning från gammal kategori räcker inte. */
+const RECIPE_CATEGORY_OVERRIDES: Record<string, string> = {
+  'thai-basil-beef-rolls': 'lunch',
+  'rice-paper-shrimp-pancake': 'lunch',
+  'numbing-chicken-cucumber': 'lunch',
+  'tuna-chili-crisp-salad': 'lunch',
+  'mexican-chicken-corn-salad': 'lunch',
+};
 const VALID_UNITS = ['g', 'msk', 'tsk', 'st', 'pinch', 'näve', 'strimlor'];
 /** Filter-taggar — kategori (middag/asiatisk/…) är separat; ingen ugn/stekpanna/tillbehör. */
 const TAG_FILTER_ORDER = [
@@ -96,12 +112,22 @@ export function sanitizeTags(tags: string[]): string[] {
   return tags.filter((t) => !DEPRECATED_TAGS.has(t) && TAG_FILTER_ORDER.includes(t));
 }
 
+export function migrateCategory(r: Recipe): string {
+  const id = String(r.id || '');
+  if (RECIPE_CATEGORY_OVERRIDES[id]) return RECIPE_CATEGORY_OVERRIDES[id];
+  const cat = String(r.category || '');
+  if (VALID_CATEGORIES.includes(cat)) return cat;
+  if (DEPRECATED_CATEGORIES[cat]) return DEPRECATED_CATEGORIES[cat];
+  return 'middag';
+}
+
 export function normalizeRecipe(r: Recipe): Recipe {
   if (!r.source || (typeof r.source === 'string' && !String(r.source).trim())) {
     r.source = 'Okänd källa';
   }
   if (r.sourceUrl == null) r.sourceUrl = '';
   if (!r.baseServings || (r.baseServings as number) < 1) r.baseServings = 1;
+  r.category = migrateCategory(r);
   if (!Array.isArray(r.badges) || r.badges.length === 0) {
     r.badges = inferBadges(r);
   }

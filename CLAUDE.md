@@ -38,7 +38,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 ```js
 {
   id: 'kebab-case-id',
-  category: 'middag', // en av: middag | asiatisk | sallad | bakning
+  category: 'middag', // måltidstyp: frukost | lunch | middag | tillbehor | fika
   baseServings: 4, // portioner som ingredienslistan och macros avser
   tags: ['hog-protein', 'snabb', 'kyckling'], // filter-taggar; id:n i TAG_FILTER_ORDER (ej ugn/stekpanna/tillbehör)
   image: 'images/recept.png', // valfritt; annars emoji-bakgrund

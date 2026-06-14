@@ -23,7 +23,7 @@ Returnera ENDAST ett JSON-objekt (ingen markdown).
 
 Fält (inget emoji-fält):
 - id: kebab-case engelska
-- category: middag | asiatisk | sallad | bakning
+- category: frukost | lunch | middag | tillbehor | fika (måltidstyp — inte kök/stil som asiatisk)
 - baseServings: number
 - tags: array — endast från: hog-protein, snabb, laggkolhydrat, vegetarisk, meal-prep, kyckling, notkott, flask, fisk, skaldjur (inte ugn/airfryer/stekpanna/tillbehör — kategori täcker måltidstyp)
 - title, source (läsbar källa: sajtnamn, «Ali Slagle, NYT Cooking», «@handle på Instagram»), sourceUrl
@@ -33,6 +33,13 @@ Fält (inget emoji-fält):
 - groups med ingredients (name lowercase, amount number, unit: g|msk|tsk|st|pinch|näve|strimlor)
 - steps: [{ title, text }]
 - tips: exakt 4, första title "Seattle" (mild för Seattle Mae, 7 år)
+
+Kategori — måltidstyp:
+- frukost: frukostmat
+- lunch: lunch, wraps, sallader som huvudmål, lättare rätter
+- middag: kvällsmat, huvudrätter
+- tillbehor: sidor, spreads, bröd, pickles, tillbehör till annan måltid
+- fika: bakverk, sötsaker, bullar till fika
 
 Mått metriska, svenska. Uppskatta makros.`;
 

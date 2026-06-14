@@ -1,6 +1,6 @@
 /* Receptschema — delas mellan app (runtime) och scripts/validate-recipes.mjs */
 var RecipeValidate = (function() {
-  var VALID_CATEGORIES = ['middag', 'asiatisk', 'sallad', 'bakning'];
+  var VALID_CATEGORIES = ['frukost', 'lunch', 'middag', 'tillbehor', 'fika'];
   var VALID_UNITS = ['g', 'msk', 'tsk', 'st', 'pinch', 'näve', 'strimlor'];
   var MACRO_TOLERANCE = 0.25;
 
