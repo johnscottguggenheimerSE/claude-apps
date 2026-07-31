@@ -4,22 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lägg till recept — Macro-friendly recipes</title>
-<script src="theme.js"></script>
+<script src="/theme.js"></script>
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700&display=swap">
-<link rel="stylesheet" href="fonts.css">
-<link rel="stylesheet" href="site-shell.css">
+<link rel="stylesheet" href="/fonts.css">
+<link rel="stylesheet" href="/site-shell.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root, [data-theme="light"] { --radius: 8px; }
   [data-theme="dark"] { --radius: 8px; }
   body { background: var(--bg2); color: var(--text); min-height: 100vh; }
   .add-content { max-width: 720px; }
+  .page-heading-row {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 1rem; margin-bottom: 1.15rem;
+  }
+  .page-heading-row .page-heading { margin-bottom: 0; flex: 1; min-width: 0; }
+  .btn-delete-recipe {
+    flex-shrink: 0; font: inherit; font-size: 0.8125rem; font-weight: 600;
+    padding: 0.45rem 0.75rem; border-radius: var(--radius);
+    border: 1px solid #c0392b; background: #c0392b; color: #fff; cursor: pointer;
+  }
+  .btn-delete-recipe:hover { background: #a93226; border-color: #a93226; }
+  .btn-delete-recipe:disabled { opacity: 0.55; cursor: default; }
   label { display: block; font-size: 0.8125rem; font-weight: 500; margin-bottom: 0.35rem; color: var(--text2); }
-  textarea, input[type=url], input[type=text], select {
+  textarea, input[type=url], input[type=text], input[type=number], select {
     width: 100%; font: inherit; font-size: 0.9375rem; padding: 0.65rem 0.75rem;
     border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text);
     margin-bottom: 1rem;
   }
+  input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   select { cursor: pointer; }
   textarea { min-height: 140px; resize: vertical; }
   .field { margin-bottom: 0.25rem; }
@@ -50,20 +65,28 @@
   .preview.visible { display: block; }
   .preview-image-wrap {
     position: relative; width: 100%; margin-bottom: 1.25rem;
-    border-radius: var(--radius); overflow: hidden; background: var(--bg2);
+    border-radius: var(--radius); overflow: visible; background: var(--bg2);
   }
   .preview-image-media {
     position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 400px;
-    background: var(--bg2);
+    background: var(--bg2); border-radius: var(--radius); overflow: hidden;
   }
   .preview-image-wrap img {
     width: 100%; height: 100%; object-fit: cover; display: block;
   }
   .preview-image-wrap.no-image img { display: none; }
   .preview-image-placeholder {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    color: var(--text2); font-size: 0.8125rem; background: var(--bg2);
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 0.75rem;
+    color: var(--text2); font-size: 0.8125rem; background: var(--bg3);
+    z-index: 1;
   }
+  .preview-image-placeholder-text { pointer-events: none; }
+  .preview-image-placeholder-actions {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.4rem;
+  }
+  .preview-image-wrap.no-image .preview-image-actions { display: none; }
+  .preview-image-wrap.no-image #btn-generate-placeholder { display: inline-block; }
   .preview-image-wrap.no-image .preview-image-placeholder { display: flex; }
   .preview-image-wrap:not(.no-image) .preview-image-placeholder { display: none; }
   .preview-image-wrap:not(.no-image)::after {
@@ -82,7 +105,25 @@
     backdrop-filter: blur(6px);
   }
   .preview-image-btn:hover { background: rgba(0, 0, 0, 0.85); }
+  .preview-image-btn--primary { background: var(--info); }
+  .preview-image-btn--primary:hover { background: color-mix(in srgb, var(--info) 88%, black); }
   .preview-image-btn:disabled { opacity: 0.55; cursor: default; }
+  .preview-image-upload { position: relative; display: inline-flex; }
+  .preview-image-menu {
+    position: absolute; bottom: calc(100% + 4px); left: 0; z-index: 12;
+    min-width: 10.5rem; padding: 0.25rem 0;
+    background: rgba(0, 0, 0, 0.92); border-radius: 6px;
+    backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  }
+  .preview-image-actions .preview-image-menu { left: auto; right: 0; }
+  .preview-image-menu.hidden { display: none; }
+  .preview-image-menu-item {
+    display: block; width: 100%; text-align: left;
+    font: inherit; font-size: 0.75rem; font-weight: 600;
+    color: #fff; background: none; border: none;
+    padding: 0.45rem 0.65rem; cursor: pointer;
+  }
+  .preview-image-menu-item:hover { background: rgba(255, 255, 255, 0.1); }
   .preview h2 { font-size: 1.125rem; margin-bottom: 0.5rem; }
   .preview-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem 1rem; margin-bottom: 1.25rem; min-width: 0; }
   .preview-summary .field { margin-bottom: 0; }
@@ -126,6 +167,10 @@
   .mode-tabs a.active, .mode-tabs button.active { background: var(--info); color: #fff; border-color: var(--info); }
   .sub-tabs a { font-size: 0.8125rem; padding: 0.45rem 0.75rem; }
   .hidden { display: none !important; }
+  .file-input-offscreen {
+    position: fixed; top: -10000px; left: -10000px;
+    width: 1px; height: 1px; opacity: 0; overflow: hidden;
+  }
   .flow-hint {
     font-size: 0.8125rem; color: var(--text2); line-height: 1.45;
     padding: 0.75rem 0.85rem; margin-bottom: 1rem;
@@ -155,8 +200,8 @@
     <div class="site-top-bar">
       <div class="site-brand">
         <a href="/" class="site-brand-link">
-          <img src="images/logo-light.png" alt="Macro-friendly recipes by Jann" class="site-logo site-logo-light" width="1024" height="262">
-          <img src="images/logo-dark.png" alt="Macro-friendly recipes by Jann" class="site-logo site-logo-dark" width="1024" height="262">
+          <img src="/images/logo-light.png" alt="Macro-friendly recipes by Jann" class="site-logo site-logo-light" width="1024" height="262">
+          <img src="/images/logo-dark.png" alt="Macro-friendly recipes by Jann" class="site-logo site-logo-dark" width="1024" height="262">
         </a>
       </div>
       <div class="site-search">
@@ -181,7 +226,10 @@
 </div>
 <main class="page-body">
   <div class="add-content">
-    <h1 class="page-heading" id="page-heading">Lägg till recept</h1>
+    <div class="page-heading-row">
+      <h1 class="page-heading" id="page-heading">Lägg till recept</h1>
+      <button type="button" class="btn-delete-recipe hidden" id="btn-delete-recipe">Ta bort recept</button>
+    </div>
 
     <div class="mode-tabs">
       <a href="/add/text" id="tab-create" class="active" data-add-route="text">Skapa</a>
@@ -265,14 +313,26 @@
     <div class="preview" id="preview">
       <div class="preview-image-wrap no-image" id="preview-image-wrap">
         <div class="preview-image-media">
-          <div class="preview-image-placeholder">Ingen bild</div>
+          <div class="preview-image-placeholder">
+            <span class="preview-image-placeholder-text">Ingen bild</span>
+            <div class="preview-image-placeholder-actions" id="preview-placeholder-actions">
+              <button type="button" class="preview-image-btn preview-image-btn--primary" id="btn-generate-placeholder">generera med AI</button>
+              <div class="preview-image-upload" id="preview-upload-wrap">
+                <button type="button" class="preview-image-btn" id="btn-upload-image" aria-haspopup="menu" aria-expanded="false">ladda upp bild</button>
+                <div class="preview-image-menu hidden" id="preview-upload-menu" role="menu">
+                  <button type="button" class="preview-image-menu-item" role="menuitem" data-upload-action="file">Välj fil…</button>
+                  <button type="button" class="preview-image-menu-item" role="menuitem" data-upload-action="paste" id="btn-upload-paste">Klistra in (⌘V)</button>
+                </div>
+              </div>
+            </div>
+          </div>
           <img id="preview-img" class="hidden" alt="">
         </div>
-        <div class="preview-image-actions">
-          <button type="button" class="preview-image-btn" id="btn-upload-image">ladda upp bild</button>
-          <button type="button" class="preview-image-btn hidden" id="btn-regen-image">förbättra bild med AI</button>
+        <div class="preview-image-actions" id="preview-image-actions">
+          <button type="button" class="preview-image-btn hidden" id="btn-generate-image">generera med AI</button>
+          <button type="button" class="preview-image-btn hidden" id="btn-enhance-image">förbättra med AI</button>
         </div>
-        <input type="file" id="file-preview" accept="image/*" class="hidden">
+        <input type="file" id="file-preview" accept="image/*" class="file-input-offscreen">
       </div>
       <h2 id="preview-title">Granska recept</h2>
       <p class="field-hint" id="preview-hint" style="margin-top:0;margin-bottom:0.75rem;">Redigera fält nedan och spara.</p>
@@ -284,11 +344,12 @@
           <input type="checkbox" id="featured-new"> Visa som Nytt!
         </label>
       </div>
+      <div class="status" id="save-status" style="margin-top:0.5rem;"></div>
     </div>
   </div>
 </main>
-<script src="browse-nav.js"></script>
-<script src="site-shell.js"></script>
-<script src="add.js"></script>
+<script src="/browse-nav.js"></script>
+<script src="/site-shell.js"></script>
+<script src="/add.js"></script>
 </body>
 </html>

@@ -43,7 +43,10 @@
     'dumpling-lasagna': ['kinesiskt'],
     'edamame-spread': ['japanskt'],
     'gochujang-gnocchi': ['koreanskt'],
-    'hoagie-brod': ['amerikanskt'],
+    'hoagie-bread': ['amerikanskt'],
+    'chocolate-chunk-scones-4-ingredients': ['amerikanskt'],
+    'middle-eastern-chicken-mince': ['mellanostern'],
+    'thai-chicken-cucumber-salad': ['thailandskt'],
     'honey-lime-teriyaki-beef-noodles': ['japanskt'],
     'hot-honey-chicken-sliders': ['amerikanskt'],
     'mexican-chicken-corn-salad': ['mexikanskt'],
@@ -235,13 +238,6 @@
     return false;
   }
 
-  function storeFilter(filter) {
-    try {
-      if (!filter || filter.type === 'all') sessionStorage.removeItem('recept_filter');
-      else sessionStorage.setItem('recept_filter', JSON.stringify(filter));
-    } catch (e) {}
-  }
-
   function readStoredFilter() {
     try {
       var raw = sessionStorage.getItem('recept_filter');
@@ -250,6 +246,74 @@
       return JSON.parse(raw);
     } catch (e) {}
     return null;
+  }
+
+  function normalizeListState(state) {
+    state = state || {};
+    return {
+      activeFilter: state.activeFilter || { type: 'all', value: null },
+      activeMulti: {
+        protein: (state.activeMulti && state.activeMulti.protein) ? state.activeMulti.protein.slice() : [],
+        cuisine: (state.activeMulti && state.activeMulti.cuisine) ? state.activeMulti.cuisine.slice() : []
+      },
+      favorites: !!state.favorites,
+      search: String(state.search || '').trim()
+    };
+  }
+
+  function buildListUrl(basePath, state) {
+    state = normalizeListState(state);
+    var params = new URLSearchParams();
+    var filter = state.activeFilter;
+    if (filter.type === 'category' && filter.value && CATEGORY_ORDER.indexOf(filter.value) !== -1) {
+      params.set('typ', filter.value);
+    } else if (filter.type === 'diet' && filter.value && DIET_LABELS[filter.value]) {
+      params.set('diet', filter.value);
+    }
+    if (state.activeMulti.protein.length) params.set('protein', state.activeMulti.protein.join(','));
+    if (state.activeMulti.cuisine.length) params.set('kok', state.activeMulti.cuisine.join(','));
+    if (state.favorites) params.set('favoriter', '1');
+    if (state.search) params.set('q', state.search);
+    var qs = params.toString();
+    var path = basePath || '/';
+    if (path.slice(-1) !== '/') path += '/';
+    return path + (qs ? '?' + qs : '');
+  }
+
+  function parseListUrl(search) {
+    var params = new URLSearchParams(search || '');
+    var state = normalizeListState({});
+    var typ = params.get('typ');
+    if (typ && CATEGORY_ORDER.indexOf(typ) !== -1) {
+      state.activeFilter = { type: 'category', value: typ };
+    }
+    var diet = params.get('diet');
+    if (diet && DIET_LABELS[diet]) {
+      state.activeFilter = { type: 'diet', value: diet };
+    }
+    var protein = params.get('protein');
+    if (protein) {
+      state.activeMulti.protein = protein.split(',').filter(function(v) {
+        return TAG_LABELS[v];
+      });
+    }
+    var kok = params.get('kok');
+    if (kok) {
+      state.activeMulti.cuisine = kok.split(',').filter(function(v) {
+        return CUISINE_LABELS[v];
+      });
+    }
+    if (params.get('favoriter') === '1') state.favorites = true;
+    var q = params.get('q');
+    if (q) state.search = q;
+    return state;
+  }
+
+  function urlForFilter(basePath, state, filter) {
+    var next = normalizeListState(state);
+    if (!filter || filter.type === 'all') next.activeFilter = { type: 'all', value: null };
+    else next.activeFilter = { type: filter.type, value: filter.value };
+    return buildListUrl(basePath, next);
   }
 
   function filterLabel(filter) {
@@ -359,7 +423,10 @@
     });
   }
 
-  function renderPanel(section) {
+  function renderPanel(section, options) {
+    options = options || {};
+    var getFilterUrl = options.getFilterUrl;
+    var useLinks = !!getFilterUrl;
     var block = mk('div', 'browse-section');
     if (section.name) {
       var heading = mk('p', 'browse-section-name');
@@ -369,11 +436,13 @@
     var list = mk('ul', 'browse-section-links');
     section.items.forEach(function(item) {
       var li = mk('li');
-      var btn = mk('button', 'browse-link');
-      btn.type = 'button';
-      btn.textContent = item.label;
-      btn._browseFilter = { type: item.type, value: item.value };
-      li.appendChild(btn);
+      var filter = { type: item.type, value: item.value };
+      var el = useLinks ? mk('a', 'browse-link') : mk('button', 'browse-link');
+      if (!useLinks) el.type = 'button';
+      el.textContent = item.label;
+      el._browseFilter = filter;
+      if (useLinks) el.href = getFilterUrl(filter);
+      li.appendChild(el);
       list.appendChild(li);
     });
     block.appendChild(list);
@@ -481,29 +550,27 @@
     var recipes = options.recipes || null;
     var activeFilter = options.activeFilter || { type: 'all', value: null };
     var linkMode = !!options.linkMode;
+    var getFilterUrl = options.getFilterUrl;
+    var useLinks = !!(getFilterUrl || linkMode);
     var menus = filterMenus(recipes, HEADER_MENUS);
     nav.replaceChildren();
 
     function wirePick(el, filter) {
-      if (linkMode) {
-        el.addEventListener('click', function(e) {
-          e.preventDefault();
-          storeFilter(filter);
-          location.href = '/';
-        });
-        return;
-      }
-      el.addEventListener('click', function() {
+      var href = getFilterUrl ? getFilterUrl(filter) : (linkMode ? buildListUrl('/', { activeFilter: filter }) : null);
+      if (href && el.tagName === 'A') el.href = href;
+      if (linkMode) return;
+      el.addEventListener('click', function(e) {
+        if (href) e.preventDefault();
         if (options.onSelect) options.onSelect(filter);
       });
     }
 
-    var allBtn = mk('button', 'browse-tab browse-tab-all');
-    allBtn.type = 'button';
-    allBtn.textContent = 'Alla';
-    if (isAllFilter(activeFilter)) allBtn.classList.add('active');
-    wirePick(allBtn, { type: 'all', value: null });
-    nav.appendChild(allBtn);
+    var allEl = useLinks ? mk('a', 'browse-tab browse-tab-all') : mk('button', 'browse-tab browse-tab-all');
+    if (!useLinks) allEl.type = 'button';
+    allEl.textContent = 'Alla';
+    if (isAllFilter(activeFilter)) allEl.classList.add('active');
+    wirePick(allEl, { type: 'all', value: null });
+    nav.appendChild(allEl);
 
     menus.forEach(function(menu) {
       var wrap = mk('div', 'browse-menu');
@@ -518,7 +585,9 @@
       var panel = mk('div', 'browse-panel');
       var panelInner = mk('div', 'browse-panel-inner');
       menu.sections.forEach(function(section) {
-        panelInner.appendChild(renderPanel(section));
+        panelInner.appendChild(renderPanel(section, { getFilterUrl: getFilterUrl || (linkMode ? function(filter) {
+          return buildListUrl('/', { activeFilter: filter });
+        } : null) }));
       });
       panel.appendChild(panelInner);
       wrap.appendChild(panel);
@@ -527,7 +596,7 @@
       panel.querySelectorAll('.browse-link').forEach(function(btn) {
         var filter = btn._browseFilter;
         if (filtersEqual(filter, activeFilter)) btn.classList.add('active');
-        wirePick(btn, filter);
+        if (!linkMode) wirePick(btn, filter);
       });
     });
     bindDropdownBehavior(nav);
@@ -539,6 +608,9 @@
     TAG_LABELS: TAG_LABELS,
     filterLabel: filterLabel,
     readStoredFilter: readStoredFilter,
+    buildListUrl: buildListUrl,
+    parseListUrl: parseListUrl,
+    urlForFilter: urlForFilter,
     recipeMatchesFilter: recipeMatchesFilter,
     recipeMatchesMultiFilters: recipeMatchesMultiFilters,
     render: render,

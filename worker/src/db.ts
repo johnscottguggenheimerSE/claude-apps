@@ -30,6 +30,15 @@ export async function getRecipe(db: D1Database, id: string): Promise<Recipe | nu
   return row ? rowToRecipe(row) : null;
 }
 
+export async function getRecipeWithMeta(
+  db: D1Database,
+  id: string
+): Promise<{ recipe: Recipe; featuredNew: boolean } | null> {
+  const row = await db.prepare('SELECT * FROM recipes WHERE id = ?').bind(id).first<RecipeRow>();
+  if (!row) return null;
+  return { recipe: rowToRecipe(row), featuredNew: !!row.featured_new };
+}
+
 export async function idExists(db: D1Database, id: string): Promise<boolean> {
   const row = await db.prepare('SELECT id FROM recipes WHERE id = ?').bind(id).first();
   return !!row;
@@ -67,6 +76,40 @@ export async function updateRecipe(db: D1Database, recipe: Recipe, featuredNew?:
   return true;
 }
 
+export async function renameRecipe(
+  db: D1Database,
+  oldId: string,
+  recipe: Recipe,
+  featuredNew?: boolean
+): Promise<boolean> {
+  const newId = recipe.id;
+  if (!newId || newId === oldId) return updateRecipe(db, recipe, featuredNew);
+
+  const row = await db.prepare('SELECT * FROM recipes WHERE id = ?').bind(oldId).first<RecipeRow>();
+  if (!row) return false;
+  if (await idExists(db, newId)) return false;
+
+  const now = new Date().toISOString();
+  const featured = featuredNew !== undefined ? (featuredNew ? 1 : 0) : row.featured_new;
+
+  await db.batch([
+    db.prepare(
+      'INSERT INTO recipes (id, data, featured_new, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(newId, JSON.stringify(recipe), featured, row.sort_order, row.created_at, now),
+    db.prepare('UPDATE recipe_reviews SET recipe_id = ? WHERE recipe_id = ?').bind(newId, oldId),
+    db.prepare('DELETE FROM recipes WHERE id = ?').bind(oldId),
+  ]);
+  return true;
+}
+
 export async function markFeaturedSeen(db: D1Database, id: string): Promise<void> {
   await db.prepare('UPDATE recipes SET featured_new = 0 WHERE id = ?').bind(id).run();
+}
+
+export async function deleteRecipe(db: D1Database, id: string): Promise<boolean> {
+  const row = await db.prepare('SELECT id FROM recipes WHERE id = ?').bind(id).first();
+  if (!row) return false;
+  await db.prepare('DELETE FROM recipe_reviews WHERE recipe_id = ?').bind(id).run();
+  await db.prepare('DELETE FROM recipes WHERE id = ?').bind(id).run();
+  return true;
 }

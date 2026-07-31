@@ -82,11 +82,22 @@
   var page = document.body.getAttribute('data-page') || 'home';
 
   if (page === 'add') {
+    function homeBasePath() {
+      var path = location.pathname;
+      var idx = path.indexOf('/recept');
+      if (idx !== -1) return path.slice(0, idx + 7) + '/';
+      return '/';
+    }
+    var home = homeBasePath();
+
     var favBtn = document.getElementById('favorites-toggle-btn');
     if (favBtn) {
       favBtn.addEventListener('click', function() {
-        try { sessionStorage.setItem('recept_show_favorites', '1'); } catch (e) {}
-        location.href = '/';
+        if (window.ReceptBrowseNav && ReceptBrowseNav.buildListUrl) {
+          location.href = ReceptBrowseNav.buildListUrl(home, { favorites: true });
+          return;
+        }
+        location.href = home + '?favoriter=1';
       });
     }
 
@@ -95,14 +106,23 @@
       search.addEventListener('keydown', function(e) {
         if (e.key !== 'Enter') return;
         e.preventDefault();
-        try { sessionStorage.setItem('recept_search', search.value.trim()); } catch (err) {}
-        location.href = '/';
+        var q = search.value.trim();
+        if (window.ReceptBrowseNav && ReceptBrowseNav.buildListUrl) {
+          location.href = ReceptBrowseNav.buildListUrl(home, { search: q });
+          return;
+        }
+        location.href = q ? home + '?q=' + encodeURIComponent(q) : home;
       });
     }
 
     var nav = document.getElementById('browse-nav');
     if (nav && window.ReceptBrowseNav && !nav.childNodes.length) {
-      ReceptBrowseNav.render(nav, { linkMode: true });
+      ReceptBrowseNav.render(nav, {
+        linkMode: true,
+        getFilterUrl: function(filter) {
+          return ReceptBrowseNav.urlForFilter(home, {}, filter);
+        }
+      });
     }
   }
 })();

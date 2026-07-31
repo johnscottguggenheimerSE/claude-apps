@@ -34,7 +34,7 @@ Fält (inget emoji-fält):
 - sourceUrl: publik recept-URL (matblogg, NYT Cooking, etc.). Tom sträng för Instagram/TikTok — vi kan inte läsa inloggade sociala länkar; använd @handle i source istället
 - badges: array med minst portioner (t.ex. «4 portioner») och tidsuppskattning som **endast** «XX min» (t.ex. «30 min») — aldrig «ca», «under» eller intervall i badge; vid intervall i källan använd högsta minut
 - macros: { kcal, prot, carb, fat } för HELA receptet
-- groups med ingredients (name lowercase, amount number, unit: g|msk|tsk|st|pinch|näve|strimlor)
+- groups: **obligatoriskt**, minst en grupp med **minst en** ingredient (name lowercase, amount number, unit: g|msk|tsk|st|pinch|näve|strimlor). Tomma groups eller ingredients=[] är ogiltigt — extrahera alla ingredienser från källan
 - steps: [{ title, text }]
 - tips: exakt 4, första title "För barn" (mild barnvänlig anpassning)
 
@@ -220,12 +220,70 @@ export async function parseRecipe(
 const IMAGE_CLEANUP =
   'Remove ALL overlays and non-food UI: play/pause buttons, mute/volume icons, video progress bars, Reels/TikTok/Instagram chrome, timestamps, captions, subtitles, stickers, logos, watermarks, profile avatars, like/comment/share icons, screenshot borders, phone status bar. Output must be clean food photo only — zero text or interface elements.';
 
+function recipeImageContext(recipe: Recipe): { ingredients: string; steps: string } {
+  const groups = (recipe.groups || []) as { name?: string; ingredients?: { name: string; amount?: number; unit?: string }[] }[];
+  const ingredients = groups
+    .map((g) => {
+      const items = (g.ingredients || [])
+        .map((i) => `${i.amount ?? ''} ${i.unit ?? ''} ${i.name}`.trim())
+        .filter(Boolean);
+      if (!items.length) return '';
+      return g.name ? `${g.name}: ${items.join(', ')}` : items.join(', ');
+    })
+    .filter(Boolean)
+    .join('\n');
+  const steps = ((recipe.steps || []) as { title?: string; text?: string }[])
+    .map((s, idx) => {
+      const title = (s.title || '').trim() || `Steg ${idx + 1}`;
+      const text = (s.text || '').trim();
+      return text ? `${title}: ${text}` : title;
+    })
+    .filter(Boolean)
+    .join('\n');
+  return { ingredients, steps };
+}
+
 export async function generateFoodImage(apiKey: string, title: string, description: string): Promise<{ data: string; mimeType: string }> {
   return geminiImage(apiKey, [
     {
       text: `Professional appetizing food photography of "${title}". ${description}. Overhead or 3/4 angle, natural light, realistic, no people, restaurant quality. ${IMAGE_CLEANUP}`,
     },
   ]);
+}
+
+/** Ny hero-bild utifrån titel, ingredienser, instruktioner och ev. referensbild — lika vikt på alla fyra. */
+export async function generateFoodImageFromRecipe(
+  apiKey: string,
+  recipe: Recipe,
+  imageBase64?: string | null,
+  mimeType?: string | null
+): Promise<{ data: string; mimeType: string }> {
+  const title = String(recipe.title || 'maträtt');
+  const { ingredients, steps } = recipeImageContext(recipe);
+  const parts: GeminiPart[] = [];
+
+  if (imageBase64 && mimeType) {
+    parts.push({ inlineData: { mimeType, data: imageBase64 } });
+  }
+
+  const refLine = imageBase64
+    ? 'An attached inspiration photo is provided — show the SAME dish but with clearly different composition: new camera angle, different plate/board/surface, new garnish placement, and fresh styling. Do NOT copy the reference framing, layout, or props.'
+    : 'No reference photo — infer appearance from the recipe text below.';
+
+  parts.push({
+    text: `Create a completely new professional appetizing food photograph (not a retouch of an existing photo).
+
+1. DISH NAME: "${title}"
+2. REFERENCE IMAGE: ${refLine}
+3. INGREDIENTS:
+${ingredients || '(see dish name)'}
+4. INSTRUCTIONS (plating, texture, finish):
+${steps || '(see dish name)'}
+
+Vary angle (overhead OR 3/4), natural light, realistic, no people, restaurant quality. ${IMAGE_CLEANUP}`,
+  });
+
+  return geminiImage(apiKey, parts);
 }
 
 export async function enhanceFoodImage(

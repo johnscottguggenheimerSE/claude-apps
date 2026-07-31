@@ -164,8 +164,8 @@ export function validateRecipe(
   else seenIds[r.id] = 1;
 
   if (!r.title) errors.push(`${prefix}saknar title`);
-  else if (/\bprotein/i.test(String(r.title))) {
-    errors.push(`${prefix}title får inte innehålla «protein» — använd badges/makros istället`);
+  else if (/\b(hög\s*protein|högprotein|extra\s*protein|proteinrik|proteinpackad)\b/i.test(String(r.title))) {
+    errors.push(`${prefix}title får inte innehålla proteinkrav — använd badges/makros istället`);
   }
   if (!r.source) errors.push(`${prefix}saknar source`);
   if (r.sourceUrl && r.sourceUrl !== '#' && !isUrl(r.sourceUrl)) {
@@ -187,6 +187,23 @@ export function validateRecipe(
     if (typeof macros[k] !== 'number' || macros[k] < 0) errors.push(`${prefix}macros.${k} ogiltigt`);
   });
   if (!r.baseServings || (r.baseServings as number) < 1) errors.push(`${prefix}baseServings ogiltigt`);
+  const groups = r.groups as { name?: string; ingredients?: { name?: string; amount?: number; unit?: string }[] }[] | undefined;
+  if (!groups || !groups.length) errors.push(`${prefix}saknar groups`);
+  else {
+    groups.forEach((g, gi) => {
+      if (!g.name) errors.push(`${prefix}group ${gi} saknar name`);
+      if (!g.ingredients || !g.ingredients.length) errors.push(`${prefix}group ${gi} saknar ingredients`);
+      else g.ingredients.forEach((ing, ii) => {
+        if (!ing.name) errors.push(`${prefix}ingrediens ${gi}/${ii} saknar name`);
+        if (typeof ing.amount !== 'number') errors.push(`${prefix}ingrediens ${ing.name || gi + '/' + ii} saknar amount`);
+        if (!VALID_UNITS.includes(String(ing.unit || ''))) {
+          errors.push(`${prefix}ingrediens ${ing.name || gi + '/' + ii} ogiltig unit: ${ing.unit}`);
+        }
+      });
+    });
+  }
+  const steps = r.steps as { title?: string; text?: string }[] | undefined;
+  if (!steps || !steps.length) errors.push(`${prefix}saknar steps`);
   const tips = r.tips as { title: string }[] | undefined;
   if (!tips || tips.length !== 4) errors.push(`${prefix}tips ska vara 4`);
   else if (tips[0]?.title !== 'Seattle') errors.push(`${prefix}första tips ska vara Seattle`);

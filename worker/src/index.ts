@@ -8,11 +8,12 @@ import {
 import {
   detectFoodPhoto,
   enhanceFoodImage,
+  generateFoodImageFromRecipe,
   generateFoodImage,
   parseRecipe,
 } from './gemini';
 import { fetchImageAsBase64, fetchRecipePage, isSocialMediaUrl } from './fetch-url';
-import { getRecipe, idExists, insertRecipe, listRecipes, updateRecipe } from './db';
+import { getRecipe, getRecipeWithMeta, idExists, insertRecipe, listRecipes, updateRecipe, deleteRecipe, renameRecipe } from './db';
 import {
   ensureVisitor,
   getRecipeReviewData,
@@ -45,6 +46,36 @@ function extFromMime(mime: string): string {
   return 'jpg';
 }
 
+function imageKeyFromRef(imageRef: string | undefined | null): string | null {
+  if (!imageRef || typeof imageRef !== 'string') return null;
+  if (imageRef.startsWith('/api/images/')) return imageRef.slice('/api/images/'.length);
+  if (imageRef.startsWith('recipes/')) return imageRef;
+  return null;
+}
+
+function recipeStorageKey(recipeId: string, ext: string): string {
+  return `recipes/${slugify(recipeId)}.${ext}`;
+}
+
+function imageRefCandidates(imageRef: string | undefined | null): string[] {
+  const key = imageKeyFromRef(imageRef);
+  if (!key) return [];
+  const keys = [key];
+  const m = key.match(/^recipes\/(.+)\.(jpe?g|png|webp)$/i);
+  if (m) {
+    const slugKey = recipeStorageKey(m[1], m[2].toLowerCase());
+    if (!keys.includes(slugKey)) keys.push(slugKey);
+  }
+  return keys;
+}
+
+async function imageRefExists(env: Env, imageRef: string | undefined | null): Promise<boolean> {
+  for (const key of imageRefCandidates(imageRef)) {
+    if (await env.IMAGES.head(key)) return true;
+  }
+  return false;
+}
+
 function bytesToBase64(bytes: Uint8Array): string {
   let binary = '';
   const chunk = 0x8000;
@@ -58,20 +89,14 @@ async function loadRecipeImageFromStorage(
   env: Env,
   imageRef: string | undefined | null
 ): Promise<{ data: string; mimeType: string } | null> {
-  if (!imageRef || typeof imageRef !== 'string') return null;
-  let key: string;
-  if (imageRef.startsWith('/api/images/')) {
-    key = imageRef.slice('/api/images/'.length);
-  } else if (imageRef.startsWith('recipes/')) {
-    key = imageRef;
-  } else {
-    return null;
+  for (const key of imageRefCandidates(imageRef)) {
+    const obj = await env.IMAGES.get(key);
+    if (!obj) continue;
+    const bytes = new Uint8Array(await obj.arrayBuffer());
+    const mimeType = obj.httpMetadata?.contentType || 'image/jpeg';
+    return { data: bytesToBase64(bytes), mimeType };
   }
-  const obj = await env.IMAGES.get(key);
-  if (!obj) return null;
-  const bytes = new Uint8Array(await obj.arrayBuffer());
-  const mimeType = obj.httpMetadata?.contentType || 'image/jpeg';
-  return { data: bytesToBase64(bytes), mimeType };
+  return null;
 }
 
 async function storeUploadedImage(
@@ -91,7 +116,7 @@ async function storeRecipeImage(
   bytes?: Uint8Array
 ): Promise<string> {
   const ext = extFromMime(image.mimeType);
-  const key = `recipes/${recipeId}.${ext}`;
+  const key = recipeStorageKey(recipeId, ext);
   const data = bytes ?? Uint8Array.from(atob(image.data), (c) => c.charCodeAt(0));
   await env.IMAGES.put(key, data, {
     httpMetadata: { contentType: image.mimeType, cacheControl: 'public, max-age=31536000' },
@@ -99,7 +124,7 @@ async function storeRecipeImage(
   return `/api/images/${key}`;
 }
 
-async function resolveRecipeImage(
+async function enhanceRecipeImage(
   env: Env,
   recipe: Recipe,
   imageBase64: string | null,
@@ -110,11 +135,6 @@ async function resolveRecipeImage(
   if (!apiKey) throw new Error('GEMINI_API_KEY saknas');
 
   const title = String(recipe.title || 'maträtt');
-  const desc =
-    (recipe.groups as { ingredients: { name: string }[] }[] | undefined)
-      ?.map((g) => g.ingredients?.map((i) => i.name).join(', '))
-      .filter(Boolean)
-      .join('; ') || title;
 
   if (!imageBase64) {
     const imageRef =
@@ -126,12 +146,38 @@ async function resolveRecipeImage(
     }
   }
 
-  const image =
-    imageBase64 && mimeType
-      ? await enhanceFoodImage(apiKey, imageBase64, mimeType, title)
-      : await generateFoodImage(apiKey, title, desc);
+  if (!imageBase64 || !mimeType) {
+    throw new Error('Receptet saknar bild att förbättra');
+  }
 
+  const image = await enhanceFoodImage(apiKey, imageBase64, mimeType, title);
   return storeRecipeImage(env, String(recipe.id), image);
+}
+
+async function generateRecipeImage(
+  env: Env,
+  recipe: Recipe,
+  imageBase64: string | null,
+  mimeType: string | null
+): Promise<string> {
+  const apiKey = env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('GEMINI_API_KEY saknas');
+
+  const image = await generateFoodImageFromRecipe(apiKey, recipe, imageBase64, mimeType);
+  return storeRecipeImage(env, String(recipe.id), image);
+}
+
+async function resolveRecipeImage(
+  env: Env,
+  recipe: Recipe,
+  imageBase64: string | null,
+  mimeType: string | null,
+  existingImageRef?: string | null
+): Promise<string> {
+  if (imageBase64 && mimeType) {
+    return enhanceRecipeImage(env, recipe, imageBase64, mimeType, existingImageRef);
+  }
+  return generateRecipeImage(env, recipe, null, null);
 }
 
 async function handleLogin(request: Request, env: Env): Promise<Response> {
@@ -193,9 +239,9 @@ async function handlePostReview(request: Request, env: Env, recipeId: string): P
 }
 
 async function handleGetRecipe(env: Env, id: string): Promise<Response> {
-  const recipe = await getRecipe(env.DB, id);
-  if (!recipe) return json({ error: 'Hittades inte' }, 404);
-  return json({ recipe });
+  const row = await getRecipeWithMeta(env.DB, id);
+  if (!row) return json({ error: 'Hittades inte' }, 404);
+  return json({ recipe: row.recipe, featuredNew: row.featuredNew });
 }
 
 async function handleParse(request: Request, env: Env): Promise<Response> {
@@ -238,6 +284,62 @@ async function handleParse(request: Request, env: Env): Promise<Response> {
     return json({ recipe, saveImage });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Parse misslyckades' }, 502);
+  }
+}
+
+async function handleGenerateImage(request: Request, env: Env): Promise<Response> {
+  if (!env.GEMINI_API_KEY) return json({ error: 'GEMINI_API_KEY saknas' }, 503);
+
+  let body: {
+    recipe?: Recipe;
+    imageBase64?: string;
+    mimeType?: string;
+  };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return json({ error: 'Ogiltig JSON' }, 400);
+  }
+
+  if (!body.recipe) return json({ error: 'Saknar recept' }, 400);
+
+  try {
+    const image = await generateFoodImageFromRecipe(
+      env.GEMINI_API_KEY,
+      body.recipe,
+      body.imageBase64 || null,
+      body.mimeType || null
+    );
+    return json({ imageBase64: image.data, mimeType: image.mimeType });
+  } catch (e) {
+    return json({ error: e instanceof Error ? e.message : 'Bildgenerering misslyckades' }, 502);
+  }
+}
+
+async function handleEnhanceImage(request: Request, env: Env): Promise<Response> {
+  if (!env.GEMINI_API_KEY) return json({ error: 'GEMINI_API_KEY saknas' }, 503);
+
+  let body: { imageBase64?: string; mimeType?: string; title?: string };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return json({ error: 'Ogiltig JSON' }, 400);
+  }
+
+  if (!body.imageBase64 || !body.mimeType) {
+    return json({ error: 'Saknar bild' }, 400);
+  }
+
+  try {
+    const image = await enhanceFoodImage(
+      env.GEMINI_API_KEY,
+      body.imageBase64,
+      body.mimeType,
+      String(body.title || 'maträtt')
+    );
+    return json({ imageBase64: image.data, mimeType: image.mimeType });
+  } catch (e) {
+    return json({ error: e instanceof Error ? e.message : 'Bildförbättring misslyckades' }, 502);
   }
 }
 
@@ -354,7 +456,31 @@ async function handleCreateRecipe(request: Request, env: Env): Promise<Response>
   }
 
   await insertRecipe(env.DB, recipe, { featuredNew: !!body.featuredNew });
-  return json({ ok: true, recipe }, 201);
+  return json({ ok: true, recipe, featuredNew: !!body.featuredNew }, 201);
+}
+
+async function migrateRecipeImage(
+  env: Env,
+  oldId: string,
+  newId: string,
+  imageRef: string | undefined
+): Promise<string | null> {
+  if (!imageRef) return null;
+  for (const key of imageRefCandidates(imageRef)) {
+    const obj = await env.IMAGES.get(key);
+    if (!obj) continue;
+    const bytes = new Uint8Array(await obj.arrayBuffer());
+    const mimeType = obj.httpMetadata?.contentType || 'image/jpeg';
+    const newRef = await storeRecipeImage(
+      env,
+      newId,
+      { data: bytesToBase64(bytes), mimeType },
+      bytes
+    );
+    await env.IMAGES.delete(key);
+    return newRef;
+  }
+  return null;
 }
 
 async function handleUpdateRecipe(request: Request, env: Env, id: string): Promise<Response> {
@@ -364,7 +490,10 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
     mimeType?: string;
     featuredNew?: boolean;
     regenerateImage?: boolean;
+    enhanceImage?: boolean;
+    generateImage?: boolean;
     uploadImage?: boolean;
+    clearImage?: boolean;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -374,48 +503,112 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
 
   const recipe = body.recipe;
   if (!recipe) return json({ error: 'Saknar recipe' }, 400);
-  recipe.id = id;
   delete recipe.emoji;
 
   const existing = await getRecipe(env.DB, id);
   if (!existing) return json({ error: 'Hittades inte' }, 404);
 
-  if (!recipe.image && existing.image) recipe.image = existing.image as string;
+  const requestedId = slugify(String(recipe.id || id));
+  const renaming = requestedId !== id;
+  if (renaming) {
+    if (await idExists(env.DB, requestedId)) {
+      return json({ error: 'Validering', details: ['Id «' + requestedId + '» är redan upptaget'] }, 400);
+    }
+    recipe.id = requestedId;
+  } else {
+    recipe.id = id;
+  }
+
+  const existingImage = typeof existing.image === 'string' ? existing.image : undefined;
+  const existingImageOk = existingImage ? await imageRefExists(env, existingImage) : false;
+
+  if (!recipe.image && existingImageOk) recipe.image = existingImage;
+  else if (recipe.image && !(await imageRefExists(env, recipe.image as string))) {
+    delete recipe.image;
+  }
 
   normalizeRecipe(recipe);
 
-  const errors = validateRecipe(recipe, {});
+  const willSetImage = !!(
+    body.generateImage ||
+    body.uploadImage ||
+    body.enhanceImage ||
+    body.regenerateImage
+  );
+  const errors = validateRecipe(recipe, {}, { allowMissingImage: willSetImage });
   if (errors.length) return json({ error: 'Validering', details: errors }, 400);
 
   try {
-    if (body.regenerateImage) {
-      recipe.image = await resolveRecipeImage(
+    if (body.generateImage) {
+      if (!body.imageBase64 && !existingImageOk) delete recipe.image;
+      recipe.image = await generateRecipeImage(
+        env,
+        recipe,
+        body.imageBase64 || null,
+        body.mimeType || null
+      );
+    } else if (body.enhanceImage || body.regenerateImage) {
+      recipe.image = await enhanceRecipeImage(
         env,
         recipe,
         body.imageBase64 || null,
         body.mimeType || null,
         existing.image as string | undefined
       );
+    } else if (body.clearImage) {
+      delete recipe.image;
     } else if (body.uploadImage && body.imageBase64 && body.mimeType) {
-      recipe.image = await storeUploadedImage(env, id, body.imageBase64, body.mimeType);
-    } else if (!recipe.image && existing.image) {
-      recipe.image = existing.image as string;
+      recipe.image = await storeUploadedImage(env, recipe.id, body.imageBase64, body.mimeType);
+    } else if (!recipe.image && existingImageOk) {
+      recipe.image = existingImage;
     }
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Bild misslyckades' }, 502);
   }
 
-  await updateRecipe(env.DB, recipe, body.featuredNew);
-  return json({ ok: true, recipe });
+  if (renaming && existingImageOk && existingImage && !body.uploadImage && !body.generateImage && !body.enhanceImage && !body.regenerateImage) {
+    const migrated = await migrateRecipeImage(env, id, recipe.id, existingImage);
+    if (migrated) recipe.image = migrated;
+  }
+
+  const saved = renaming
+    ? await renameRecipe(env.DB, id, recipe, body.featuredNew)
+    : await updateRecipe(env.DB, recipe, body.featuredNew);
+  if (!saved) {
+    return json({ error: renaming ? 'Id upptaget eller kunde inte byta id' : 'Kunde inte spara' }, 400);
+  }
+  const featuredNew = body.featuredNew !== undefined ? !!body.featuredNew : undefined;
+  return json({ ok: true, recipe, featuredNew });
+}
+
+async function handleDeleteRecipe(env: Env, id: string): Promise<Response> {
+  const existing = await getRecipe(env.DB, id);
+  if (!existing) return json({ error: 'Hittades inte' }, 404);
+
+  const imageRef = typeof existing.image === 'string' ? existing.image : undefined;
+  if (imageRef) {
+    for (const key of imageRefCandidates(imageRef)) {
+      await env.IMAGES.delete(key);
+    }
+  }
+
+  const deleted = await deleteRecipe(env.DB, id);
+  if (!deleted) return json({ error: 'Hittades inte' }, 404);
+  return json({ ok: true });
 }
 
 async function handleImage(env: Env, key: string): Promise<Response> {
-  const obj = await env.IMAGES.get(key);
-  if (!obj) return new Response('Not found', { status: 404 });
-  const headers = new Headers();
-  obj.writeHttpMetadata(headers);
-  headers.set('Cache-Control', 'public, max-age=31536000');
-  return new Response(obj.body, { headers });
+  const decoded = decodeURIComponent(key);
+  const candidates = imageRefCandidates(`/api/images/${decoded}`);
+  for (const candidate of candidates.length ? candidates : [decoded]) {
+    const obj = await env.IMAGES.get(candidate);
+    if (!obj) continue;
+    const headers = new Headers();
+    obj.writeHttpMetadata(headers);
+    headers.set('Cache-Control', 'public, max-age=31536000');
+    return new Response(obj.body, { headers });
+  }
+  return new Response('Not found', { status: 404 });
 }
 
 async function handleApi(request: Request, env: Env, url: URL): Promise<Response | null> {
@@ -479,10 +672,17 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (path === '/api/parse-url' && request.method === 'POST') {
     return handleParseUrl(request, env);
   }
+  if (path === '/api/enhance-image' && request.method === 'POST') {
+    return handleEnhanceImage(request, env);
+  }
+  if (path === '/api/generate-image' && request.method === 'POST') {
+    return handleGenerateImage(request, env);
+  }
 
   if (recipeMatch) {
     const id = decodeURIComponent(recipeMatch[1]!);
     if (request.method === 'PUT') return handleUpdateRecipe(request, env, id);
+    if (request.method === 'DELETE') return handleDeleteRecipe(env, id);
   }
 
   return null;
@@ -497,6 +697,11 @@ function isAddAdminPath(rawPath: string): boolean {
   );
 }
 
+/** Fetch add.html without re-entering the Worker (avoids redirect loops). */
+function serveAddPage(env: Env): Promise<Response> {
+  return env.ASSETS.fetch('https://assets.local/add.html');
+}
+
 function addCanonicalPath(rawPath: string, search: string): string | null {
   if (rawPath !== '/add' && rawPath !== '/recept/add') return null;
   const params = new URLSearchParams(search);
@@ -509,6 +714,96 @@ function addCanonicalPath(rawPath: string, search: string): string | null {
   return `${rawPath}/text`;
 }
 
+function escapeHtmlAttr(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function absoluteAssetUrl(origin: string, imageRef: unknown): string | null {
+  if (typeof imageRef !== 'string' || !imageRef.trim()) return null;
+  if (/^https?:\/\//i.test(imageRef)) return imageRef;
+  if (imageRef.startsWith('/')) return origin + imageRef;
+  return origin + '/' + imageRef.replace(/^\.\//, '');
+}
+
+function recipeShareDescription(recipe: Recipe): string {
+  const badges = Array.isArray(recipe.badges)
+    ? (recipe.badges as string[]).filter(Boolean).slice(0, 3).join(' · ')
+    : '';
+  const source = typeof recipe.source === 'string' && recipe.source.trim() ? recipe.source.trim() : '';
+  const parts = [badges, source ? 'Från ' + source : ''].filter(Boolean);
+  return parts.join(' — ') || 'Macro-friendly recipes by Jann';
+}
+
+function injectRecipeMeta(
+  html: string,
+  opts: { title: string; description: string; imageUrl: string | null; pageUrl: string; recipeId: string }
+): string {
+  const pageTitle = `${opts.title} — Macro-friendly recipes`;
+  const tags = [
+    `<meta charset="UTF-8">`,
+    `<title>${escapeHtmlAttr(pageTitle)}</title>`,
+    `<meta name="description" content="${escapeHtmlAttr(opts.description)}">`,
+    `<link rel="canonical" href="${escapeHtmlAttr(opts.pageUrl)}">`,
+    `<meta property="og:type" content="article">`,
+    `<meta property="og:site_name" content="Macro-friendly recipes">`,
+    `<meta property="og:title" content="${escapeHtmlAttr(opts.title)}">`,
+    `<meta property="og:description" content="${escapeHtmlAttr(opts.description)}">`,
+    `<meta property="og:url" content="${escapeHtmlAttr(opts.pageUrl)}">`,
+    `<meta name="twitter:card" content="summary_large_image">`,
+    `<meta name="twitter:title" content="${escapeHtmlAttr(opts.title)}">`,
+    `<meta name="twitter:description" content="${escapeHtmlAttr(opts.description)}">`,
+    `<meta name="recept:id" content="${escapeHtmlAttr(opts.recipeId)}">`,
+  ];
+  if (opts.imageUrl) {
+    tags.push(
+      `<meta property="og:image" content="${escapeHtmlAttr(opts.imageUrl)}">`,
+      `<meta property="og:image:alt" content="${escapeHtmlAttr(opts.title)}">`,
+      `<meta name="twitter:image" content="${escapeHtmlAttr(opts.imageUrl)}">`
+    );
+  }
+
+  let out = html.replace(/<title>[^<]*<\/title>/i, '');
+  out = out.replace(/\s*<meta\s+charset=["']?UTF-8["']?\s*\/?>/i, '');
+  out = out.replace(/\s*<meta\s+(?:name|property)="(?:description|og:[^"]+|twitter:[^"]+|recept:id)"[^>]*>/gi, '');
+  out = out.replace(/\s*<link\s+rel="canonical"[^>]*>/gi, '');
+  if (/<head[^>]*>/i.test(out)) {
+    out = out.replace(/<head([^>]*)>/i, `<head$1>\n${tags.join('\n')}\n`);
+  }
+  return out;
+}
+
+async function serveRecipeSharePage(request: Request, env: Env, recipeId: string): Promise<Response> {
+  const origin = new URL(request.url).origin;
+  const pageUrl = `${origin}/r/${encodeURIComponent(recipeId)}`;
+  const assetRes = await env.ASSETS.fetch('https://assets.local/index.html');
+  let html = await assetRes.text();
+
+  const row = await getRecipeWithMeta(env.DB, recipeId);
+  if (row?.recipe) {
+    const recipe = row.recipe;
+    const title = String(recipe.title || recipeId);
+    html = injectRecipeMeta(html, {
+      title,
+      description: recipeShareDescription(recipe),
+      imageUrl: absoluteAssetUrl(origin, recipe.image),
+      pageUrl,
+      recipeId,
+    });
+  }
+
+  return new Response(html, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'public, max-age=120',
+    },
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -516,7 +811,16 @@ export default {
     if (apiResponse) return apiResponse;
 
     const rawPath = url.pathname.replace(/\/$/, '') || '/';
-    const path = rawPath === '/' ? '/index.html' : rawPath;
+
+    const recipePathMatch = rawPath.match(/^\/r\/([^/]+)$/);
+    if (recipePathMatch && (request.method === 'GET' || request.method === 'HEAD')) {
+      const id = decodeURIComponent(recipePathMatch[1]!);
+      const page = await serveRecipeSharePage(request, env, id);
+      if (request.method === 'HEAD') {
+        return new Response(null, { status: page.status, headers: page.headers });
+      }
+      return page;
+    }
 
     const addCanonical = addCanonicalPath(rawPath, url.search);
     if (addCanonical) {
@@ -529,7 +833,7 @@ export default {
         const next = encodeURIComponent(rawPath + url.search);
         return Response.redirect(new URL('/login.html?next=' + next, url.origin).href, 302);
       }
-      return env.ASSETS.fetch(new Request(new URL('/add.html', url.origin), request));
+      return serveAddPage(env);
     }
 
     return env.ASSETS.fetch(request);

@@ -1,5 +1,12 @@
 (function() {
+  function mk(tag, cls) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    return e;
+  }
+
   var currentRecipe = null;
+  var editingRecipeId = null;
   var editMode = false;
   var pendingImageBase64 = null;
   var pendingMimeType = null;
@@ -17,16 +24,33 @@
   var MODE_TO_ROUTE = { text: 'text', url: 'url', image: 'bild' };
 
   var statusEl = document.getElementById('status');
+  var saveStatusEl = document.getElementById('save-status');
   var previewEl = document.getElementById('preview');
   var previewTitle = document.getElementById('preview-title');
   var previewHint = document.getElementById('preview-hint');
   var previewImg = document.getElementById('preview-img');
   var previewImageWrap = document.getElementById('preview-image-wrap');
-  var btnRegenImage = document.getElementById('btn-regen-image');
+  var previewImageActions = document.getElementById('preview-image-actions');
+  var previewPlaceholderActions = document.getElementById('preview-placeholder-actions');
+  var btnUploadImage = document.getElementById('btn-upload-image');
+  var previewUploadWrap = document.getElementById('preview-upload-wrap');
+  var previewUploadMenu = document.getElementById('preview-upload-menu');
+  var btnUploadPaste = document.getElementById('btn-upload-paste');
+  var filePreviewInput = document.getElementById('file-preview');
+  var uploadMenuOpen = false;
+  var awaitingPreviewPaste = false;
+  var pasteShortcutHint = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent) ? '⌘V' : 'Ctrl+V';
+  var btnGenerateImage = document.getElementById('btn-generate-image');
+  var btnEnhanceImage = document.getElementById('btn-enhance-image');
+  var btnGeneratePlaceholder = document.getElementById('btn-generate-placeholder');
   var regenProgressTimer = null;
   var regenUndoSnapshot = null;
+  var regenRedoSnapshot = null;
+  var savedImageLoadFailed = false;
   var editSelect = document.getElementById('edit-select');
   var recipeList = [];
+  var VISIT_COOKIE_NAME = 'recept_seen_new';
+  var VISIT_COOKIE_MAX_AGE = String(365 * 24 * 60 * 60);
   var previewForm = document.getElementById('preview-form');
   var previewMetaFields = document.getElementById('preview-meta-fields');
 
@@ -43,10 +67,22 @@
   };
   var VALID_UNITS = ['g', 'msk', 'tsk', 'st', 'pinch', 'näve', 'strimlor'];
 
-  function mk(tag, cls) {
-    var e = document.createElement(tag);
-    if (cls) e.className = cls;
-    return e;
+  function slugifyTitle(title) {
+    return String(title || 'recept')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'recept';
+  }
+
+  var reviewActive = false;
+
+  function syncInputPanels() {
+    var hideInputs = reviewActive && previewEl.classList.contains('visible');
+    document.getElementById('panel-create').classList.toggle('hidden', hideInputs || editMode);
+    var panelEdit = document.getElementById('panel-edit');
+    if (panelEdit) panelEdit.classList.toggle('hidden', hideInputs || !editMode);
   }
 
   function fieldInput(id, label, value, type) {
@@ -89,21 +125,23 @@
     renderStatusBusy(msg, pct);
   }
 
-  function startRegenProgress() {
+  function startRegenProgress(mode) {
     clearRegenProgress();
+    var label = mode === 'generate' ? 'Genererar bild med AI…' : 'Förbättrar bild med AI…';
     var pct = 0;
-    renderStatusBusy('Förbättrar bild med AI…', pct);
+    renderStatusBusy(label, pct);
     regenProgressTimer = setInterval(function() {
       if (pct < 55) pct += 2;
       else if (pct < 82) pct += 1;
       else if (pct < 92) pct += 0.35;
-      renderStatusBusy('Förbättrar bild med AI…', pct);
+      renderStatusBusy(label, pct);
     }, 450);
   }
 
-  function finishRegenProgress() {
+  function finishRegenProgress(mode) {
     clearRegenProgress();
-    renderStatusBusy('Förbättrar bild med AI…', 100);
+    var label = mode === 'generate' ? 'Genererar bild med AI…' : 'Förbättrar bild med AI…';
+    renderStatusBusy(label, 100);
   }
 
   function setStatusWithUndo(msg, onUndo, isErr) {
@@ -118,13 +156,40 @@
     statusEl.appendChild(link);
   }
 
-  function clearRegenUndo() {
+  function setStatusWithRedo(msg, onRedo, isErr) {
+    clearRegenProgress();
+    statusEl.className = 'status' + (isErr ? ' err' : '');
+    statusEl.replaceChildren();
+    statusEl.appendChild(document.createTextNode(msg + ' '));
+    var link = mk('button', 'status-undo-link');
+    link.type = 'button';
+    link.textContent = 'Ångra tillbaka';
+    link.addEventListener('click', onRedo);
+    statusEl.appendChild(link);
+  }
+
+  function clearRegenHistory() {
     regenUndoSnapshot = null;
+    regenRedoSnapshot = null;
+  }
+
+  function setSaveStatus(msg, isErr) {
+    if (!saveStatusEl) return;
+    saveStatusEl.textContent = msg || '';
+    saveStatusEl.className = 'status' + (isErr ? ' err' : '');
   }
 
   function setStatus(msg, isErr) {
     clearRegenProgress();
-    clearRegenUndo();
+    clearRegenHistory();
+    statusEl.textContent = msg || '';
+    statusEl.className = 'status' + (isErr ? ' err' : '');
+    if (isErr) setSaveStatus(msg, true);
+    else setSaveStatus('');
+  }
+
+  function setStatusTransient(msg, isErr) {
+    clearRegenProgress();
     statusEl.textContent = msg || '';
     statusEl.className = 'status' + (isErr ? ' err' : '');
   }
@@ -151,6 +216,25 @@
     });
   }
 
+  function fetchImageAsBase64Optional(url) {
+    return fetch(url, { credentials: 'same-origin' }).then(function(res) {
+      if (!res.ok) return null;
+      return res.blob();
+    }).then(function(blob) {
+      if (!blob) return null;
+      return new Promise(function(resolve) {
+        var reader = new FileReader();
+        reader.onload = function() {
+          var dataUrl = String(reader.result || '');
+          var m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+          resolve(m ? { mimeType: m[1], data: m[2] } : null);
+        };
+        reader.onerror = function() { resolve(null); };
+        reader.readAsDataURL(blob);
+      });
+    }).catch(function() { return null; });
+  }
+
   function putRecipeUpdate(recipe, extra) {
     var body = { recipe: recipe, featuredNew: document.getElementById('featured-new').checked };
     if (extra) {
@@ -171,27 +255,141 @@
     });
   }
 
+  function captureCurrentImageSnapshot(recipe) {
+    if (pendingImageBase64 && pendingMimeType) {
+      return Promise.resolve({ mimeType: pendingMimeType, data: pendingImageBase64, empty: false });
+    }
+    if (recipe.image && !savedImageLoadFailed) {
+      return fetchImageAsBase64Optional(imageSrcForRecipe(recipe, true)).then(function(snapshot) {
+        if (snapshot) return { mimeType: snapshot.mimeType, data: snapshot.data, empty: false };
+        return { empty: true };
+      });
+    }
+    return Promise.resolve({ empty: true });
+  }
+
+  function applyImageSnapshot(snapshot) {
+    if (snapshot.empty) {
+      clearPendingImage();
+      return;
+    }
+    pendingImageBase64 = snapshot.data;
+    pendingMimeType = snapshot.mimeType;
+  }
+
+  function storeRedoFromPending() {
+    if (pendingImageBase64 && pendingMimeType) {
+      regenRedoSnapshot = { mimeType: pendingMimeType, data: pendingImageBase64, empty: false };
+      return;
+    }
+    regenRedoSnapshot = { empty: true };
+  }
+
+  function storeUndoFromPending() {
+    if (pendingImageBase64 && pendingMimeType) {
+      regenUndoSnapshot = { mimeType: pendingMimeType, data: pendingImageBase64, empty: false };
+      return;
+    }
+    regenUndoSnapshot = { empty: true };
+  }
+
+  function undoRegenLocalImage() {
+    if (!regenUndoSnapshot) return;
+    storeRedoFromPending();
+    applyImageSnapshot(regenUndoSnapshot);
+    regenUndoSnapshot = null;
+    if (currentRecipe) {
+      showPreview(readRecipeFromForm());
+    }
+    setStatusWithRedo('Tidigare bild återställd.', redoRegenLocalImage);
+  }
+
+  function redoRegenLocalImage() {
+    if (!regenRedoSnapshot) return;
+    storeUndoFromPending();
+    applyImageSnapshot(regenRedoSnapshot);
+    regenRedoSnapshot = null;
+    if (currentRecipe) {
+      showPreview(readRecipeFromForm());
+    }
+    setStatusWithUndo('Bild återställd.', undoRegenLocalImage);
+  }
+
+  function putRecipeImageSnapshot(recipe, snapshot) {
+    if (snapshot.empty) return putRecipeUpdate(recipe, { clearImage: true });
+    return putRecipeUpdate(recipe, {
+      uploadImage: true,
+      imageBase64: snapshot.data,
+      mimeType: snapshot.mimeType
+    });
+  }
+
   function undoRegenImage() {
     if (!regenUndoSnapshot || !currentRecipe || !currentRecipe.id) return;
+    if (!recipeExistsInDb(currentRecipe.id)) {
+      undoRegenLocalImage();
+      return;
+    }
+    var snapshot = regenUndoSnapshot;
     var undoBtn = statusEl.querySelector('.status-undo-link');
     if (undoBtn) undoBtn.disabled = true;
-    btnRegenImage.disabled = true;
-    setStatus('Återställer bild…');
+    setImageAiButtonsDisabled(true);
+    setStatusTransient('Återställer bild…');
     var recipe = readRecipeFromForm();
-    putRecipeUpdate(recipe, {
-      uploadImage: true,
-      imageBase64: regenUndoSnapshot.data,
-      mimeType: regenUndoSnapshot.mimeType
+    captureCurrentImageSnapshot(recipe).then(function(redo) {
+      regenRedoSnapshot = redo;
+      return putRecipeImageSnapshot(recipe, snapshot);
     }).then(function(data) {
       editMode = true;
       clearPendingImage();
-      clearRegenUndo();
+      regenUndoSnapshot = null;
       showPreview(data.recipe);
-      previewImg.src = imageSrcForRecipe(data.recipe, true);
-      setStatus('Tidigare bild återställd.');
+      if (data.recipe.image) {
+        previewImg.src = imageSrcForRecipe(data.recipe, true);
+      }
+      setStatusWithRedo('Tidigare bild återställd.', redoRegenImage);
     }).catch(function(ex) {
+      regenUndoSnapshot = snapshot;
+      regenRedoSnapshot = null;
       setStatusWithUndo(ex.message, undoRegenImage, true);
-    }).finally(function() { btnRegenImage.disabled = false; });
+    }).finally(function() { setImageAiButtonsDisabled(false); });
+  }
+
+  function redoRegenImage() {
+    if (!regenRedoSnapshot || !currentRecipe || !currentRecipe.id) return;
+    if (!recipeExistsInDb(currentRecipe.id)) {
+      redoRegenLocalImage();
+      return;
+    }
+    var snapshot = regenRedoSnapshot;
+    var redoBtn = statusEl.querySelector('.status-undo-link');
+    if (redoBtn) redoBtn.disabled = true;
+    setImageAiButtonsDisabled(true);
+    setStatusTransient('Återställer bild…');
+    var recipe = readRecipeFromForm();
+    captureCurrentImageSnapshot(recipe).then(function(undo) {
+      regenUndoSnapshot = undo;
+      return putRecipeImageSnapshot(recipe, snapshot);
+    }).then(function(data) {
+      editMode = true;
+      clearPendingImage();
+      regenRedoSnapshot = null;
+      showPreview(data.recipe);
+      if (data.recipe.image) {
+        previewImg.src = imageSrcForRecipe(data.recipe, true);
+      }
+      setStatusWithUndo('Bild återställd.', undoRegenImage);
+    }).catch(function(ex) {
+      regenRedoSnapshot = snapshot;
+      regenUndoSnapshot = null;
+      setStatusWithRedo(ex.message, redoRegenImage, true);
+    }).finally(function() { setImageAiButtonsDisabled(false); });
+  }
+
+  function setImageAiButtonsDisabled(disabled) {
+    if (btnGenerateImage) btnGenerateImage.disabled = disabled;
+    if (btnEnhanceImage) btnEnhanceImage.disabled = disabled;
+    if (btnGeneratePlaceholder) btnGeneratePlaceholder.disabled = disabled;
   }
 
   function clearPendingImage() {
@@ -235,22 +433,100 @@
     });
   }
 
+  function isLikelyImageFile(file) {
+    if (!file) return false;
+    if (file.type && file.type.indexOf('image/') === 0) return true;
+    var name = String(file.name || '').toLowerCase();
+    return /\.(jpe?g|png|gif|webp|heic|heif|bmp|avif)$/.test(name);
+  }
+
   function extractImageFromClipboard(e) {
     var cd = e.clipboardData;
     if (!cd) return null;
     if (cd.files && cd.files.length) {
       for (var j = 0; j < cd.files.length; j++) {
-        if (cd.files[j].type && cd.files[j].type.indexOf('image/') === 0) return cd.files[j];
+        if (isLikelyImageFile(cd.files[j])) return cd.files[j];
       }
     }
     var items = cd.items;
     if (!items) return null;
     for (var i = 0; i < items.length; i++) {
-      if (items[i].kind === 'file' && items[i].type.indexOf('image/') === 0) {
-        return items[i].getAsFile();
+      if (items[i].kind === 'file') {
+        var file = items[i].getAsFile();
+        if (isLikelyImageFile(file)) return file;
       }
     }
     return null;
+  }
+
+  function applyPreviewImageFromFile(file) {
+    if (!isLikelyImageFile(file)) {
+      setStatus('Ogiltig bildfil.', true);
+      return Promise.resolve(false);
+    }
+    return readFileAsBase64(file).then(function(r) {
+      pendingImageBase64 = r.data;
+      pendingMimeType = r.mimeType;
+      savedImageLoadFailed = false;
+      awaitingPreviewPaste = false;
+      var recipe = currentRecipe || (previewEl.classList.contains('visible') ? readRecipeFromForm() : null);
+      if (recipe) updatePreviewImage(recipe);
+      setStatus('Bild vald — sparas vid Spara recept.');
+      return true;
+    });
+  }
+
+  function armPreviewPaste() {
+    awaitingPreviewPaste = true;
+    if (previewImageWrap) {
+      previewImageWrap.setAttribute('tabindex', '-1');
+      try { previewImageWrap.focus({ preventScroll: true }); } catch (err) { previewImageWrap.focus(); }
+    }
+    setStatus('Tryck ' + pasteShortcutHint + ' för att klistra in bilden.');
+  }
+
+  function closeUploadMenu() {
+    uploadMenuOpen = false;
+    if (previewUploadMenu) previewUploadMenu.classList.add('hidden');
+    if (btnUploadImage) btnUploadImage.setAttribute('aria-expanded', 'false');
+  }
+
+  function openUploadMenu() {
+    uploadMenuOpen = true;
+    if (previewUploadMenu) previewUploadMenu.classList.remove('hidden');
+    if (btnUploadImage) btnUploadImage.setAttribute('aria-expanded', 'true');
+  }
+
+  function toggleUploadMenu() {
+    if (uploadMenuOpen) closeUploadMenu();
+    else openUploadMenu();
+  }
+
+  function pastePreviewImageFromClipboard() {
+    closeUploadMenu();
+    if (!navigator.clipboard || !navigator.clipboard.read) {
+      armPreviewPaste();
+      return;
+    }
+    navigator.clipboard.read().then(function(items) {
+      var types = [];
+      items.forEach(function(item) {
+        item.types.forEach(function(type) {
+          if (type.indexOf('image/') === 0) types.push({ item: item, type: type });
+        });
+      });
+      if (!types.length) return false;
+      return types[0].item.getType(types[0].type).then(function(blob) {
+        var file = new File([blob], 'clipboard.png', { type: blob.type || types[0].type });
+        return applyPreviewImageFromFile(file);
+      });
+    }).then(function(ok) {
+      if (ok === false) {
+        setStatus('Ingen bild i urklipp — kopiera en bild och försök igen.', true);
+      }
+    }).catch(function() {
+      armPreviewPaste();
+    });
   }
 
   function getActiveImageDropTarget() {
@@ -283,7 +559,7 @@
     var thumb = document.getElementById(thumbId);
 
     function applyFile(f) {
-      if (!f || !f.type.startsWith('image/')) return;
+      if (!isLikelyImageFile(f)) return;
       readFileAsBase64(f).then(function(r) {
         setPendingImage(r.data, r.mimeType, dropId, thumbId);
       }).catch(function() { setStatus('Kunde inte läsa bilden', true); });
@@ -310,6 +586,23 @@
   }
 
   document.addEventListener('paste', function(e) {
+    if (previewEl && previewEl.classList.contains('visible')) {
+      var file = extractImageFromClipboard(e);
+      if (file) {
+        e.preventDefault();
+        closeUploadMenu();
+        awaitingPreviewPaste = false;
+        applyPreviewImageFromFile(file).catch(function() {
+          setStatus('Kunde inte läsa bilden', true);
+        });
+        return;
+      }
+      if (awaitingPreviewPaste) {
+        setStatus('Ingen bild i urklipp — kopiera en bild och försök igen.', true);
+        awaitingPreviewPaste = false;
+        return;
+      }
+    }
     var target = getActiveImageDropTarget();
     if (!target) return;
     pasteImageToDrop(e, target.dropId, target.thumbId);
@@ -318,42 +611,157 @@
   bindImageDrop('drop-text', 'file-text', 'thumb-text');
   bindImageDrop('drop-image', 'file-image', 'thumb-image');
 
-  document.getElementById('btn-upload-image').addEventListener('click', function() {
-    document.getElementById('file-preview').click();
+  if (btnUploadPaste) {
+    btnUploadPaste.textContent = 'Klistra in (' + pasteShortcutHint + ')';
+  }
+
+  if (btnUploadImage) {
+    btnUploadImage.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleUploadMenu();
+    });
+  }
+
+  if (previewUploadMenu) {
+    previewUploadMenu.addEventListener('click', function(e) {
+      var item = e.target.closest('[data-upload-action]');
+      if (!item) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (item.getAttribute('data-upload-action') === 'file') {
+        if (filePreviewInput) filePreviewInput.click();
+        closeUploadMenu();
+        return;
+      }
+      pastePreviewImageFromClipboard();
+    });
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!uploadMenuOpen || !previewUploadWrap) return;
+    if (!previewUploadWrap.contains(e.target)) closeUploadMenu();
   });
-  document.getElementById('file-preview').addEventListener('change', function(e) {
-    var f = e.target.files && e.target.files[0];
-    if (!f) return;
-    readFileAsBase64(f).then(function(r) {
-      pendingImageBase64 = r.data;
-      pendingMimeType = r.mimeType;
-      if (currentRecipe) updatePreviewImage(currentRecipe);
-      setStatus('Bild vald — sparas vid Spara recept.');
-    }).catch(function() { setStatus('Kunde inte läsa bilden', true); });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeUploadMenu();
   });
+
+  if (filePreviewInput) {
+    filePreviewInput.addEventListener('change', function(e) {
+      var f = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!f) return;
+      applyPreviewImageFromFile(f).catch(function() {
+        setStatus('Kunde inte läsa bilden', true);
+      });
+    });
+  }
+
+  if (previewImageWrap) {
+    previewImageWrap.addEventListener('dragover', function(e) {
+      if (!previewEl.classList.contains('visible')) return;
+      if (!e.dataTransfer || !e.dataTransfer.types || !Array.prototype.some.call(e.dataTransfer.types, function(t) {
+        return t === 'Files' || t.indexOf('image/') === 0;
+      })) return;
+      e.preventDefault();
+    });
+    previewImageWrap.addEventListener('drop', function(e) {
+      if (!previewEl.classList.contains('visible')) return;
+      e.preventDefault();
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (!f) return;
+      applyPreviewImageFromFile(f).catch(function() {
+        setStatus('Kunde inte läsa bilden', true);
+      });
+    });
+  }
 
   function updatePageHeading() {
     var heading = document.getElementById('page-heading');
     if (!heading) return;
     heading.textContent = editMode ? 'Redigera recept' : 'Lägg till recept';
     document.title = (editMode ? 'Redigera recept' : 'Lägg till recept') + ' — Macro-friendly recipes';
+    updateDeleteButton();
   }
 
-  function addRouteUrl(route) {
+  function updateDeleteButton() {
+    var btn = document.getElementById('btn-delete-recipe');
+    if (!btn) return;
+    var show = editMode && currentRecipe && currentRecipe.id && recipeExistsInDb(currentRecipe.id);
+    btn.classList.toggle('hidden', !show);
+  }
+
+  function deleteCurrentRecipe() {
+    if (!currentRecipe || !currentRecipe.id || !recipeExistsInDb(currentRecipe.id)) return;
+    var title = currentRecipe.title || currentRecipe.id;
+    if (!confirm('Ta bort «' + title + '» permanent? Detta går inte att ångra.')) return;
+    var id = currentRecipe.id;
+    var btn = document.getElementById('btn-delete-recipe');
+    if (btn) btn.disabled = true;
+    setStatus('Tar bort…');
+    fetch('/api/recipes/' + encodeURIComponent(id), {
+      method: 'DELETE',
+      credentials: 'same-origin'
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Kunde inte ta bort');
+        return data;
+      });
+    }).then(function() {
+      recipeList = recipeList.filter(function(r) { return r.id !== id; });
+      editingRecipeId = null;
+      currentRecipe = null;
+      previewEl.classList.remove('visible');
+      reviewActive = false;
+      clearPendingImage();
+      populateEditSelect();
+      editSelect.value = '';
+      updateDeleteButton();
+      setStatus('Recept borttaget.');
+      history.replaceState(null, '', ADD_BASE + '/redigera');
+    }).catch(function(ex) {
+      setStatus(ex.message, true);
+    }).finally(function() {
+      if (btn) btn.disabled = false;
+    });
+  }
+
+  var pendingEditIdFromSession = null;
+
+  function editIdFromUrl() {
+    return new URLSearchParams(location.search).get('edit');
+  }
+
+  function consumeSessionEditId() {
+    if (pendingEditIdFromSession) return pendingEditIdFromSession;
+    try {
+      var stored = sessionStorage.getItem('recept_edit_id');
+      if (stored) {
+        pendingEditIdFromSession = stored;
+        sessionStorage.removeItem('recept_edit_id');
+        return stored;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function resolveEditId() {
+    return editIdFromUrl() || consumeSessionEditId();
+  }
+
+  function addRouteUrl(route, editId) {
     if (route === 'redigera') {
-      var editId = new URLSearchParams(location.search).get('edit');
-      return editId
-        ? ADD_BASE + '/redigera?edit=' + encodeURIComponent(editId)
+      var id = editId || resolveEditId();
+      return id
+        ? ADD_BASE + '/redigera?edit=' + encodeURIComponent(id)
         : ADD_BASE + '/redigera';
     }
     return ADD_BASE + '/' + route;
   }
 
   function parseAddRoute() {
-    var editId = new URLSearchParams(location.search).get('edit');
-    if (editId) return 'redigera';
     var p = location.pathname.replace(/\/$/, '');
-    if (p.endsWith('/redigera')) return 'redigera';
+    if (editIdFromUrl() || p.endsWith('/redigera')) return 'redigera';
     if (p.endsWith('/bild')) return 'bild';
     if (p.endsWith('/url')) return 'url';
     if (p.endsWith('/text')) return 'text';
@@ -362,15 +770,11 @@
   }
 
   function syncTabLinks() {
-    var editId = new URLSearchParams(location.search).get('edit');
+    var editId = editIdFromUrl();
     document.querySelectorAll('[data-add-route]').forEach(function(el) {
       var route = el.getAttribute('data-add-route');
       if (!route) return;
-      var href = ADD_BASE + '/' + route;
-      if (route === 'redigera' && editId) {
-        href += '?edit=' + encodeURIComponent(editId);
-      }
-      el.href = href;
+      el.href = addRouteUrl(route, editId);
     });
   }
 
@@ -396,11 +800,13 @@
     setCreateSubMode(mode, options.skipFocus);
   }
 
-  function navigateAddRoute(route, replace) {
-    var url = addRouteUrl(route);
+  function navigateAddRoute(route, replace, editId) {
+    if (route === 'text' || route === 'url' || route === 'bild') reviewActive = false;
+    var url = addRouteUrl(route, editId);
     applyAddRoute(route);
     syncTabLinks();
     var state = { addRoute: route };
+    if (editId) state.editId = editId;
     if (replace) history.replaceState(state, '', url);
     else history.pushState(state, '', url);
   }
@@ -415,20 +821,14 @@
       });
     });
     window.addEventListener('popstate', function() {
-      applyAddRoute(parseAddRoute());
-      bootEditFromQuery();
+      initAddPage();
     });
   }
 
   function bootAddRoute() {
     var route = parseAddRoute();
     var p = location.pathname.replace(/\/$/, '');
-    var editId = new URLSearchParams(location.search).get('edit');
 
-    if (editId && route !== 'redigera') {
-      navigateAddRoute('redigera', true);
-      return 'redigera';
-    }
     if (/\/add(\.html)?$/i.test(p)) {
       navigateAddRoute(route, true);
       return route;
@@ -438,22 +838,44 @@
     return route;
   }
 
+  function bootEditMode(editId) {
+    if (!editId) return;
+    var canonical = addRouteUrl('redigera', editId);
+    if (location.pathname + location.search !== canonical) {
+      history.replaceState({ addRoute: 'redigera', editId: editId }, '', canonical);
+    }
+    showEditPanel();
+    syncTabActive('redigera');
+    syncTabLinks();
+    populateEditSelect(editId);
+    editSelect.value = editId;
+    loadRecipeById(editId);
+  }
+
+  function initAddPage() {
+    var editId = resolveEditId();
+    if (editId) {
+      bootEditMode(editId);
+      return;
+    }
+    bootAddRoute();
+  }
+
   function showCreatePanel() {
     editMode = false;
     document.getElementById('tab-create').classList.add('active');
     document.getElementById('tab-edit').classList.remove('active');
-    document.getElementById('panel-create').classList.remove('hidden');
     document.getElementById('panel-edit').classList.add('hidden');
     updatePageHeading();
+    syncInputPanels();
   }
 
   function showEditPanel() {
     editMode = true;
     document.getElementById('tab-edit').classList.add('active');
     document.getElementById('tab-create').classList.remove('active');
-    document.getElementById('panel-edit').classList.remove('hidden');
-    document.getElementById('panel-create').classList.add('hidden');
     updatePageHeading();
+    syncInputPanels();
   }
 
   function setCreateSubMode(mode, skipFocus) {
@@ -489,19 +911,34 @@
 
   function loadRecipeById(id) {
     if (!id) return;
+    editingRecipeId = id;
     setStatus('Hämtar…');
     clearPendingImage();
     fetch('/api/recipes/' + encodeURIComponent(id), { credentials: 'same-origin' })
       .then(function(res) {
         return res.json().then(function(data) {
           if (!res.ok) throw new Error(data.error || 'Hittades inte');
-          return data.recipe;
+          return data;
         });
       })
-      .then(function(recipe) {
-        editMode = true;
-        showPreview(recipe);
-        setStatus('Redigera och spara, eller uppdatera bild.');
+      .then(function(data) {
+        var recipe = data.recipe;
+        if (!recipe) throw new Error('Hittades inte');
+        if (data.featuredNew !== undefined) recipe.featuredNew = !!data.featuredNew;
+        savedImageLoadFailed = false;
+        var done = function() {
+          editMode = true;
+          showPreview(recipe);
+          setStatus('Redigera och spara, eller uppdatera bild.');
+        };
+        if (!recipe.image) {
+          done();
+          return;
+        }
+        fetchImageAsBase64Optional(imageSrcForRecipe(recipe)).then(function(snapshot) {
+          if (!snapshot) savedImageLoadFailed = true;
+          done();
+        });
       })
       .catch(function(ex) { setStatus(ex.message, true); });
   }
@@ -509,19 +946,64 @@
   editSelect.addEventListener('change', function() {
     var id = editSelect.value;
     if (!id) {
+      editingRecipeId = null;
       previewEl.classList.remove('visible');
       currentRecipe = null;
+      updateDeleteButton();
       setStatus('');
       return;
     }
     loadRecipeById(id);
   });
 
+  var btnDeleteRecipe = document.getElementById('btn-delete-recipe');
+  if (btnDeleteRecipe) {
+    btnDeleteRecipe.addEventListener('click', deleteCurrentRecipe);
+  }
+
   function recipeExistsInDb(id) {
     for (var i = 0; i < recipeList.length; i++) {
       if (recipeList[i].id === id) return true;
     }
     return false;
+  }
+
+  function receptCookiePath() {
+    var path = location.pathname;
+    var idx = path.indexOf('/recept');
+    if (idx <= 0) return '/';
+    return path.slice(0, idx) || '/';
+  }
+
+  function readSeenRecipeIds() {
+    var m = document.cookie.match(new RegExp('(?:^|; )' + VISIT_COOKIE_NAME + '=([^;]*)'));
+    if (!m) return {};
+    try { return JSON.parse(decodeURIComponent(m[1])) || {}; } catch (e) { return {}; }
+  }
+
+  function clearFeaturedSeen(id) {
+    if (!id) return;
+    var seen = readSeenRecipeIds();
+    delete seen[id];
+    document.cookie = VISIT_COOKIE_NAME + '=' + encodeURIComponent(JSON.stringify(seen))
+      + ';path=' + receptCookiePath() + ';max-age=' + VISIT_COOKIE_MAX_AGE + ';SameSite=Lax';
+  }
+
+  function syncFeaturedNewCheckbox(recipe) {
+    var cb = document.getElementById('featured-new');
+    if (!cb || !recipe) return;
+    if (recipe.featuredNew !== undefined) {
+      cb.checked = !!recipe.featuredNew;
+      return;
+    }
+    if (!recipe.id || !recipeExistsInDb(recipe.id)) {
+      cb.checked = true;
+    }
+  }
+
+  function applyRecipeMeta(recipe, data) {
+    if (data && data.featuredNew !== undefined) recipe.featuredNew = !!data.featuredNew;
+    return recipe;
   }
 
   function imageSrcForRecipe(recipe, bust) {
@@ -535,9 +1017,14 @@
   }
 
   function readRecipeFromForm() {
+    var idEl = document.getElementById('edit-id');
+    var titleEl = document.getElementById('edit-title');
+    if (!idEl || !titleEl) {
+      throw new Error('Granskningsformuläret saknas — granska receptet igen.');
+    }
     var recipe = {
-      id: document.getElementById('edit-id').value.trim(),
-      title: document.getElementById('edit-title').value.trim(),
+      id: idEl.value.trim(),
+      title: titleEl.value.trim(),
       category: document.getElementById('edit-category').value,
       baseServings: parseInt(document.getElementById('edit-servings').value, 10) || 1,
       source: document.getElementById('edit-source').value.trim(),
@@ -553,7 +1040,7 @@
       steps: [],
       tips: []
     };
-    if (currentRecipe && currentRecipe.image) recipe.image = currentRecipe.image;
+    if (currentRecipe && currentRecipe.image && !savedImageLoadFailed) recipe.image = currentRecipe.image;
     previewForm.querySelectorAll('input[data-tag]:checked').forEach(function(cb) {
       recipe.tags.push(cb.getAttribute('data-tag'));
     });
@@ -588,6 +1075,16 @@
       recipe.tips.push({ title: recipe.tips.length === 0 ? 'Seattle' : '', text: '' });
     }
     recipe.tips = recipe.tips.slice(0, 4);
+    if (!/^seattle$/i.test(recipe.tips[0].title)) {
+      if (/^för barn$/i.test(recipe.tips[0].title) || !recipe.tips[0].title) {
+        recipe.tips[0].title = 'Seattle';
+      }
+    }
+    if (!recipe.source) recipe.source = 'Okänd källa';
+    if ((!recipe.id || recipe.id === 'recept') && recipe.title) {
+      recipe.id = slugifyTitle(recipe.title);
+      idEl.value = recipe.id;
+    }
     if (currentRecipe && currentRecipe.badges) recipe.badges = currentRecipe.badges;
     return recipe;
   }
@@ -647,8 +1144,10 @@
 
   function renderPreviewForm(recipe) {
     previewMetaFields.replaceChildren();
-    previewMetaFields.appendChild(fieldInput('edit-id', 'Id', recipe.id));
-    previewMetaFields.appendChild(fieldInput('edit-title', 'Titel', recipe.title));
+    var idField = fieldInput('edit-id', 'Id', recipe.id);
+    var titleField = fieldInput('edit-title', 'Titel', recipe.title);
+    previewMetaFields.appendChild(idField);
+    previewMetaFields.appendChild(titleField);
     var catWrap = mk('div', 'field');
     var catLbl = mk('label');
     catLbl.textContent = 'Måltid';
@@ -666,7 +1165,7 @@
     catWrap.appendChild(catSel);
     previewMetaFields.appendChild(catWrap);
     previewMetaFields.appendChild(fieldInput('edit-servings', 'Portioner', recipe.baseServings || 1, 'number'));
-    previewMetaFields.appendChild(fieldInput('edit-source', 'Källa', recipe.source));
+    previewMetaFields.appendChild(fieldInput('edit-source', 'Källa', recipe.source || 'Okänd källa'));
     previewMetaFields.appendChild(fieldInput('edit-source-url', 'Källa-URL', recipe.sourceUrl || ''));
 
     previewForm.replaceChildren();
@@ -792,10 +1291,219 @@
     previewForm.appendChild(tipsGrid);
   }
 
+  function previewHasImage(recipe) {
+    if (pendingImageBase64 && pendingMimeType) return true;
+    var img = recipe && recipe.image;
+    if (!img || !String(img).trim() || savedImageLoadFailed) return false;
+    return true;
+  }
+
+  function captureUndoSnapshot(recipe) {
+    if (pendingImageBase64 && pendingMimeType) {
+      return Promise.resolve({ mimeType: pendingMimeType, data: pendingImageBase64, empty: false });
+    }
+    if (recipe.image && !savedImageLoadFailed) {
+      return fetchImageAsBase64Optional(imageSrcForRecipe(recipe)).then(function(snapshot) {
+        if (snapshot) return { mimeType: snapshot.mimeType, data: snapshot.data, empty: false };
+        return { empty: true };
+      });
+    }
+    return Promise.resolve({ empty: true });
+  }
+
+  function getPreviewImageSnapshot(recipe) {
+    if (pendingImageBase64 && pendingMimeType) {
+      return Promise.resolve({ mimeType: pendingMimeType, data: pendingImageBase64 });
+    }
+    if (recipe.image && !savedImageLoadFailed) {
+      return fetchImageAsBase64Optional(imageSrcForRecipe(recipe)).then(function(snapshot) {
+        if (snapshot) return snapshot;
+        return Promise.reject(new Error('Bilden kunde inte laddas — generera en ny eller ladda upp.'));
+      });
+    }
+    return Promise.reject(new Error('Receptet saknar bild att förbättra.'));
+  }
+
+  function referenceImageForGenerate() {
+    if (pendingImageBase64 && pendingMimeType) {
+      return Promise.resolve({ mimeType: pendingMimeType, data: pendingImageBase64 });
+    }
+    return Promise.resolve(null);
+  }
+
+  function enhancePreviewImageClient(recipe, snapshot) {
+    return fetch('/api/enhance-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        imageBase64: snapshot.data,
+        mimeType: snapshot.mimeType,
+        title: recipe.title || 'Recept'
+      })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Bildförbättring misslyckades');
+        return data;
+      });
+    });
+  }
+
+  function generatePreviewImageClient(recipe, snapshot) {
+    var body = { recipe: recipe };
+    if (snapshot) {
+      body.imageBase64 = snapshot.data;
+      body.mimeType = snapshot.mimeType;
+    }
+    return fetch('/api/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(body)
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Bildgenerering misslyckades');
+        return data;
+      });
+    });
+  }
+
+  function enhanceSavedRecipeImage(recipe, snapshot) {
+    return fetch('/api/recipes/' + encodeURIComponent(recipe.id), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        recipe: recipe,
+        enhanceImage: true,
+        featuredNew: document.getElementById('featured-new').checked,
+        imageBase64: snapshot.data,
+        mimeType: snapshot.mimeType
+      })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) {
+          throw new Error((data.details && data.details.join(' · ')) || data.error || 'Bildförbättring misslyckades');
+        }
+        return data;
+      });
+    });
+  }
+
+  function generateAndUploadSavedRecipeImage(recipe, snapshot) {
+    return generatePreviewImageClient(recipe, snapshot).then(function(data) {
+      return putRecipeUpdate(recipe, {
+        uploadImage: true,
+        imageBase64: data.imageBase64,
+        mimeType: data.mimeType
+      });
+    });
+  }
+
+  function generateSavedRecipeImage(recipe, snapshot) {
+    var body = {
+      recipe: recipe,
+      generateImage: true,
+      featuredNew: document.getElementById('featured-new').checked
+    };
+    if (snapshot) {
+      body.imageBase64 = snapshot.data;
+      body.mimeType = snapshot.mimeType;
+    }
+    return fetch('/api/recipes/' + encodeURIComponent(recipe.id), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(body)
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) {
+          throw new Error((data.details && data.details.join(' · ')) || data.error || 'Bildgenerering misslyckades');
+        }
+        return data;
+      });
+    });
+  }
+
+  function applyPreviewImageResult(data, mode, savedInDb) {
+    finishRegenProgress(mode);
+    var successMsg = mode === 'generate'
+      ? (savedInDb ? 'Bild genererad och sparad.' : 'Bild genererad — sparas vid Spara recept.')
+      : (savedInDb ? 'Bild förbättrad och sparad.' : 'Bild förbättrad — sparas vid Spara recept.');
+    if (savedInDb) {
+      editMode = true;
+      clearPendingImage();
+      savedImageLoadFailed = false;
+      applyRecipeMeta(data.recipe, data);
+      showPreview(data.recipe);
+      if (data.recipe.image) {
+        previewImg.src = imageSrcForRecipe(data.recipe, true);
+      }
+      setTimeout(function() {
+        setStatusWithUndo(successMsg, undoRegenImage);
+      }, 250);
+      return;
+    }
+    pendingImageBase64 = data.imageBase64;
+    pendingMimeType = data.mimeType;
+    showPreview(readRecipeFromForm());
+    setTimeout(function() {
+      setStatusWithUndo(successMsg, undoRegenLocalImage);
+    }, 250);
+  }
+
+  function runImageAi(mode) {
+    var recipe = readRecipeFromForm();
+    if (!recipe.id) {
+      setStatus('Receptet saknar id.', true);
+      return;
+    }
+    if (mode === 'enhance' && !previewHasImage(recipe)) {
+      setStatus('Receptet saknar bild att förbättra.', true);
+      return;
+    }
+    setImageAiButtonsDisabled(true);
+    clearRegenHistory();
+    var savedInDb = recipeExistsInDb(recipe.id);
+
+    var work = mode === 'enhance'
+      ? captureUndoSnapshot(recipe).then(function(undo) {
+          regenUndoSnapshot = undo;
+          startRegenProgress(mode);
+          return getPreviewImageSnapshot(recipe).then(function(snapshot) {
+            if (savedInDb) return enhanceSavedRecipeImage(recipe, snapshot);
+            return enhancePreviewImageClient(recipe, snapshot);
+          });
+        })
+      : captureUndoSnapshot(recipe).then(function(undo) {
+          regenUndoSnapshot = undo;
+          startRegenProgress(mode);
+          return referenceImageForGenerate(recipe).then(function(snapshot) {
+            if (savedInDb && !previewHasImage(recipe)) {
+              return generateAndUploadSavedRecipeImage(recipe, snapshot);
+            }
+            if (savedInDb) return generateSavedRecipeImage(recipe, snapshot);
+            return generatePreviewImageClient(recipe, snapshot);
+          });
+        });
+
+    work.then(function(data) {
+      applyPreviewImageResult(data, mode, savedInDb);
+    }).catch(function(ex) {
+      clearRegenHistory();
+      setStatus(ex.message, true);
+    }).finally(function() { setImageAiButtonsDisabled(false); });
+  }
+
   function updatePreviewImage(recipe) {
     var hasPending = pendingImageBase64 && pendingMimeType;
-    var hasSaved = recipe.image && !hasPending;
+    var hasSaved = !!(recipe.image && String(recipe.image).trim()) && !hasPending && !savedImageLoadFailed;
+    previewImg.onerror = function() {
+      savedImageLoadFailed = true;
+      updatePreviewImage(recipe);
+    };
     if (hasPending) {
+      savedImageLoadFailed = false;
       previewImg.src = 'data:' + pendingMimeType + ';base64,' + pendingImageBase64;
       previewImg.classList.remove('hidden');
       previewImageWrap.classList.remove('no-image');
@@ -808,86 +1516,45 @@
       previewImg.removeAttribute('src');
       previewImageWrap.classList.add('no-image');
     }
-    btnRegenImage.classList.toggle('hidden', !hasSaved || !recipeExistsInDb(recipe.id));
+    var hasImage = previewHasImage(recipe);
+    if (hasImage) {
+      if (previewUploadWrap && previewImageActions && previewUploadWrap.parentNode !== previewImageActions) {
+        previewImageActions.insertBefore(previewUploadWrap, previewImageActions.firstChild);
+      }
+    } else if (previewUploadWrap && previewPlaceholderActions && previewUploadWrap.parentNode !== previewPlaceholderActions) {
+      previewPlaceholderActions.appendChild(previewUploadWrap);
+    }
+    if (btnGenerateImage) btnGenerateImage.classList.remove('hidden');
+    if (btnEnhanceImage) btnEnhanceImage.classList.toggle('hidden', !hasImage);
+    if (btnGeneratePlaceholder) btnGeneratePlaceholder.classList.toggle('hidden', hasImage);
   }
 
   function showPreview(recipe) {
     currentRecipe = recipe;
+    savedImageLoadFailed = false;
+    reviewActive = true;
     previewTitle.textContent = recipe.title || 'Granska recept';
     renderPreviewForm(recipe);
+    syncFeaturedNewCheckbox(recipe);
     updatePreviewImage(recipe);
     previewEl.classList.add('visible');
+    syncInputPanels();
+    previewEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (pendingImageBase64 && pendingMimeType) {
-      previewHint.textContent = 'Uppladdad bild sparas vid Spara. Redigera fält nedan.';
+      previewHint.textContent = 'Uppladdad bild sparas vid Spara. Generera eller förbättra med AI, eller redigera fält nedan.';
     } else if (recipe.image && recipeExistsInDb(recipe.id)) {
-      previewHint.textContent = 'Redigera receptet eller förbättra/ladda upp bild.';
+      previewHint.textContent = 'Generera ny bild, förbättra befintlig, eller ladda upp en annan.';
     } else if (recipe.image) {
       previewHint.textContent = 'Redigera och spara receptet.';
     } else {
-      previewHint.textContent = 'Ingen bild — ladda upp manuellt eller spara utan.';
+      previewHint.textContent = 'Ingen bild — generera med AI, ladda upp manuellt eller spara utan.';
     }
+    updateDeleteButton();
   }
 
-  btnRegenImage.addEventListener('click', function() {
-    var recipe = readRecipeFromForm();
-    if (!recipe.id) {
-      setStatus('Receptet saknar id.', true);
-      return;
-    }
-    if (!recipeExistsInDb(recipe.id)) {
-      setStatus('Spara receptet först innan du genererar ny bild.', true);
-      return;
-    }
-    if (!recipe.image && !(pendingImageBase64 && pendingMimeType)) {
-      setStatus('Receptet saknar bild att förbättra.', true);
-      return;
-    }
-    btnRegenImage.disabled = true;
-    clearRegenUndo();
-
-    var snapshotPromise = pendingImageBase64 && pendingMimeType
-      ? Promise.resolve({ mimeType: pendingMimeType, data: pendingImageBase64 })
-      : fetchImageAsBase64(imageSrcForRecipe(recipe));
-
-    snapshotPromise.then(function(snapshot) {
-      regenUndoSnapshot = snapshot;
-      startRegenProgress();
-      var regenBody = {
-        recipe: recipe,
-        regenerateImage: true,
-        featuredNew: document.getElementById('featured-new').checked
-      };
-      if (pendingImageBase64 && pendingMimeType) {
-        regenBody.imageBase64 = pendingImageBase64;
-        regenBody.mimeType = pendingMimeType;
-      }
-      return fetch('/api/recipes/' + encodeURIComponent(recipe.id), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(regenBody)
-      }).then(function(res) {
-        return res.json().then(function(data) {
-          if (!res.ok) {
-            throw new Error((data.details && data.details.join(' · ')) || data.error || 'Bildgenerering misslyckades');
-          }
-          return data;
-        });
-      });
-    }).then(function(data) {
-      finishRegenProgress();
-      editMode = true;
-      clearPendingImage();
-      showPreview(data.recipe);
-      previewImg.src = imageSrcForRecipe(data.recipe, true);
-      setTimeout(function() {
-        setStatusWithUndo('Bild förbättrad och sparad.', undoRegenImage);
-      }, 250);
-    }).catch(function(ex) {
-      clearRegenUndo();
-      setStatus(ex.message, true);
-    }).finally(function() { btnRegenImage.disabled = false; });
-  });
+  btnGenerateImage.addEventListener('click', function() { runImageAi('generate'); });
+  btnEnhanceImage.addEventListener('click', function() { runImageAi('enhance'); });
+  btnGeneratePlaceholder.addEventListener('click', function() { runImageAi('generate'); });
 
   document.getElementById('btn-parse-text').addEventListener('click', function() {
     var btn = document.getElementById('btn-parse-text');
@@ -1001,14 +1668,7 @@
   });
 
   function goToRecipe(id) {
-    var path = '/';
-    var p = location.pathname;
-    var idx = p.indexOf('/recept');
-    if (idx !== -1) {
-      path = p.slice(0, idx + 7);
-      if (!path.endsWith('/')) path += '/';
-    }
-    location.href = path + '#' + encodeURIComponent(id);
+    location.href = '/r/' + encodeURIComponent(id);
   }
 
   document.getElementById('btn-save').addEventListener('click', function() {
@@ -1016,24 +1676,39 @@
     var btn = document.getElementById('btn-save');
     btn.disabled = true;
 
-    var recipe = readRecipeFromForm();
+    var recipe;
+    try {
+      recipe = readRecipeFromForm();
+    } catch (ex) {
+      setStatus(ex.message, true);
+      btn.disabled = false;
+      return;
+    }
     if (!recipe.id || !recipe.title) {
-      setStatus('Id och titel krävs.', true);
+      setStatus('Id och titel krävs — fyll i titel i granskningsformuläret.', true);
+      btn.disabled = false;
+      return;
+    }
+    if (!recipe.groups || !recipe.groups.length) {
+      setStatus('Lägg till minst en ingrediensgrupp med ingredienser.', true);
+      var ingSec = previewForm.querySelector('.ing-groups');
+      if (ingSec) ingSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
       btn.disabled = false;
       return;
     }
 
-    var url = editMode
-      ? '/api/recipes/' + encodeURIComponent(recipe.id)
+    var saveId = editingRecipeId;
+    var url = saveId
+      ? '/api/recipes/' + encodeURIComponent(saveId)
       : '/api/recipes';
-    var method = editMode ? 'PUT' : 'POST';
+    var method = saveId ? 'PUT' : 'POST';
 
     var body = {
       recipe: recipe,
       featuredNew: document.getElementById('featured-new').checked
     };
 
-    if (editMode) {
+    if (saveId) {
       setStatus('Sparar…');
       if (pendingImageBase64 && pendingMimeType) {
         body.uploadImage = true;
@@ -1061,27 +1736,31 @@
         return data;
       });
     }).then(function(data) {
-      goToRecipe(data.recipe.id);
+      var saved = data.recipe;
+      if (body.featuredNew) {
+        clearFeaturedSeen(saved.id);
+        try { sessionStorage.setItem('recept_skip_visit_' + saved.id, '1'); } catch (e) {}
+      }
+      if (saveId) {
+        recipeList = recipeList.filter(function(r) { return r.id !== saveId; });
+      }
+      recipeList.push({ id: saved.id, title: saved.title });
+      editingRecipeId = saved.id;
+      currentRecipe = saved;
+      populateEditSelect(saved.id);
+      editSelect.value = saved.id;
+      if (saved.id !== saveId) {
+        history.replaceState(null, '', ADD_BASE + '/redigera?edit=' + encodeURIComponent(saved.id));
+      }
+      goToRecipe(saved.id);
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() { btn.disabled = false; });
   });
 
-  bindAddTabNav();
+  syncInputPanels();
 
-  function bootEditFromQuery() {
-    var editId = new URLSearchParams(location.search).get('edit');
-    if (!editId) return;
-    if (parseAddRoute() !== 'redigera') {
-      navigateAddRoute('redigera', true);
-    } else {
-      showEditPanel();
-      syncTabActive('redigera');
-    }
-    populateEditSelect(editId);
-    editSelect.value = editId;
-    loadRecipeById(editId);
-  }
+  bindAddTabNav();
 
   fetch('/api/auth/check', { credentials: 'same-origin' })
     .then(function(res) { return res.json(); })
@@ -1095,9 +1774,10 @@
         .then(function(res) { return res.json(); })
         .then(function(data) {
           recipeList = (data.recipes || []).map(function(r) { return { id: r.id, title: r.title }; });
-          populateEditSelect();
-          bootAddRoute();
-          bootEditFromQuery();
+          initAddPage();
+        })
+        .catch(function() {
+          initAddPage();
         });
     })
     .catch(function() {
