@@ -827,23 +827,41 @@ function servingScale(r) {
   return currentServings / getBaseServings(r);
 }
 
-function fillPerServingMacrosLine(el, r) {
-  if (!el || !r || !r.macros) return;
-  /* Equals (scaled total ÷ currentServings); stable under +/- scaler */
+/** Per-unit macros (stable under +/-); whole-batch totals scale with servings. */
+function fillDetailMacros(r) {
+  if (!r || !r.macros) return;
   var n = getBaseServings(r);
-  var kcal = Math.round(r.macros.kcal / n);
-  var prot = Math.round(r.macros.prot / n);
-  var carb = Math.round(r.macros.carb / n);
-  var fat = Math.round(r.macros.fat / n);
-  el.replaceChildren();
-  var label = mk('span', 'detail-macros-per-lbl');
-  label.textContent = getPerYieldLabel(r);
-  var vals = mk('span', 'detail-macros-per-vals');
-  vals.textContent =
-    kcal + '🔥 · ' + prot + 'P · ' + carb + 'C · ' + fat + 'F';
-  el.appendChild(label);
-  el.appendChild(document.createTextNode(' · '));
-  el.appendChild(vals);
+  var scale = servingScale(r);
+  var per = {
+    kcal: Math.round(r.macros.kcal / n),
+    prot: Math.round(r.macros.prot / n),
+    carb: Math.round(r.macros.carb / n),
+    fat: Math.round(r.macros.fat / n)
+  };
+  var tot = {
+    kcal: Math.round(r.macros.kcal * scale),
+    prot: Math.round(r.macros.prot * scale),
+    carb: Math.round(r.macros.carb * scale),
+    fat: Math.round(r.macros.fat * scale)
+  };
+  var unitEl = document.getElementById('m-unit');
+  if (unitEl) unitEl.textContent = getPerYieldLabel(r);
+  var kcalEl = document.getElementById('m-kcal');
+  var protEl = document.getElementById('m-prot');
+  var carbEl = document.getElementById('m-carb');
+  var fatEl = document.getElementById('m-fat');
+  var kcalTot = document.getElementById('m-kcal-tot');
+  var protTot = document.getElementById('m-prot-tot');
+  var carbTot = document.getElementById('m-carb-tot');
+  var fatTot = document.getElementById('m-fat-tot');
+  if (kcalEl) kcalEl.textContent = String(per.kcal);
+  if (protEl) protEl.textContent = per.prot + 'g';
+  if (carbEl) carbEl.textContent = per.carb + 'g';
+  if (fatEl) fatEl.textContent = per.fat + 'g';
+  if (kcalTot) kcalTot.textContent = 'totalt ' + tot.kcal;
+  if (protTot) protTot.textContent = 'totalt ' + tot.prot + 'g';
+  if (carbTot) carbTot.textContent = 'totalt ' + tot.carb + 'g';
+  if (fatTot) fatTot.textContent = 'totalt ' + tot.fat + 'g';
 }
 
 function capitalizeIngName(name) {
@@ -1131,11 +1149,7 @@ function applyServingsScale() {
   document.getElementById('serv-val').textContent = String(currentServings);
   var yieldLine = document.querySelector('.detail-yield');
   if (yieldLine) yieldLine.textContent = 'Listan avser ' + currentServings + ' portioner.';
-  document.getElementById('m-kcal').textContent = Math.round(r.macros.kcal * scale);
-  document.getElementById('m-prot').textContent = Math.round(r.macros.prot * scale) + 'g';
-  document.getElementById('m-carb').textContent = Math.round(r.macros.carb * scale) + 'g';
-  document.getElementById('m-fat').textContent = Math.round(r.macros.fat * scale) + 'g';
-  fillPerServingMacrosLine(document.getElementById('m-per'), r);
+  fillDetailMacros(r);
   document.querySelectorAll('.ing-amt').forEach(function(el) {
     el.textContent = fmt(parseFloat(el.dataset.base) * scale, el.dataset.unit);
   });
@@ -1423,28 +1437,30 @@ function showDetail(id, skipHistory) {
   copy.appendChild(actions);
 
   var macrosWrap = mk('div', 'detail-macros-wrap');
+  var unitLbl = mk('p', 'detail-macros-unit');
+  unitLbl.id = 'm-unit';
+  unitLbl.textContent = getPerYieldLabel(r);
+  macrosWrap.appendChild(unitLbl);
   var macrosDiv = mk('div', 'detail-macros');
   [
-    { id: 'm-kcal', val: r.macros.kcal, lbl: 'kcal' },
-    { id: 'm-prot', val: r.macros.prot + 'g', lbl: 'protein' },
-    { id: 'm-carb', val: r.macros.carb + 'g', lbl: 'kolhydrater' },
-    { id: 'm-fat', val: r.macros.fat + 'g', lbl: 'fett' }
+    { id: 'm-kcal', totId: 'm-kcal-tot', lbl: 'kcal' },
+    { id: 'm-prot', totId: 'm-prot-tot', lbl: 'protein' },
+    { id: 'm-carb', totId: 'm-carb-tot', lbl: 'kolhydrater' },
+    { id: 'm-fat', totId: 'm-fat-tot', lbl: 'fett' }
   ].forEach(function(m) {
     var mac = mk('div', 'detail-mac');
     var valEl = mk('span', 'detail-mac-val');
     valEl.id = m.id;
-    valEl.textContent = String(m.val);
     var lblEl = mk('span', 'detail-mac-lbl');
     lblEl.textContent = m.lbl;
+    var totEl = mk('span', 'detail-mac-tot');
+    totEl.id = m.totId;
     mac.appendChild(valEl);
     mac.appendChild(lblEl);
+    mac.appendChild(totEl);
     macrosDiv.appendChild(mac);
   });
   macrosWrap.appendChild(macrosDiv);
-  var perLine = mk('p', 'detail-macros-per');
-  perLine.id = 'm-per';
-  fillPerServingMacrosLine(perLine, r);
-  macrosWrap.appendChild(perLine);
   copy.appendChild(macrosWrap);
 
   var media = mk('div', 'detail-lead-media');
