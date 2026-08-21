@@ -62,9 +62,17 @@ Språk — ingredienser och steg (naturlig svenska, inte ord-för-ord):
   - fat-free / nonfat cottage cheese → «keso 0,1%»
   - full-fat Greek yogurt → «grekisk yoghurt 10%» (eller 6–10% om osäkert); nonfat → «grekisk yoghurt 0%»
   - whole milk → «helmjölk»; 2% → «mellanmjölk»; skim → «lättmjölk»
+- **Vanliga matord (inte anglicismer):**
+  - soy sauce / sojasås → **«soja»** (inte sojasås)
+  - cubed / diced → **«tärnad»** (aldrig «kuberad»); skriv «tärnad lax», inte «lax, kuberad»
+  - Persian cucumber / persisk gurka → **«gurka»** (i Sverige finns ingen «persisk gurka» i butik)
+  - vanilla paste → **«vaniljextrakt»** (eller «vaniljpasta» endast om källan tydligt menar pastaprodukt — föredra vaniljextrakt)
+  - spicy mayo / sriracha mayo → **«chilimajonnäs»** (inte «pikant majonnäs»)
+  - avocado → **«avokado»** konsekvent (inte avocado)
+- **Stegverb:** drizzle → «ringla» eller «droppa» — **aldrig** «dryppla». Fold gently → «vänd försiktigt».
 - **Maskin-/produktlägen** (Ninja Creami m.fl.): behåll **officiellt engelskt lägesnamn** i citattecken — översätt aldrig «Lite Ice Cream» till «lite glass». Ex: «kör på "Lite Ice Cream"-läget», «kör Re-spin». Skriv «Re-spin», inte «respinna».
 - Översätt instruktioner till flytande svenska men behåll varumärken, lägesnamn och etablerade lånord (gochujang, teriyaki, espresso, Creami).
-- Ingrediensnamn: lowercase, svenska vardagsord (cottage cheese → keso, scallion → salladslök, cornstarch → majsstärkelse).
+- Ingrediensnamn: lowercase, svenska vardagsord (cottage cheese → keso, scallion → salladslök, cornstarch → majsstärkelse). Prep före namn när det går («tärnad gurka»).
 
 Uppskatta makros för hela receptet.`
 

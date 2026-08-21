@@ -275,6 +275,29 @@ function normalizeIngredientName(name: string): string {
     .replace(/\b(nonfat|fat[\s-]?free|0%)\s+greek\s+yoghurt?\b/gi, 'grekisk yoghurt 0%')
     .replace(/\bwhole\s+milk\b/gi, 'helmjölk')
     .replace(/\bskim\s+milk\b/gi, 'lättmjölk')
+    // sojasås → soja
+    .replace(/\bsoy\s*sauce\b/gi, 'soja')
+    .replace(/\bsoja[\s-]?sås\b/gi, 'soja')
+    // persisk gurka → gurka
+    .replace(/\bpersisk(?:a)?\s+gurk(?:a|or)\b/gi, 'gurka')
+    .replace(/\bpersian\s+cucumbers?\b/gi, 'gurka')
+    // kuberad → tärnad; «X, tärnad» → «tärnad X»
+    .replace(/\bkuberad(?:e|a)?\b/gi, 'tärnad')
+    .replace(/\bcubed\b/gi, 'tärnad')
+    .replace(/\bdiced\b/gi, 'tärnad')
+    .replace(/^(.+?),\s*(tärnad|tärnade|finhackad|finhackade|hackad|hackade|skivad|skivade|smashad|smashade)\s*$/i, '$2 $1')
+    // vaniljpasta → vaniljextrakt (vardagligt svenskt skafferi)
+    .replace(/\bvanilla\s+(bean\s+)?paste\b/gi, 'vaniljextrakt')
+    .replace(/\bvaniljpasta\s+eller\s+vaniljextrakt\b/gi, 'vaniljextrakt')
+    .replace(/\bvaniljpasta\s*\([^)]*\)/gi, 'vaniljextrakt')
+    .replace(/\bvaniljextrakt\s*\([^)]*\)/gi, 'vaniljextrakt')
+    .replace(/\bvaniljpasta\b/gi, 'vaniljextrakt')
+    // spicy mayo
+    .replace(/\bspicy\s+mayo(?:nnaise)?\b/gi, 'chilimajonnäs')
+    .replace(/\bpikant\s+majonnäs\b/gi, 'chilimajonnäs')
+    .replace(/\bsrira?cha\s*mayo(?:nnaise)?\b/gi, 'chilimajonnäs')
+    // avocado stavning
+    .replace(/avocado/gi, 'avokado')
     .replace(/\s{2,}/g, ' ')
     .trim()
     .toLowerCase();
@@ -282,7 +305,7 @@ function normalizeIngredientName(name: string): string {
   return n;
 }
 
-/** Behåll produktlägen (Creami m.m.) — undvik «lite glass», «respinna». */
+/** Behåll produktlägen (Creami m.m.) — undvik «lite glass», «respinna», «dryppla». */
 function normalizeStepText(text: string): string {
   let t = String(text || '');
   if (!t) return t;
@@ -296,7 +319,18 @@ function normalizeStepText(text: string): string {
     .replace(/\brespinna\b/gi, 'Kör Re-spin')
     .replace(/\bre[\s-]?spinna\b/gi, 'Kör Re-spin')
     .replace(/\bKör\s+Kör\s+Re-spin/gi, 'Kör Re-spin')
-    .replace(/\bkör\s+Kör\s+Re-spin/gi, 'Kör Re-spin');
+    .replace(/\bkör\s+Kör\s+Re-spin/gi, 'Kör Re-spin')
+    .replace(/\bDryppla\b/g, 'Ringla')
+    .replace(/\bdryppla\b/gi, 'ringla')
+    .replace(/\bdrizzle\b/gi, 'ringla')
+    .replace(/\bpikant\s+majonnäs\b/gi, 'chilimajonnäs')
+    .replace(/\bspicy\s+mayo(?:nnaise)?\b/gi, 'chilimajonnäs')
+    .replace(/\bavocado\b/gi, 'avokado')
+    .replace(/avocado/gi, 'avokado')
+    .replace(/\bsoja[\s-]?sås\b/gi, 'soja')
+    .replace(/\bpersisk(?:a)?\s+gurk(?:a|or)\b/gi, 'gurka')
+    .replace(/\bkuberad(?:e|a)?\b/gi, 'tärnad')
+    .replace(/\blaxkuberna\b/gi, 'de tärnade laxbitarna');
 
   return t;
 }

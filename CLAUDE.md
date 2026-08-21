@@ -82,7 +82,7 @@ Så här använder du samma flöde **här i Cursor** utan separat app:
 - Makros gäller hela receptet, inte per portion
 - **`title` alltid på svenska** — översätt engelska/internationella källnamn (etablerade matlånord som gochujang, teriyaki, buffalo får stanna)
 - **`title` utan «protein»** — använd aldrig protein/högprotein i receptnamn; proteinhalt via badges och makros
-- **Ingrediensnamn på naturlig svenska** — inte ord-för-ord. Mejeri med fetthalt som butik: «keso 4%» (inte «fullfet keso»), «keso 1,5%», «grekisk yoghurt 0%». Maskinlägen (Ninja Creami m.fl.) behåll engelskt produktnamn: «"Lite Ice Cream"-läget», «Re-spin» — aldrig «lite glass» / «respinna»
+- **Ingrediensnamn på naturlig svenska** — inte ord-för-ord. Mejeri med fetthalt som butik: «keso 4%» (inte «fullfet keso»), «keso 1,5%», «grekisk yoghurt 0%». Maskinlägen (Ninja Creami m.fl.) behåll engelskt produktnamn: «"Lite Ice Cream"-läget», «Re-spin» — aldrig «lite glass» / «respinna». Övrigt: sojasås → **soja**; cubed → **tärnad** (inte kuberad); persisk gurka → **gurka**; vaniljpasta → **vaniljextrakt**; spicy mayo → **chilimajonnäs**; drizzle → **ringla** (inte dryppla); avocado → **avokado**
 - **`source` = ursprunglig skapare** — @handle, blogg/sajt eller kock + publikation. Läs av caption, URL och synlig @handle på skärmdumpar. **Aldrig** vän/familj som vidarebefordrat (t.ex. Antonia) om de inte själva postat receptet. Vid okänd: «Okänd källa»
 
 ## Makros

@@ -19,6 +19,7 @@ När användaren klistrar in en **recept-URL** (Instagram-inlägg/reel, blogg, t
 2. **Bygg objektet:** `id` i kebab-case (unikt), `category`, **`baseServings`** (portioner som listan och macros avser), **`tags`** från `TAG_FILTER_ORDER` / `TAG_LABELS` i `recept/app.js`, `emoji`, **`title` på svenska** (översätt alltid engelska källnamn; **aldrig «protein» i titeln**), **`source`** = ursprunglig skapare (@handle, sajtnamn — **inte** den som skickat receptet till dig), `sourceUrl` (http(s) eller tom för eget), `badges` (tid alltid **«XX min»** — inga ca/under/intervall), `macros` för **hela receptet**, `groups`, `steps`, **fyra** `tips` med första **Seattle**.
 3. **Mått:** Endast `g`, `msk`, `tsk`, `st`, ev. `pinch`/`näve`/`strimlor` — **lowercase** på ingrediensnamn. Valfritt `macros` per ingrediens för automatisk makrokontroll.
    - Mejeri: fetthalt som procent («keso 4%», inte «fullfet keso»). Creami-lägen: behåll engelska («Lite Ice Cream», Re-spin).
+   - sojasås→soja; kuberad→tärnad; persisk gurka→gurka; vaniljpasta→vaniljextrakt; dryppla→ringla; pikant majonnäs→chilimajonnäs; avocado→avokado.
 4. **Infoga:** Nytt element sist i `RECIPES` i `recept/recipes.js`. Uppdatera **`FEATURED_NEW_IDS`** i `recept/app.js` för "Nytt!".
 5. **Validera:** `node scripts/validate-recipes.mjs` ska passera.
 6. **Commit + push + deploy:** `git push origin main` och `cd worker && npm run deploy`.
