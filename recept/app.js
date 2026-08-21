@@ -1161,7 +1161,7 @@ function buildDetailIngredientsTable(r, shopMode, showMacros) {
   var checks = shopMode ? loadShopChecks(r.id) : {};
   var table = mk('table', 'ing-table' + (shopMode ? ' ing-table--shop' : '') + (showMacros ? ' ing-table--macros' : ''));
   var tbody = document.createElement('tbody');
-  var colCount = 2 + (shopMode ? 1 : 0) + (showMacros ? 1 : 0);
+  var colCount = 2 + (shopMode ? 1 : 0);
   r.groups.forEach(function(g, gi) {
     if (g.name) {
       var headRow = mk('tr', 'ing-grp-head');
@@ -1199,22 +1199,24 @@ function buildDetailIngredientsTable(r, shopMode, showMacros) {
       amtEl.textContent = fmt(ing.amount, ing.unit);
       qtyCell.appendChild(amtEl);
       var nameCell = mk('td', 'ing-name');
-      nameCell.textContent = ing.name;
-      row.appendChild(qtyCell);
-      row.appendChild(nameCell);
+      var nameText = mk('span', 'ing-name-text');
+      nameText.textContent = ing.name;
+      nameCell.appendChild(nameText);
       if (showMacros) {
-        var macroCell = mk('td', 'ing-macros');
+        var macroEl = mk('span', 'ing-macros');
         var est = estimateIngredientRow(ing);
         if (est) {
-          macroCell.dataset.baseKcal = est.kcal != null ? String(est.kcal) : '';
-          macroCell.dataset.baseProt = est.prot != null ? String(est.prot) : '';
-          macroCell.dataset.baseCarb = est.carb != null ? String(est.carb) : '';
-          macroCell.dataset.baseFat = est.fat != null ? String(est.fat) : '';
-          macroCell.dataset.baseGrams = est.grams != null ? String(est.grams) : '';
-          fillIngMacrosCell(macroCell, est, 1);
+          macroEl.dataset.baseKcal = est.kcal != null ? String(est.kcal) : '';
+          macroEl.dataset.baseProt = est.prot != null ? String(est.prot) : '';
+          macroEl.dataset.baseCarb = est.carb != null ? String(est.carb) : '';
+          macroEl.dataset.baseFat = est.fat != null ? String(est.fat) : '';
+          macroEl.dataset.baseGrams = est.grams != null ? String(est.grams) : '';
+          fillIngMacrosCell(macroEl, est, 1);
         }
-        row.appendChild(macroCell);
+        nameCell.appendChild(macroEl);
       }
+      row.appendChild(qtyCell);
+      row.appendChild(nameCell);
       tbody.appendChild(row);
     });
   });
