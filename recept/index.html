@@ -236,6 +236,21 @@
     gap: 0.5rem 0.65rem;
     margin-bottom: 1.15rem;
   }
+  .list-filter-display-prefs {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 0.4rem 0.75rem;
+    margin-left: auto;
+  }
+  .list-filter-display-pref {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.8125rem; font-weight: 500;
+    color: var(--text); cursor: pointer; white-space: nowrap;
+    user-select: none;
+  }
+  .list-filter-display-pref input {
+    width: 0.9rem; height: 0.9rem; margin: 0; flex-shrink: 0;
+    accent-color: var(--info);
+  }
   .list-filter-menu { position: relative; }
   .list-filter-trigger {
     display: inline-flex; align-items: center; gap: 0.35rem;

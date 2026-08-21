@@ -75,7 +75,9 @@ function addPageUrl(editId, sub) {
 var FEATURED_NEW_IDS = [];
 var VISIT_COOKIE_NAME = 'recept_seen_new';
 var FAVORITES_COOKIE_NAME = 'recept_favorites';
+var CARD_DISPLAY_COOKIE_NAME = 'recept_card_display';
 var VISIT_COOKIE_MAX_AGE = String(365 * 24 * 60 * 60);
+var DEFAULT_CARD_DISPLAY = { showNew: false, showQuickMacros: true };
 
 function readIdCookie(name) {
   try {
@@ -104,6 +106,24 @@ function getFavoriteIds() {
 
 function isFavorite(id) {
   return !!getFavoriteIds()[id];
+}
+
+function getCardDisplayPrefs() {
+  var data = readIdCookie(CARD_DISPLAY_COOKIE_NAME);
+  if (!data || typeof data !== 'object') {
+    return { showNew: DEFAULT_CARD_DISPLAY.showNew, showQuickMacros: DEFAULT_CARD_DISPLAY.showQuickMacros };
+  }
+  return {
+    showNew: data.showNew === true,
+    showQuickMacros: data.showQuickMacros !== false
+  };
+}
+
+function setCardDisplayPrefs(prefs) {
+  writeIdCookie(CARD_DISPLAY_COOKIE_NAME, {
+    showNew: !!prefs.showNew,
+    showQuickMacros: !!prefs.showQuickMacros
+  });
 }
 
 function toggleFavorite(id) {
@@ -553,7 +573,7 @@ function estimateRecipeTotalGrams(r) {
   return counted ? total : null;
 }
 
-/** Compact list-card label: «30P 100🔥 / 100g». Omits when grams/macros unusable. */
+/** Compact list-card label: «30P - 100🔥 / 100g». Omits when grams/macros unusable. */
 function formatCardMacrosPer100g(r) {
   if (!r || !r.macros) return null;
   var kcal = finiteOrNull(r.macros.kcal);
@@ -564,7 +584,7 @@ function formatCardMacrosPer100g(r) {
   var kcal100 = Math.round((kcal / totalGrams) * 100);
   var prot100 = Math.round((prot / totalGrams) * 100);
   if (!Number.isFinite(kcal100) || !Number.isFinite(prot100)) return null;
-  return prot100 + 'P ' + kcal100 + '🔥 / 100g';
+  return prot100 + 'P - ' + kcal100 + '🔥 / 100g';
 }
 
 function mk(tag, cls) {
@@ -781,6 +801,36 @@ function updateListHeading() {
   if (el) el.textContent = listHeadingText();
 }
 
+function appendCardDisplayPrefs(container) {
+  if (!container) return;
+  var prefs = getCardDisplayPrefs();
+  var wrap = mk('div', 'list-filter-display-prefs');
+
+  function makePref(key, labelText, checked) {
+    var label = mk('label', 'list-filter-display-pref');
+    var input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = checked;
+    label.appendChild(input);
+    var span = document.createElement('span');
+    span.textContent = labelText;
+    label.appendChild(span);
+    input.addEventListener('change', function(e) {
+      e.stopPropagation();
+      var next = getCardDisplayPrefs();
+      next[key] = input.checked;
+      setCardDisplayPrefs(next);
+      renderList();
+    });
+    return label;
+  }
+
+  wrap.appendChild(makePref('showNew', 'Visa "Nytt!"', prefs.showNew));
+  wrap.appendChild(makePref('showQuickMacros', 'Visa quick macros', prefs.showQuickMacros));
+  container.appendChild(wrap);
+  container.hidden = false;
+}
+
 function renderListFilters() {
   var el = document.getElementById('list-filters');
   if (!el || !window.ReceptBrowseNav) return;
@@ -794,6 +844,7 @@ function renderListFilters() {
       renderList();
     }
   });
+  appendCardDisplayPrefs(el);
 }
 
 function renderBrowseNav() {
@@ -1100,16 +1151,19 @@ function createRecipeCard(r) {
     emojiEl.textContent = r.emoji;
     media.appendChild(emojiEl);
   }
-  if (shouldShowNewBadge(r.id)) {
+  var displayPrefs = getCardDisplayPrefs();
+  if (displayPrefs.showNew && shouldShowNewBadge(r.id)) {
     var newLbl = mk('span', 'recipe-card-new');
     newLbl.textContent = 'Nytt!';
     media.appendChild(newLbl);
   }
-  var macros100 = formatCardMacrosPer100g(r);
-  if (macros100) {
-    var macLbl = mk('span', 'recipe-card-macros100');
-    macLbl.textContent = macros100;
-    media.appendChild(macLbl);
+  if (displayPrefs.showQuickMacros) {
+    var macros100 = formatCardMacrosPer100g(r);
+    if (macros100) {
+      var macLbl = mk('span', 'recipe-card-macros100');
+      macLbl.textContent = macros100;
+      media.appendChild(macLbl);
+    }
   }
   media.appendChild(createCardEditButton(r.id));
   media.appendChild(createFavoriteButton(r.id, 'fav-btn--card'));
