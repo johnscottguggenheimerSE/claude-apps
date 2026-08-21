@@ -298,6 +298,11 @@ function normalizeIngredientName(name: string): string {
     .replace(/\bsrira?cha\s*mayo(?:nnaise)?\b/gi, 'chilimajonnäs')
     // avocado stavning
     .replace(/avocado/gi, 'avokado')
+    // light ketchup → ketchup (marknadsföring; majonnäs/smör behåller fettskillnad)
+    .replace(/\blättketchup\b/gi, 'ketchup')
+    .replace(/\b(lätt|light|low[\s-]?cal(?:orie)?)\s*ketchup\b/gi, 'ketchup')
+    .replace(/\bketchup\s+med\s+lågt\s+kaloriinnehåll\b/gi, 'ketchup')
+    .replace(/\bketchup\s*\([^)]*kalor[^)]*\)/gi, 'ketchup')
     .replace(/\s{2,}/g, ' ')
     .trim()
     .toLowerCase();

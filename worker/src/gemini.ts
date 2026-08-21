@@ -69,6 +69,7 @@ Språk — ingredienser och steg (naturlig svenska, inte ord-för-ord):
   - vanilla paste → **«vaniljextrakt»** (eller «vaniljpasta» endast om källan tydligt menar pastaprodukt — föredra vaniljextrakt)
   - spicy mayo / sriracha mayo → **«chilimajonnäs»** (inte «pikant majonnäs»)
   - avocado → **«avokado»** konsekvent (inte avocado)
+  - light ketchup / lättketchup / ketchup med lågt kaloriinnehåll → **«ketchup»** (marknadsföring — räkna som vanlig ketchup)
 - **Stegverb:** drizzle → «ringla» eller «droppa» — **aldrig** «dryppla». Fold gently → «vänd försiktigt».
 - **Maskin-/produktlägen** (Ninja Creami m.fl.): behåll **officiellt engelskt lägesnamn** i citattecken — översätt aldrig «Lite Ice Cream» till «lite glass». Ex: «kör på "Lite Ice Cream"-läget», «kör Re-spin». Skriv «Re-spin», inte «respinna».
 - Översätt instruktioner till flytande svenska men behåll varumärken, lägesnamn och etablerade lånord (gochujang, teriyaki, espresso, Creami).
@@ -337,13 +338,17 @@ export async function enhanceFoodImage(
 
 type MacroTotals = { kcal: number; prot: number; carb: number; fat: number };
 
-/** Näringsvärden per 100 g (typiska svenska/handelsvärden). */
+const ING_PREP_RE =
+  'tärnad|tärnade|kuberad|kuberade|hackad|hackade|finhackad|finhackade|grovhackad|grovhackade|skivad|skivade|smashad|smashade|juliennad|juliennade|riven|rivna|persisk|persiska|färsk|färska';
+
+/** Näringsvärden per 100 g (typiska svenska/handelsvärden). Speglar recept/app.js. */
 const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
   { re: /kycklingfärs|malet kyckling|ground chicken/i, m: { kcal: 115, prot: 21, carb: 0, fat: 5 } },
   { re: /nötfärs|malet nötkött|extra mager nöt/i, m: { kcal: 150, prot: 20, carb: 0, fat: 8 } },
   { re: /fläsk|malet fläsk|pork/i, m: { kcal: 200, prot: 17, carb: 0, fat: 15 } },
   { re: /kycklingbröst|kycklingfilé/i, m: { kcal: 110, prot: 23, carb: 0, fat: 1.5 } },
   { re: /räk|shrimp|prawn/i, m: { kcal: 85, prot: 18, carb: 1, fat: 1 } },
+  { re: /lax|salmon/i, m: { kcal: 190, prot: 20, carb: 0, fat: 12 } },
   { re: /tonfisk|tuna/i, m: { kcal: 130, prot: 25, carb: 0, fat: 3 } },
   { re: /keso\s*0|cottage\s*(cheese)?\s*(fat[\s-]?free|nonfat)/i, m: { kcal: 70, prot: 12, carb: 3, fat: 0.5 } },
   { re: /keso\s*1[,.]?\s*5|cottage\s*(cheese)?\s*(low|reduced)/i, m: { kcal: 72, prot: 12, carb: 3, fat: 1.5 } },
@@ -358,10 +363,14 @@ const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
   { re: /rispapper/i, m: { kcal: 330, prot: 0, carb: 82, fat: 0 } },
   { re: /panko|ströbröd/i, m: { kcal: 380, prot: 12, carb: 72, fat: 3 } },
   { re: /parmesan|mozzarella|cheddar|ost\b/i, m: { kcal: 350, prot: 25, carb: 2, fat: 27 } },
-  { re: /olja|oil|smör|butter/i, m: { kcal: 884, prot: 0, carb: 0, fat: 100 } },
+  /* Stekspray = olja (svensk logik — aldrig 0 kcal / US-etikett) */
+  { re: /stekspray|olivoljespray|cooking\s*spray|oil\s*spray|\bpam\b|matlagningsspray/i, m: { kcal: 884, prot: 0, carb: 0, fat: 100 } },
   { re: /sesamolja/i, m: { kcal: 884, prot: 0, carb: 0, fat: 100 } },
+  { re: /olja|oil|smör|butter/i, m: { kcal: 884, prot: 0, carb: 0, fat: 100 } },
   { re: /sesamfrö/i, m: { kcal: 570, prot: 18, carb: 12, fat: 50 } },
   { re: /soja|soy sauce|thaisoja|coconut aminos/i, m: { kcal: 55, prot: 8, carb: 5, fat: 0 } },
+  { re: /sriracha|chilisås|chili\s*sauce|hot\s*sauce/i, m: { kcal: 95, prot: 1, carb: 20, fat: 1 } },
+  { re: /ketchup/i, m: { kcal: 100, prot: 1, carb: 25, fat: 0 } },
   { re: /mirin/i, m: { kcal: 230, prot: 0, carb: 45, fat: 0 } },
   { re: /honung|lönnsirap|maple/i, m: { kcal: 320, prot: 0, carb: 80, fat: 0 } },
   { re: /socker|farinsocker/i, m: { kcal: 400, prot: 0, carb: 100, fat: 0 } },
@@ -371,9 +380,10 @@ const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
   { re: /fisksås/i, m: { kcal: 35, prot: 5, carb: 4, fat: 0 } },
   { re: /vitlök/i, m: { kcal: 130, prot: 6, carb: 28, fat: 0 } },
   { re: /ingefära/i, m: { kcal: 80, prot: 2, carb: 18, fat: 1 } },
-  { re: /vårlök|salladslök/i, m: { kcal: 32, prot: 2, carb: 7, fat: 0 } },
+  { re: /vårlök|salladslök|scallion|green\s*onion/i, m: { kcal: 32, prot: 2, carb: 7, fat: 0 } },
   { re: /lök|rödlök|gul lök/i, m: { kcal: 40, prot: 1, carb: 9, fat: 0 } },
-  { re: /gurka/i, m: { kcal: 15, prot: 1, carb: 3, fat: 0 } },
+  { re: /gurka|cucumber/i, m: { kcal: 15, prot: 1, carb: 3, fat: 0 } },
+  { re: /avokado|avocado/i, m: { kcal: 160, prot: 2, carb: 9, fat: 15 } },
   { re: /morot/i, m: { kcal: 40, prot: 1, carb: 9, fat: 0 } },
   { re: /paprika(?!pulver)/i, m: { kcal: 30, prot: 1, carb: 6, fat: 0 } },
   { re: /banan/i, m: { kcal: 90, prot: 1, carb: 23, fat: 0 } },
@@ -388,10 +398,20 @@ const PIECE_G: Array<{ re: RegExp; g: number }> = [
   { re: /wrapper|wonton|gyoza|dumpling/i, g: 7 },
   { re: /äggvita/i, g: 33 },
   { re: /ägg/i, g: 55 },
-  { re: /vårlök|salladslök/i, g: 10 },
+  { re: /avokado|avocado/i, g: 170 },
+  { re: /gurka|cucumber/i, g: 280 },
+  { re: /vårlök|salladslök|scallion/i, g: 10 },
   { re: /vitlöksklyfta|vitlök/i, g: 3 },
   { re: /banan/i, g: 120 },
   { re: /rispapper/i, g: 10 },
+];
+
+/** Ungefärlig vikt per näve. */
+const NAVE_G: Array<{ re: RegExp; g: number }> = [
+  { re: /sesamfrö/i, g: 12 },
+  { re: /vårlök|salladslök|scallion|green\s*onion/i, g: 20 },
+  { re: /koriander|persilja|basilika|mynta|ört/i, g: 15 },
+  { re: /grönkål|spenat|ruccola|blad/i, g: 30 },
 ];
 
 function emptyMacros(): MacroTotals {
@@ -416,9 +436,50 @@ function roundMacros(m: MacroTotals): MacroTotals {
   };
 }
 
+function isCookingSprayName(name: string): boolean {
+  return /stekspray|olivoljespray|cooking\s*spray|oil\s*spray|\bpam\b|matlagningsspray/i.test(name);
+}
+
+function isOilLikeName(name: string): boolean {
+  return isCookingSprayName(name) || /olja|oil|smör|butter/i.test(name);
+}
+
+/** Strip prep/varianter så «lax, kuberad» / «hackad salladslök (…)» matchar baslivsmedel. */
+function normalizeNameForMacros(name: string): string {
+  let n = String(name || '').toLowerCase().trim();
+  n = n
+    .replace(/\b(lätt|light|low[\s-]?cal(?:orie)?)\s*ketchup\b/gi, 'ketchup')
+    .replace(/\bketchup\s+med\s+lågt\s+kaloriinnehåll\b/gi, 'ketchup')
+    .replace(/\bketchup\s*\([^)]*kalor[^)]*\)/gi, 'ketchup')
+    .replace(/\s*\([^)]*\)/g, ' ')
+    .replace(new RegExp(`,\\s*(?:${ING_PREP_RE})(?:\\s+(?:och|och\\s+)?[\\wåäö-]*)*$`, 'i'), '')
+    .replace(new RegExp(`^(?:${ING_PREP_RE})\\s+`, 'i'), '')
+    .replace(/\bpersisk(?:a)?\s+/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return n;
+}
+
 function lookupPer100g(name: string): MacroTotals | null {
+  const n = normalizeNameForMacros(name);
   for (const row of PER_100G) {
-    if (row.re.test(name)) return row.m;
+    if (row.re.test(n) || row.re.test(name)) return row.m;
+  }
+  return null;
+}
+
+function lookupPieceG(name: string): number | null {
+  const n = normalizeNameForMacros(name);
+  for (const row of PIECE_G) {
+    if (row.re.test(n) || row.re.test(name)) return row.g;
+  }
+  return null;
+}
+
+function lookupNaveG(name: string): number | null {
+  const n = normalizeNameForMacros(name);
+  for (const row of NAVE_G) {
+    if (row.re.test(n) || row.re.test(name)) return row.g;
   }
   return null;
 }
@@ -428,21 +489,33 @@ function amountToGrams(amount: number, unit: string, name: string): number | nul
   if (!Number.isFinite(amount) || amount <= 0) return 0;
   if (u === 'g') return amount;
   if (u === 'msk') {
-    // Olja/fetter: 1 msk ≈ 14 g; övriga vätskor ≈ 15 g
-    if (/olja|oil|smör|butter/i.test(name)) return amount * 14;
+    if (isOilLikeName(name)) return amount * 14;
     return amount * 15;
   }
   if (u === 'tsk') {
-    if (/olja|oil|smör|butter/i.test(name)) return amount * 4.5;
+    if (isOilLikeName(name)) return amount * 4.5;
     return amount * 5;
   }
   if (u === 'st') {
-    for (const row of PIECE_G) {
-      if (row.re.test(name)) return amount * row.g;
-    }
+    if (isCookingSprayName(name)) return amount * 1.5;
+    const piece = lookupPieceG(name);
+    if (piece != null) return amount * piece;
     return null;
   }
-  if (u === 'pinch' || u === 'näve' || u === 'strimlor') return 0;
+  if (u === 'pinch') {
+    if (isCookingSprayName(name)) return amount * 1.5;
+    if (/salt|peppar|pepper|\bmsg\b/i.test(name)) return 0;
+    if (lookupPer100g(name)) return amount * 1;
+    return 0;
+  }
+  if (u === 'näve') {
+    if (isCookingSprayName(name)) return amount * 1.5;
+    const nave = lookupNaveG(name);
+    if (nave != null) return amount * nave;
+    if (lookupPer100g(name)) return amount * 20;
+    return 0;
+  }
+  if (u === 'strimlor') return 0;
   return null;
 }
 
