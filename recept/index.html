@@ -466,7 +466,10 @@
     white-space: nowrap;
   }
   .detail-shopping-btn:hover { color: var(--text); }
-  .detail-ing-toolbar { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+  .detail-ing-toolbar {
+    display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap;
+    gap: 0.65rem 0.85rem; flex-shrink: 1; min-width: 0;
+  }
   .ing-table--shop .ing-shop-check { width: 1.75rem; padding-right: 0.35rem; vertical-align: top; }
   .ing-shop-label { display: flex; align-items: flex-start; cursor: pointer; }
   .ing-shop-cb {
@@ -474,7 +477,8 @@
     accent-color: var(--text);
   }
   .ing-table--shop .ing-row--checked .ing-name,
-  .ing-table--shop .ing-row--checked .ing-amt {
+  .ing-table--shop .ing-row--checked .ing-amt,
+  .ing-table--shop .ing-row--checked .ing-macros {
     opacity: 0.5; text-decoration: line-through;
   }
   .detail-sec-head--sub { margin-top: 0.5rem; margin-bottom: 0.85rem; }
@@ -489,6 +493,20 @@
   .ing-grp-head:first-child th { padding-top: 0; }
   .ing-qty { width: 5.25rem; padding-right: 1rem; font-size: 0.875rem; color: var(--text2); white-space: nowrap; }
   .ing-name { font-size: 0.9375rem; color: var(--text); line-height: 1.45; }
+  .ing-macros {
+    text-align: right; white-space: nowrap; vertical-align: middle;
+    font-size: 8px; line-height: 1.35; font-variant-numeric: tabular-nums;
+    padding-left: 0.55rem; letter-spacing: 0.01em;
+  }
+  .ing-mac-kcal { color: #d35400; }
+  .ing-mac-p { color: #1f7a4d; }
+  .ing-mac-f { color: #b8860b; }
+  .ing-mac-c { color: #3b6fd8; }
+  .ing-mac-g { color: var(--text3); }
+  [data-theme="dark"] .ing-mac-kcal { color: #f0a060; }
+  [data-theme="dark"] .ing-mac-p { color: #6dcb9a; }
+  [data-theme="dark"] .ing-mac-f { color: #e0c35a; }
+  [data-theme="dark"] .ing-mac-c { color: #7aa4f0; }
   .detail-prep { display: flex; flex-direction: column; gap: 1.15rem; }
   .prep-step-label {
     margin: 0 0 calc(0.3rem - 2px);

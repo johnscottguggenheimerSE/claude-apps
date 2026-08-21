@@ -283,6 +283,160 @@ function fmt(val, unit) {
   return Math.round(val) + ' ' + unit;
 }
 
+/** Näringsvärden per 100 g — speglar worker/src/gemini.ts */
+var ING_PER_100G = [
+  { re: /kycklingfärs|malet kyckling|ground chicken/i, m: { kcal: 115, prot: 21, carb: 0, fat: 5 } },
+  { re: /nötfärs|malet nötkött|extra mager nöt/i, m: { kcal: 150, prot: 20, carb: 0, fat: 8 } },
+  { re: /fläsk|malet fläsk|pork/i, m: { kcal: 200, prot: 17, carb: 0, fat: 15 } },
+  { re: /kycklingbröst|kycklingfilé/i, m: { kcal: 110, prot: 23, carb: 0, fat: 1.5 } },
+  { re: /räk|shrimp|prawn/i, m: { kcal: 85, prot: 18, carb: 1, fat: 1 } },
+  { re: /tonfisk|tuna/i, m: { kcal: 130, prot: 25, carb: 0, fat: 3 } },
+  { re: /keso\s*0|cottage\s*(cheese)?\s*(fat[\s-]?free|nonfat)/i, m: { kcal: 70, prot: 12, carb: 3, fat: 0.5 } },
+  { re: /keso\s*1[,.]?\s*5|cottage\s*(cheese)?\s*(low|reduced)/i, m: { kcal: 72, prot: 12, carb: 3, fat: 1.5 } },
+  { re: /keso|cottage/i, m: { kcal: 98, prot: 11, carb: 3, fat: 4 } },
+  { re: /grekisk yoghurt|naturell yoghurt/i, m: { kcal: 70, prot: 7, carb: 4, fat: 3 } },
+  { re: /äggvita/i, m: { kcal: 50, prot: 11, carb: 1, fat: 0 } },
+  { re: /ägg/i, m: { kcal: 140, prot: 12, carb: 1, fat: 10 } },
+  { re: /vetemjöl|mjöl(?!k)/i, m: { kcal: 350, prot: 10, carb: 73, fat: 1 } },
+  { re: /havremjöl|havre/i, m: { kcal: 370, prot: 13, carb: 60, fat: 7 } },
+  { re: /ris(?!vin|papp)|jasminris|råris/i, m: { kcal: 350, prot: 7, carb: 78, fat: 1 } },
+  { re: /wrapper|wonton|gyoza|dumpling.?skal|degark/i, m: { kcal: 300, prot: 8, carb: 60, fat: 1.5 } },
+  { re: /rispapper/i, m: { kcal: 330, prot: 0, carb: 82, fat: 0 } },
+  { re: /panko|ströbröd/i, m: { kcal: 380, prot: 12, carb: 72, fat: 3 } },
+  { re: /parmesan|mozzarella|cheddar|ost\b/i, m: { kcal: 350, prot: 25, carb: 2, fat: 27 } },
+  { re: /olja|oil|smör|butter/i, m: { kcal: 884, prot: 0, carb: 0, fat: 100 } },
+  { re: /sesamolja/i, m: { kcal: 884, prot: 0, carb: 0, fat: 100 } },
+  { re: /sesamfrö/i, m: { kcal: 570, prot: 18, carb: 12, fat: 50 } },
+  { re: /soja|soy sauce|thaisoja|coconut aminos/i, m: { kcal: 55, prot: 8, carb: 5, fat: 0 } },
+  { re: /mirin/i, m: { kcal: 230, prot: 0, carb: 45, fat: 0 } },
+  { re: /honung|lönnsirap|maple/i, m: { kcal: 320, prot: 0, carb: 80, fat: 0 } },
+  { re: /socker|farinsocker/i, m: { kcal: 400, prot: 0, carb: 100, fat: 0 } },
+  { re: /risvinäger|vinäger|ättika/i, m: { kcal: 20, prot: 0, carb: 1, fat: 0 } },
+  { re: /gochujang|miso/i, m: { kcal: 200, prot: 5, carb: 35, fat: 3 } },
+  { re: /ostronsås/i, m: { kcal: 50, prot: 1, carb: 10, fat: 0 } },
+  { re: /fisksås/i, m: { kcal: 35, prot: 5, carb: 4, fat: 0 } },
+  { re: /vitlök/i, m: { kcal: 130, prot: 6, carb: 28, fat: 0 } },
+  { re: /ingefära/i, m: { kcal: 80, prot: 2, carb: 18, fat: 1 } },
+  { re: /vårlök|salladslök/i, m: { kcal: 32, prot: 2, carb: 7, fat: 0 } },
+  { re: /lök|rödlök|gul lök/i, m: { kcal: 40, prot: 1, carb: 9, fat: 0 } },
+  { re: /gurka/i, m: { kcal: 15, prot: 1, carb: 3, fat: 0 } },
+  { re: /morot/i, m: { kcal: 40, prot: 1, carb: 9, fat: 0 } },
+  { re: /paprika(?!pulver)/i, m: { kcal: 30, prot: 1, carb: 6, fat: 0 } },
+  { re: /banan/i, m: { kcal: 90, prot: 1, carb: 23, fat: 0 } },
+  { re: /kakao/i, m: { kcal: 230, prot: 20, carb: 10, fat: 14 } },
+  { re: /choklad/i, m: { kcal: 540, prot: 6, carb: 50, fat: 35 } },
+  { re: /pb2|jordnöts?pulver/i, m: { kcal: 375, prot: 40, carb: 30, fat: 10 } },
+  { re: /nötter|jordnöt|cashew|mandel/i, m: { kcal: 600, prot: 20, carb: 15, fat: 50 } }
+];
+
+var ING_PIECE_G = [
+  { re: /wrapper|wonton|gyoza|dumpling/i, g: 7 },
+  { re: /äggvita/i, g: 33 },
+  { re: /ägg/i, g: 55 },
+  { re: /vårlök|salladslök/i, g: 10 },
+  { re: /vitlöksklyfta|vitlök/i, g: 3 },
+  { re: /banan/i, g: 120 },
+  { re: /rispapper/i, g: 10 }
+];
+
+function lookupIngPer100g(name) {
+  for (var i = 0; i < ING_PER_100G.length; i++) {
+    if (ING_PER_100G[i].re.test(name)) return ING_PER_100G[i].m;
+  }
+  return null;
+}
+
+function amountToGrams(amount, unit, name) {
+  var u = String(unit || '').toLowerCase();
+  if (!isFinite(amount) || amount <= 0) return 0;
+  if (u === 'g') return amount;
+  if (u === 'msk') {
+    if (/olja|oil|smör|butter/i.test(name)) return amount * 14;
+    return amount * 15;
+  }
+  if (u === 'tsk') {
+    if (/olja|oil|smör|butter/i.test(name)) return amount * 4.5;
+    return amount * 5;
+  }
+  if (u === 'st') {
+    for (var i = 0; i < ING_PIECE_G.length; i++) {
+      if (ING_PIECE_G[i].re.test(name)) return amount * ING_PIECE_G[i].g;
+    }
+    return null;
+  }
+  if (u === 'pinch' || u === 'näve' || u === 'strimlor') return 0;
+  return null;
+}
+
+/** Basportion: macros + grams för en ingrediensrad (före servings-skala). */
+function estimateIngredientRow(ing) {
+  var name = String(ing.name || '').trim();
+  if (!name) return null;
+  var amount = typeof ing.amount === 'number' ? ing.amount : Number(ing.amount);
+  if (!isFinite(amount)) return null;
+  var grams = amountToGrams(amount, String(ing.unit || ''), name);
+  var macros = null;
+  if (ing.macros && typeof ing.macros === 'object') {
+    macros = {
+      kcal: Number(ing.macros.kcal) || 0,
+      prot: Number(ing.macros.prot) || 0,
+      carb: Number(ing.macros.carb) || 0,
+      fat: Number(ing.macros.fat) || 0
+    };
+  } else if (grams != null && grams > 0) {
+    var per100 = lookupIngPer100g(name);
+    if (per100) {
+      var f = grams / 100;
+      macros = {
+        kcal: per100.kcal * f,
+        prot: per100.prot * f,
+        carb: per100.carb * f,
+        fat: per100.fat * f
+      };
+    }
+  }
+  if (!macros && (grams == null || grams <= 0)) return null;
+  return {
+    kcal: macros ? macros.kcal : null,
+    prot: macros ? macros.prot : null,
+    carb: macros ? macros.carb : null,
+    fat: macros ? macros.fat : null,
+    grams: grams != null && grams > 0 ? grams : null
+  };
+}
+
+function fillIngMacrosCell(cell, row, scale) {
+  cell.replaceChildren();
+  if (!row) return;
+  var s = scale || 1;
+  var hasMacros = row.kcal != null;
+  var grams = row.grams != null ? Math.round(row.grams * s) : null;
+  if (!hasMacros && grams == null) return;
+  if (hasMacros) {
+    var kcalEl = mk('span', 'ing-mac-kcal');
+    kcalEl.textContent = Math.round(row.kcal * s) + '🔥';
+    cell.appendChild(kcalEl);
+    cell.appendChild(document.createTextNode(' '));
+    var pEl = mk('span', 'ing-mac-p');
+    pEl.textContent = Math.round(row.prot * s) + 'P';
+    cell.appendChild(pEl);
+    cell.appendChild(document.createTextNode(' '));
+    var fEl = mk('span', 'ing-mac-f');
+    fEl.textContent = Math.round(row.fat * s) + 'F';
+    cell.appendChild(fEl);
+    cell.appendChild(document.createTextNode(' '));
+    var cEl = mk('span', 'ing-mac-c');
+    cEl.textContent = Math.round(row.carb * s) + 'C';
+    cell.appendChild(cEl);
+  }
+  if (grams != null) {
+    if (hasMacros) cell.appendChild(document.createTextNode(' '));
+    var gEl = mk('span', 'ing-mac-g');
+    gEl.textContent = grams + 'g';
+    cell.appendChild(gEl);
+  }
+}
+
 function mk(tag, cls) {
   var e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -575,6 +729,7 @@ function capitalizeIngName(name) {
 
 var SHOP_CHECK_PREFIX = 'recept_shop_check_';
 var SHOP_MODE_PREFIX = 'recept_shop_mode_';
+var ING_MACROS_PREF = 'recept_ing_macros';
 
 function loadShopChecks(recipeId) {
   try {
@@ -606,6 +761,21 @@ function setShopMode(recipeId, on) {
   } catch (e) {}
 }
 
+function isIngMacrosOn() {
+  try {
+    return localStorage.getItem(ING_MACROS_PREF) === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function setIngMacrosOn(on) {
+  try {
+    if (on) localStorage.setItem(ING_MACROS_PREF, '1');
+    else localStorage.removeItem(ING_MACROS_PREF);
+  } catch (e) {}
+}
+
 function ingCheckKey(gi, ii) {
   return gi + ':' + ii;
 }
@@ -620,12 +790,23 @@ function createToolbarLink(text, onClick) {
 
 function renderIngredientToolbar(recipe, toolbarEl, onChange) {
   toolbarEl.replaceChildren();
+  if (isIngMacrosOn()) {
+    toolbarEl.appendChild(createToolbarLink('Dölj makron', function() {
+      setIngMacrosOn(false);
+      onChange();
+    }));
+  } else {
+    toolbarEl.appendChild(createToolbarLink('Visa makron per ingrediens', function() {
+      setIngMacrosOn(true);
+      onChange();
+    }));
+  }
   if (isShopMode(recipe.id)) {
     toolbarEl.appendChild(createToolbarLink('Nollställ', function() {
       saveShopChecks(recipe.id, {});
       onChange();
     }));
-    toolbarEl.appendChild(createToolbarLink('Dölj', function() {
+    toolbarEl.appendChild(createToolbarLink('Dölj shoppinglista', function() {
       setShopMode(recipe.id, false);
       onChange();
     }));
@@ -639,7 +820,7 @@ function renderIngredientToolbar(recipe, toolbarEl, onChange) {
 
 function renderDetailIngredients(recipe, host) {
   host.replaceChildren();
-  host.appendChild(buildDetailIngredientsTable(recipe, isShopMode(recipe.id)));
+  host.appendChild(buildDetailIngredientsTable(recipe, isShopMode(recipe.id), isIngMacrosOn()));
 }
 
 function badgeTime(r) {
@@ -832,6 +1013,18 @@ function applyServingsScale() {
   document.querySelectorAll('.ing-amt').forEach(function(el) {
     el.textContent = fmt(parseFloat(el.dataset.base) * scale, el.dataset.unit);
   });
+  document.querySelectorAll('.ing-macros').forEach(function(el) {
+    var hasKcal = el.dataset.baseKcal !== '';
+    var hasGrams = el.dataset.baseGrams !== '';
+    if (!hasKcal && !hasGrams) return;
+    fillIngMacrosCell(el, {
+      kcal: hasKcal ? parseFloat(el.dataset.baseKcal) : null,
+      prot: hasKcal ? parseFloat(el.dataset.baseProt) : null,
+      carb: hasKcal ? parseFloat(el.dataset.baseCarb) : null,
+      fat: hasKcal ? parseFloat(el.dataset.baseFat) : null,
+      grams: hasGrams ? parseFloat(el.dataset.baseGrams) : null
+    }, scale);
+  });
 }
 
 function changeServings(d) {
@@ -964,15 +1157,16 @@ function formatTipTitle(title) {
   return title;
 }
 
-function buildDetailIngredientsTable(r, shopMode) {
+function buildDetailIngredientsTable(r, shopMode, showMacros) {
   var checks = shopMode ? loadShopChecks(r.id) : {};
-  var table = mk('table', 'ing-table' + (shopMode ? ' ing-table--shop' : ''));
+  var table = mk('table', 'ing-table' + (shopMode ? ' ing-table--shop' : '') + (showMacros ? ' ing-table--macros' : ''));
   var tbody = document.createElement('tbody');
+  var colCount = 2 + (shopMode ? 1 : 0) + (showMacros ? 1 : 0);
   r.groups.forEach(function(g, gi) {
     if (g.name) {
       var headRow = mk('tr', 'ing-grp-head');
       var headCell = document.createElement('th');
-      headCell.colSpan = shopMode ? 3 : 2;
+      headCell.colSpan = colCount;
       headCell.textContent = g.name;
       headRow.appendChild(headCell);
       tbody.appendChild(headRow);
@@ -1008,6 +1202,19 @@ function buildDetailIngredientsTable(r, shopMode) {
       nameCell.textContent = ing.name;
       row.appendChild(qtyCell);
       row.appendChild(nameCell);
+      if (showMacros) {
+        var macroCell = mk('td', 'ing-macros');
+        var est = estimateIngredientRow(ing);
+        if (est) {
+          macroCell.dataset.baseKcal = est.kcal != null ? String(est.kcal) : '';
+          macroCell.dataset.baseProt = est.prot != null ? String(est.prot) : '';
+          macroCell.dataset.baseCarb = est.carb != null ? String(est.carb) : '';
+          macroCell.dataset.baseFat = est.fat != null ? String(est.fat) : '';
+          macroCell.dataset.baseGrams = est.grams != null ? String(est.grams) : '';
+          fillIngMacrosCell(macroCell, est, 1);
+        }
+        row.appendChild(macroCell);
+      }
       tbody.appendChild(row);
     });
   });
