@@ -254,6 +254,70 @@ function normalizeIngredientMeasures(r: Recipe): void {
   }
 }
 
+/** Ord-för-ord-översättningar → svensk butiksnomenklatur. */
+function normalizeIngredientName(name: string): string {
+  let n = String(name || '').trim();
+  if (!n) return n;
+
+  n = n
+    .replace(/\bfull[\s-]?fat\s+cottage\s+cheese\b/gi, 'keso 4%')
+    .replace(/\b(low[\s-]?fat|reduced[\s-]?fat)\s+cottage\s+cheese\b/gi, 'keso 1,5%')
+    .replace(/\b(fat[\s-]?free|non[\s-]?fat|skim)\s+cottage\s+cheese\b/gi, 'keso 0,1%')
+    .replace(/\b(whole\s+milk\s+)?cottage\s+cheese\b/gi, 'keso 4%')
+    .replace(/\bfullfet\s+keso\b/gi, 'keso 4%')
+    .replace(/\bkeso\s*\((?:fullfet|full[\s-]?fat)\)/gi, 'keso 4%')
+    .replace(/\bkeso\s*\((?:låg\s*fetthalt|low[\s-]?fat|lätt)\)/gi, 'keso 1,5%')
+    .replace(/\bkeso\s+fullfet\b/gi, 'keso 4%')
+    .replace(/\bkeso\s+lågfet(?:t)?\b/gi, 'keso 1,5%')
+    .replace(/\bfullfet\s+grekisk\s+yoghurt\b/gi, 'grekisk yoghurt 10%')
+    .replace(/\b(lågfet(?:t)?|lätt)\s+grekisk\s+yoghurt\b/gi, 'grekisk yoghurt 0%')
+    .replace(/\bfull[\s-]?fat\s+greek\s+yoghurt?\b/gi, 'grekisk yoghurt 10%')
+    .replace(/\b(nonfat|fat[\s-]?free|0%)\s+greek\s+yoghurt?\b/gi, 'grekisk yoghurt 0%')
+    .replace(/\bwhole\s+milk\b/gi, 'helmjölk')
+    .replace(/\bskim\s+milk\b/gi, 'lättmjölk')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .toLowerCase();
+
+  return n;
+}
+
+/** Behåll produktlägen (Creami m.m.) — undvik «lite glass», «respinna». */
+function normalizeStepText(text: string): string {
+  let t = String(text || '');
+  if (!t) return t;
+
+  t = t
+    .replace(/\bpå\s+["«»']?\s*lite\s+glass\s*["«»']?\s*-?\s*läget/gi, 'på "Lite Ice Cream"-läget')
+    .replace(/["«»']\s*lite\s+glass\s*["«»']\s*-?\s*läget/gi, '"Lite Ice Cream"-läget')
+    .replace(/\blite\s+glass[\s-]*läge(?:t)?/gi, '"Lite Ice Cream"-läget')
+    .replace(/\b(mixa|kör)\s+"Lite Ice Cream"-läget/gi, '$1 på "Lite Ice Cream"-läget')
+    .replace(/\bpå\s+på\s+"/gi, 'på "')
+    .replace(/\brespinna\b/gi, 'Kör Re-spin')
+    .replace(/\bre[\s-]?spinna\b/gi, 'Kör Re-spin')
+    .replace(/\bKör\s+Kör\s+Re-spin/gi, 'Kör Re-spin')
+    .replace(/\bkör\s+Kör\s+Re-spin/gi, 'Kör Re-spin');
+
+  return t;
+}
+
+function normalizeRecipeLanguage(r: Recipe): void {
+  const groups = r.groups as { ingredients?: { name?: string }[] }[] | undefined;
+  if (groups) {
+    for (const g of groups) {
+      for (const ing of g.ingredients || []) {
+        if (ing?.name) ing.name = normalizeIngredientName(String(ing.name));
+      }
+    }
+  }
+  const steps = r.steps as { title?: string; text?: string }[] | undefined;
+  if (steps) {
+    for (const s of steps) {
+      if (s?.text) s.text = normalizeStepText(String(s.text));
+    }
+  }
+}
+
 export function normalizeRecipe(r: Recipe): Recipe {
   // Gemini returnerar ibland alternativa nycklar eller tom title
   if (!r.title || !String(r.title).trim()) {
@@ -264,6 +328,7 @@ export function normalizeRecipe(r: Recipe): Recipe {
   if (typeof r.title === 'string') {
     r.title = r.title
       .replace(/\b(hög\s*protein|högprotein|extra\s*protein|proteinrik|proteinpackad)\b/gi, '')
+      .replace(/\bproteins?\b/gi, '')
       .replace(/\s{2,}/g, ' ')
       .replace(/^[\s\-–—]+|[\s\-–—]+$/g, '')
       .trim();
@@ -300,6 +365,7 @@ export function normalizeRecipe(r: Recipe): Recipe {
     tips[0].title = 'Seattle';
   }
   normalizeIngredientMeasures(r);
+  normalizeRecipeLanguage(r);
   return r;
 }
 
@@ -317,7 +383,7 @@ export function validateRecipe(
   else seenIds[r.id] = 1;
 
   if (!r.title) errors.push(`${prefix}saknar title`);
-  else if (/\b(hög\s*protein|högprotein|extra\s*protein|proteinrik|proteinpackad)\b/i.test(String(r.title))) {
+  else if (/\bproteins?\b/i.test(String(r.title)) || /\b(hög\s*protein|högprotein|extra\s*protein|proteinrik|proteinpackad)\b/i.test(String(r.title))) {
     errors.push(`${prefix}title får inte innehålla proteinkrav — använd badges/makros istället`);
   }
   if (!r.source) errors.push(`${prefix}saknar source`);

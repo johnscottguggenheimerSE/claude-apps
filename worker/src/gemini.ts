@@ -55,6 +55,17 @@ Mått — kritiska regler (fel här ger 1g-mjölk o.dyl.):
 - Föredra msk/tsk för olja, soja, vinäger, pastasåser, honung, kryddor i små mängder — tvinga inte allt till gram
 - Små äkta grammängder (salt, peppar, jäst, bakpulver) får vara några gram
 
+Språk — ingredienser och steg (naturlig svenska, inte ord-för-ord):
+- **Mejeri med fetthalt:** använd svensk butiksnomenklatur med **procent**, inte «fullfet/lågfet/light» som adjektiv.
+  - full-fat / whole milk cottage cheese → «keso 4%» (inte «fullfet keso»)
+  - low-fat / reduced-fat cottage cheese → «keso 1,5%»
+  - fat-free / nonfat cottage cheese → «keso 0,1%»
+  - full-fat Greek yogurt → «grekisk yoghurt 10%» (eller 6–10% om osäkert); nonfat → «grekisk yoghurt 0%»
+  - whole milk → «helmjölk»; 2% → «mellanmjölk»; skim → «lättmjölk»
+- **Maskin-/produktlägen** (Ninja Creami m.fl.): behåll **officiellt engelskt lägesnamn** i citattecken — översätt aldrig «Lite Ice Cream» till «lite glass». Ex: «kör på "Lite Ice Cream"-läget», «kör Re-spin». Skriv «Re-spin», inte «respinna».
+- Översätt instruktioner till flytande svenska men behåll varumärken, lägesnamn och etablerade lånord (gochujang, teriyaki, espresso, Creami).
+- Ingrediensnamn: lowercase, svenska vardagsord (cottage cheese → keso, scallion → salladslök, cornstarch → majsstärkelse).
+
 Uppskatta makros för hela receptet.`
 
 import { isSocialMediaUrl } from './fetch-url';
@@ -326,7 +337,9 @@ const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
   { re: /kycklingbröst|kycklingfilé/i, m: { kcal: 110, prot: 23, carb: 0, fat: 1.5 } },
   { re: /räk|shrimp|prawn/i, m: { kcal: 85, prot: 18, carb: 1, fat: 1 } },
   { re: /tonfisk|tuna/i, m: { kcal: 130, prot: 25, carb: 0, fat: 3 } },
-  { re: /keso|cottage/i, m: { kcal: 80, prot: 12, carb: 3, fat: 2 } },
+  { re: /keso\s*0|cottage\s*(cheese)?\s*(fat[\s-]?free|nonfat)/i, m: { kcal: 70, prot: 12, carb: 3, fat: 0.5 } },
+  { re: /keso\s*1[,.]?\s*5|cottage\s*(cheese)?\s*(low|reduced)/i, m: { kcal: 72, prot: 12, carb: 3, fat: 1.5 } },
+  { re: /keso|cottage/i, m: { kcal: 98, prot: 11, carb: 3, fat: 4 } },
   { re: /grekisk yoghurt|naturell yoghurt/i, m: { kcal: 70, prot: 7, carb: 4, fat: 3 } },
   { re: /äggvita/i, m: { kcal: 50, prot: 11, carb: 1, fat: 0 } },
   { re: /ägg/i, m: { kcal: 140, prot: 12, carb: 1, fat: 10 } },
