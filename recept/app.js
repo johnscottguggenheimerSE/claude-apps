@@ -368,40 +368,49 @@ function amountToGrams(amount, unit, name) {
   return null;
 }
 
+function finiteOrNull(n) {
+  var v = typeof n === 'number' ? n : Number(n);
+  return Number.isFinite(v) ? v : null;
+}
+
 /** Basportion: macros + grams för en ingrediensrad (före servings-skala). */
 function estimateIngredientRow(ing) {
   var name = String(ing.name || '').trim();
   if (!name) return null;
   var amount = typeof ing.amount === 'number' ? ing.amount : Number(ing.amount);
-  if (!isFinite(amount)) return null;
-  var grams = amountToGrams(amount, String(ing.unit || ''), name);
+  if (!Number.isFinite(amount)) return null;
+  var gramsRaw = amountToGrams(amount, String(ing.unit || ''), name);
+  var grams = finiteOrNull(gramsRaw);
+  if (grams != null && grams <= 0) grams = null;
   var macros = null;
   if (ing.macros && typeof ing.macros === 'object') {
-    macros = {
-      kcal: Number(ing.macros.kcal) || 0,
-      prot: Number(ing.macros.prot) || 0,
-      carb: Number(ing.macros.carb) || 0,
-      fat: Number(ing.macros.fat) || 0
-    };
-  } else if (grams != null && grams > 0) {
+    var mkcal = finiteOrNull(ing.macros.kcal);
+    var mprot = finiteOrNull(ing.macros.prot);
+    var mcarb = finiteOrNull(ing.macros.carb);
+    var mfat = finiteOrNull(ing.macros.fat);
+    if (mkcal != null && mprot != null && mcarb != null && mfat != null) {
+      macros = { kcal: mkcal, prot: mprot, carb: mcarb, fat: mfat };
+    }
+  } else if (grams != null) {
     var per100 = lookupIngPer100g(name);
     if (per100) {
       var f = grams / 100;
-      macros = {
-        kcal: per100.kcal * f,
-        prot: per100.prot * f,
-        carb: per100.carb * f,
-        fat: per100.fat * f
-      };
+      var pk = finiteOrNull(per100.kcal * f);
+      var pp = finiteOrNull(per100.prot * f);
+      var pc = finiteOrNull(per100.carb * f);
+      var pf = finiteOrNull(per100.fat * f);
+      if (pk != null && pp != null && pc != null && pf != null) {
+        macros = { kcal: pk, prot: pp, carb: pc, fat: pf };
+      }
     }
   }
-  if (!macros && (grams == null || grams <= 0)) return null;
+  if (!macros) return null;
   return {
-    kcal: macros ? macros.kcal : null,
-    prot: macros ? macros.prot : null,
-    carb: macros ? macros.carb : null,
-    fat: macros ? macros.fat : null,
-    grams: grams != null && grams > 0 ? grams : null
+    kcal: macros.kcal,
+    prot: macros.prot,
+    carb: macros.carb,
+    fat: macros.fat,
+    grams: grams
   };
 }
 
@@ -409,28 +418,32 @@ function fillIngMacrosCell(cell, row, scale) {
   cell.replaceChildren();
   if (!row) return;
   var s = scale || 1;
-  var hasMacros = row.kcal != null;
-  var grams = row.grams != null ? Math.round(row.grams * s) : null;
-  if (!hasMacros && grams == null) return;
-  if (hasMacros) {
-    var kcalEl = mk('span', 'ing-mac-kcal');
-    kcalEl.textContent = Math.round(row.kcal * s) + '🔥';
-    cell.appendChild(kcalEl);
-    cell.appendChild(document.createTextNode(' '));
-    var pEl = mk('span', 'ing-mac-p');
-    pEl.textContent = Math.round(row.prot * s) + 'P';
-    cell.appendChild(pEl);
-    cell.appendChild(document.createTextNode(' '));
-    var fEl = mk('span', 'ing-mac-f');
-    fEl.textContent = Math.round(row.fat * s) + 'F';
-    cell.appendChild(fEl);
-    cell.appendChild(document.createTextNode(' '));
-    var cEl = mk('span', 'ing-mac-c');
-    cEl.textContent = Math.round(row.carb * s) + 'C';
-    cell.appendChild(cEl);
-  }
+  var kcal = finiteOrNull(row.kcal);
+  var prot = finiteOrNull(row.prot);
+  var carb = finiteOrNull(row.carb);
+  var fat = finiteOrNull(row.fat);
+  var gramsRaw = finiteOrNull(row.grams);
+  var hasMacros = kcal != null && prot != null && carb != null && fat != null;
+  var grams = gramsRaw != null && gramsRaw > 0 ? Math.round(gramsRaw * s) : null;
+  // Inga makron → visa ingenting (hellre tomt än NaN / bara gram-gissning).
+  if (!hasMacros) return;
+  var kcalEl = mk('span', 'ing-mac-kcal');
+  kcalEl.textContent = Math.round(kcal * s) + '🔥';
+  cell.appendChild(kcalEl);
+  cell.appendChild(document.createTextNode(' '));
+  var pEl = mk('span', 'ing-mac-p');
+  pEl.textContent = Math.round(prot * s) + 'P';
+  cell.appendChild(pEl);
+  cell.appendChild(document.createTextNode(' '));
+  var fEl = mk('span', 'ing-mac-f');
+  fEl.textContent = Math.round(fat * s) + 'F';
+  cell.appendChild(fEl);
+  cell.appendChild(document.createTextNode(' '));
+  var cEl = mk('span', 'ing-mac-c');
+  cEl.textContent = Math.round(carb * s) + 'C';
+  cell.appendChild(cEl);
   if (grams != null) {
-    if (hasMacros) cell.appendChild(document.createTextNode(' '));
+    cell.appendChild(document.createTextNode(' '));
     var gEl = mk('span', 'ing-mac-g');
     gEl.textContent = grams + 'g';
     cell.appendChild(gEl);
@@ -1014,16 +1027,16 @@ function applyServingsScale() {
     el.textContent = fmt(parseFloat(el.dataset.base) * scale, el.dataset.unit);
   });
   document.querySelectorAll('.ing-macros').forEach(function(el) {
-    var hasKcal = el.dataset.baseKcal !== '';
-    var hasGrams = el.dataset.baseGrams !== '';
-    if (!hasKcal && !hasGrams) return;
-    fillIngMacrosCell(el, {
-      kcal: hasKcal ? parseFloat(el.dataset.baseKcal) : null,
-      prot: hasKcal ? parseFloat(el.dataset.baseProt) : null,
-      carb: hasKcal ? parseFloat(el.dataset.baseCarb) : null,
-      fat: hasKcal ? parseFloat(el.dataset.baseFat) : null,
-      grams: hasGrams ? parseFloat(el.dataset.baseGrams) : null
-    }, scale);
+    var kcal = finiteOrNull(el.dataset.baseKcal);
+    var prot = finiteOrNull(el.dataset.baseProt);
+    var carb = finiteOrNull(el.dataset.baseCarb);
+    var fat = finiteOrNull(el.dataset.baseFat);
+    var grams = finiteOrNull(el.dataset.baseGrams);
+    if (kcal == null || prot == null || carb == null || fat == null) {
+      el.replaceChildren();
+      return;
+    }
+    fillIngMacrosCell(el, { kcal: kcal, prot: prot, carb: carb, fat: fat, grams: grams }, scale);
   });
 }
 
@@ -1203,17 +1216,17 @@ function buildDetailIngredientsTable(r, shopMode, showMacros) {
       nameText.textContent = ing.name;
       nameCell.appendChild(nameText);
       if (showMacros) {
-        var macroEl = mk('span', 'ing-macros');
         var est = estimateIngredientRow(ing);
-        if (est) {
-          macroEl.dataset.baseKcal = est.kcal != null ? String(est.kcal) : '';
-          macroEl.dataset.baseProt = est.prot != null ? String(est.prot) : '';
-          macroEl.dataset.baseCarb = est.carb != null ? String(est.carb) : '';
-          macroEl.dataset.baseFat = est.fat != null ? String(est.fat) : '';
-          macroEl.dataset.baseGrams = est.grams != null ? String(est.grams) : '';
+        if (est && finiteOrNull(est.kcal) != null) {
+          var macroEl = mk('span', 'ing-macros');
+          macroEl.dataset.baseKcal = String(est.kcal);
+          macroEl.dataset.baseProt = String(est.prot);
+          macroEl.dataset.baseCarb = String(est.carb);
+          macroEl.dataset.baseFat = String(est.fat);
+          if (est.grams != null) macroEl.dataset.baseGrams = String(est.grams);
           fillIngMacrosCell(macroEl, est, 1);
+          if (macroEl.childNodes.length) nameCell.appendChild(macroEl);
         }
-        nameCell.appendChild(macroEl);
       }
       row.appendChild(qtyCell);
       row.appendChild(nameCell);
