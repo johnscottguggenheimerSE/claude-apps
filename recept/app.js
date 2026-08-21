@@ -267,20 +267,26 @@ var showFavoritesOnly = false;
 var currentServings = 1;
 var currentId = null;
 
+/** Display-only: max 1 decimal, no trailing .0 (e.g. 3.333… → "3.3", 4 → "4"). */
+function fmtNum(val) {
+  var n = Math.round(Number(val) * 10) / 10;
+  return (Math.abs(n - Math.round(n)) < 1e-9) ? String(Math.round(n)) : n.toFixed(1);
+}
+
 function fmt(val, unit) {
   if (unit === 'g') return Math.round(val) + 'g';
-  if (unit === 'msk') return (val % 1 === 0 ? val : val.toFixed(1)) + ' msk';
+  if (unit === 'msk') return fmtNum(val) + ' msk';
   if (unit === 'tsk') {
     if (val < 0.4) return '¼ tsk';
     if (val < 0.7) return '½ tsk';
     if (val < 1.4) return '1 tsk';
-    return Math.round(val) + ' tsk';
+    return fmtNum(val) + ' tsk';
   }
-  if (unit === 'st') return (val % 1 === 0 ? Math.round(val) : val) + ' st';
+  if (unit === 'st') return fmtNum(val) + ' st';
   if (unit === 'pinch') return 'en nypa';
   if (unit === 'näve') return '1 näve';
   if (unit === 'strimlor') return Math.round(val) + ' strimlor';
-  return Math.round(val) + ' ' + unit;
+  return fmtNum(val) + ' ' + unit;
 }
 
 /** Prep-/variantord som ignoreras vid makrouppslag (speglar worker). */
