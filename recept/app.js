@@ -805,8 +805,45 @@ function getBaseServings(r) {
   return inferBaseServingsFromBadges(r);
 }
 
+/** Label for per-unit macros: pieces/units from badges, else portion. */
+function getPerYieldLabel(r) {
+  var badges = r.badges || [];
+  for (var i = 0; i < badges.length; i++) {
+    var b = String(badges[i]).toLowerCase();
+    if (/\bportioner?\b/.test(b)) return 'Per portion';
+    if (/\brunda\s+bullar\b|\bbullar?\b/.test(b)) return 'Per bulle';
+    if (/\bbollar?\b/.test(b)) return 'Per styck';
+    if (/\bsliders?\b/.test(b)) return 'Per styck';
+    if (/\bwraps?\b/.test(b)) return 'Per styck';
+    if (/\bpizza\b/.test(b)) return 'Per pizza';
+    if (/\bpannkaka\b/.test(b)) return 'Per pannkaka';
+    if (/\bbitar?\b/.test(b)) return 'Per styck';
+    if (/(?:ca\s+)?\d+\s*st\b/.test(b)) return 'Per styck';
+  }
+  return 'Per portion';
+}
+
 function servingScale(r) {
   return currentServings / getBaseServings(r);
+}
+
+function fillPerServingMacrosLine(el, r) {
+  if (!el || !r || !r.macros) return;
+  /* Equals (scaled total ÷ currentServings); stable under +/- scaler */
+  var n = getBaseServings(r);
+  var kcal = Math.round(r.macros.kcal / n);
+  var prot = Math.round(r.macros.prot / n);
+  var carb = Math.round(r.macros.carb / n);
+  var fat = Math.round(r.macros.fat / n);
+  el.replaceChildren();
+  var label = mk('span', 'detail-macros-per-lbl');
+  label.textContent = getPerYieldLabel(r);
+  var vals = mk('span', 'detail-macros-per-vals');
+  vals.textContent =
+    kcal + '🔥 · ' + prot + 'P · ' + carb + 'C · ' + fat + 'F';
+  el.appendChild(label);
+  el.appendChild(document.createTextNode(' · '));
+  el.appendChild(vals);
 }
 
 function capitalizeIngName(name) {
@@ -1098,6 +1135,7 @@ function applyServingsScale() {
   document.getElementById('m-prot').textContent = Math.round(r.macros.prot * scale) + 'g';
   document.getElementById('m-carb').textContent = Math.round(r.macros.carb * scale) + 'g';
   document.getElementById('m-fat').textContent = Math.round(r.macros.fat * scale) + 'g';
+  fillPerServingMacrosLine(document.getElementById('m-per'), r);
   document.querySelectorAll('.ing-amt').forEach(function(el) {
     el.textContent = fmt(parseFloat(el.dataset.base) * scale, el.dataset.unit);
   });
@@ -1384,6 +1422,7 @@ function showDetail(id, skipHistory) {
   actions.appendChild(createDetailEditAction(r.id));
   copy.appendChild(actions);
 
+  var macrosWrap = mk('div', 'detail-macros-wrap');
   var macrosDiv = mk('div', 'detail-macros');
   [
     { id: 'm-kcal', val: r.macros.kcal, lbl: 'kcal' },
@@ -1401,7 +1440,12 @@ function showDetail(id, skipHistory) {
     mac.appendChild(lblEl);
     macrosDiv.appendChild(mac);
   });
-  copy.appendChild(macrosDiv);
+  macrosWrap.appendChild(macrosDiv);
+  var perLine = mk('p', 'detail-macros-per');
+  perLine.id = 'm-per';
+  fillPerServingMacrosLine(perLine, r);
+  macrosWrap.appendChild(perLine);
+  copy.appendChild(macrosWrap);
 
   var media = mk('div', 'detail-lead-media');
   media.appendChild(buildDetailHero(r, { includeTitle: false }));
