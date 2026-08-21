@@ -318,6 +318,18 @@
     padding: 2px 8px; border-radius: 999px;
     background: var(--info); color: #fff;
   }
+  .recipe-card-macros100 {
+    position: absolute; bottom: 0.55rem; right: 0.55rem; z-index: 2;
+    display: inline-block;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.02em;
+    line-height: 1.2; padding: 3px 7px; border-radius: 999px;
+    background: rgba(0, 0, 0, 0.72); color: #fff;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    white-space: nowrap; pointer-events: none;
+  }
+  [data-theme="dark"] .recipe-card-macros100 {
+    background: rgba(255, 255, 255, 0.88); color: #1a1a18;
+  }
   .recipe-card-title {
     margin: 0 0 0.2rem; font-size: 1.25rem; font-weight: 700;
     line-height: 1.25; letter-spacing: -0.02em;

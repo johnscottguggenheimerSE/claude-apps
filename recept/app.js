@@ -531,6 +531,42 @@ function fillIngMacrosCell(cell, row, scale) {
   }
 }
 
+/** Summera ätbar vikt (g) från ingrediensgrupper via amountToGrams. */
+function estimateRecipeTotalGrams(r) {
+  if (!r || !r.groups || !r.groups.length) return null;
+  var total = 0;
+  var counted = false;
+  for (var gi = 0; gi < r.groups.length; gi++) {
+    var ings = r.groups[gi].ingredients || [];
+    for (var ii = 0; ii < ings.length; ii++) {
+      var ing = ings[ii];
+      var name = String(ing.name || '').trim();
+      if (!name) continue;
+      var amount = typeof ing.amount === 'number' ? ing.amount : Number(ing.amount);
+      if (!Number.isFinite(amount)) continue;
+      var grams = finiteOrNull(amountToGrams(amount, String(ing.unit || ''), name));
+      if (grams == null || grams <= 0) continue;
+      total += grams;
+      counted = true;
+    }
+  }
+  return counted ? total : null;
+}
+
+/** Compact list-card label: «30P 100🔥 / 100g». Omits when grams/macros unusable. */
+function formatCardMacrosPer100g(r) {
+  if (!r || !r.macros) return null;
+  var kcal = finiteOrNull(r.macros.kcal);
+  var prot = finiteOrNull(r.macros.prot);
+  if (kcal == null || prot == null) return null;
+  var totalGrams = estimateRecipeTotalGrams(r);
+  if (totalGrams == null || totalGrams < 20) return null;
+  var kcal100 = Math.round((kcal / totalGrams) * 100);
+  var prot100 = Math.round((prot / totalGrams) * 100);
+  if (!Number.isFinite(kcal100) || !Number.isFinite(prot100)) return null;
+  return prot100 + 'P ' + kcal100 + '🔥 / 100g';
+}
+
 function mk(tag, cls) {
   var e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -1068,6 +1104,12 @@ function createRecipeCard(r) {
     var newLbl = mk('span', 'recipe-card-new');
     newLbl.textContent = 'Nytt!';
     media.appendChild(newLbl);
+  }
+  var macros100 = formatCardMacrosPer100g(r);
+  if (macros100) {
+    var macLbl = mk('span', 'recipe-card-macros100');
+    macLbl.textContent = macros100;
+    media.appendChild(macLbl);
   }
   media.appendChild(createCardEditButton(r.id));
   media.appendChild(createFavoriteButton(r.id, 'fav-btn--card'));
