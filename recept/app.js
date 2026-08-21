@@ -858,10 +858,14 @@ function fillDetailMacros(r) {
   if (protEl) protEl.textContent = per.prot + 'g';
   if (carbEl) carbEl.textContent = per.carb + 'g';
   if (fatEl) fatEl.textContent = per.fat + 'g';
-  if (kcalTot) kcalTot.textContent = 'totalt ' + tot.kcal;
-  if (protTot) protTot.textContent = 'totalt ' + tot.prot + 'g';
-  if (carbTot) carbTot.textContent = 'totalt ' + tot.carb + 'g';
-  if (fatTot) fatTot.textContent = 'totalt ' + tot.fat + 'g';
+  if (kcalTot) kcalTot.textContent = String(tot.kcal);
+  if (protTot) protTot.textContent = tot.prot + 'g';
+  if (carbTot) carbTot.textContent = tot.carb + 'g';
+  if (fatTot) fatTot.textContent = tot.fat + 'g';
+  var servHint = '(' + currentServings + ' port)';
+  document.querySelectorAll('.detail-mac-tot-serv').forEach(function(el) {
+    el.textContent = servHint;
+  });
 }
 
 function capitalizeIngName(name) {
@@ -1453,11 +1457,18 @@ function showDetail(id, skipHistory) {
     valEl.id = m.id;
     var lblEl = mk('span', 'detail-mac-lbl');
     lblEl.textContent = m.lbl;
-    var totEl = mk('span', 'detail-mac-tot');
-    totEl.id = m.totId;
+    var totWrap = mk('span', 'detail-mac-tot');
+    var totVal = mk('span', 'detail-mac-tot-val');
+    totVal.id = m.totId;
+    var totLbl = mk('span', 'detail-mac-tot-lbl');
+    totLbl.textContent = 'totalt';
+    var totServ = mk('span', 'detail-mac-tot-serv');
+    totWrap.appendChild(totVal);
+    totWrap.appendChild(totLbl);
+    totWrap.appendChild(totServ);
     mac.appendChild(valEl);
     mac.appendChild(lblEl);
-    mac.appendChild(totEl);
+    mac.appendChild(totWrap);
     macrosDiv.appendChild(mac);
   });
   macrosWrap.appendChild(macrosDiv);
