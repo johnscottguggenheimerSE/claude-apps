@@ -11,6 +11,8 @@ import {
   generateFoodImageFromRecipe,
   generateFoodImage,
   parseRecipe,
+  estimateRecipeMacros,
+  estimateMacrosFromIngredients,
 } from './gemini';
 import { fetchImageAsBase64, fetchRecipePage, isSocialMediaUrl } from './fetch-url';
 import { getRecipe, getRecipeWithMeta, idExists, insertRecipe, listRecipes, updateRecipe, deleteRecipe, renameRecipe } from './db';
@@ -158,12 +160,19 @@ async function generateRecipeImage(
   env: Env,
   recipe: Recipe,
   imageBase64: string | null,
-  mimeType: string | null
+  mimeType: string | null,
+  extraInstructions?: string | null
 ): Promise<string> {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY saknas');
 
-  const image = await generateFoodImageFromRecipe(apiKey, recipe, imageBase64, mimeType);
+  const image = await generateFoodImageFromRecipe(
+    apiKey,
+    recipe,
+    imageBase64,
+    mimeType,
+    extraInstructions
+  );
   return storeRecipeImage(env, String(recipe.id), image);
 }
 
@@ -178,6 +187,29 @@ async function resolveRecipeImage(
     return enhanceRecipeImage(env, recipe, imageBase64, mimeType, existingImageRef);
   }
   return generateRecipeImage(env, recipe, null, null);
+}
+
+async function handleEstimateMacros(request: Request, env: Env): Promise<Response> {
+  let body: { recipe?: Recipe };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return json({ error: 'Ogiltig JSON' }, 400);
+  }
+
+  const recipe = body.recipe;
+  if (!recipe) return json({ error: 'Saknar recipe' }, 400);
+
+  try {
+    const local = estimateMacrosFromIngredients(recipe);
+    if (local) return json({ ok: true, macros: local, source: 'local' });
+
+    if (!env.GEMINI_API_KEY) return json({ error: 'GEMINI_API_KEY saknas' }, 503);
+    const macros = await estimateRecipeMacros(env.GEMINI_API_KEY, recipe);
+    return json({ ok: true, macros, source: 'ai' });
+  } catch (e) {
+    return json({ error: e instanceof Error ? e.message : 'Makroberäkning misslyckades' }, 502);
+  }
 }
 
 async function handleLogin(request: Request, env: Env): Promise<Response> {
@@ -294,6 +326,7 @@ async function handleGenerateImage(request: Request, env: Env): Promise<Response
     recipe?: Recipe;
     imageBase64?: string;
     mimeType?: string;
+    imageInstructions?: string;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -308,7 +341,8 @@ async function handleGenerateImage(request: Request, env: Env): Promise<Response
       env.GEMINI_API_KEY,
       body.recipe,
       body.imageBase64 || null,
-      body.mimeType || null
+      body.mimeType || null,
+      body.imageInstructions || null
     );
     return json({ imageBase64: image.data, mimeType: image.mimeType });
   } catch (e) {
@@ -494,6 +528,7 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
     generateImage?: boolean;
     uploadImage?: boolean;
     clearImage?: boolean;
+    imageInstructions?: string;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -545,7 +580,8 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
         env,
         recipe,
         body.imageBase64 || null,
-        body.mimeType || null
+        body.mimeType || null,
+        body.imageInstructions || null
       );
     } else if (body.enhanceImage || body.regenerateImage) {
       recipe.image = await enhanceRecipeImage(
@@ -678,6 +714,9 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (path === '/api/generate-image' && request.method === 'POST') {
     return handleGenerateImage(request, env);
   }
+  if (path === '/api/estimate-macros' && request.method === 'POST') {
+    return handleEstimateMacros(request, env);
+  }
 
   if (recipeMatch) {
     const id = decodeURIComponent(recipeMatch[1]!);
@@ -782,6 +821,11 @@ async function serveRecipeSharePage(request: Request, env: Env, recipeId: string
   const assetRes = await env.ASSETS.fetch('https://assets.local/index.html');
   let html = await assetRes.text();
 
+  // Alltid root-base så relativa assets funkar under /r/…
+  if (!/<base\s/i.test(html) && /<head[^>]*>/i.test(html)) {
+    html = html.replace(/<head([^>]*)>/i, '<head$1>\n<base href="/">\n');
+  }
+
   const row = await getRecipeWithMeta(env.DB, recipeId);
   if (row?.recipe) {
     const recipe = row.recipe;
@@ -815,6 +859,11 @@ export default {
     const recipePathMatch = rawPath.match(/^\/r\/([^/]+)$/);
     if (recipePathMatch && (request.method === 'GET' || request.method === 'HEAD')) {
       const id = decodeURIComponent(recipePathMatch[1]!);
+      // Relative asset requests under /r/… (t.ex. /r/theme.js) → root-assets
+      if (/\.[a-z0-9]{1,8}$/i.test(id)) {
+        const assetUrl = new URL('/' + id, url.origin);
+        return env.ASSETS.fetch(new Request(assetUrl, request));
+      }
       const page = await serveRecipeSharePage(request, env, id);
       if (request.method === 'HEAD') {
         return new Response(null, { status: page.status, headers: page.headers });

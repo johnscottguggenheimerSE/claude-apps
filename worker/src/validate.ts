@@ -123,7 +123,159 @@ const FORWARDER_SOURCES = new Set([
   'john scott guggenheimer',
 ]);
 
+type Ing = { name?: string; amount?: number; unit?: string };
+
+function cupsToGrams(cups: number, name: string): number {
+  if (/smör|butter/i.test(name)) return Math.round(cups * 227);
+  // undvik att «mjölk» matchar «mjöl»
+  if (/\bmjöl\b|flour|stärkelse|starch|socker|sugar|pulver|powder|kakao|cocoa/i.test(name)) {
+    return Math.round(cups * 120);
+  }
+  if (/havre|oats/i.test(name)) return Math.round(cups * 90);
+  if (/\bris\b|rice/i.test(name)) return Math.round(cups * 185);
+  return Math.round(cups * 240);
+}
+
+/**
+ * Gemini byter ibland cup/tbsp → unit "g" utan att räkna om siffran (1¼ cup → 1.25 g).
+ * Remappa engelska enheter och laga uppenbara falska grammängder.
+ */
+function normalizeIngredientMeasures(r: Recipe): void {
+  const groups = r.groups as { ingredients?: Ing[] }[] | undefined;
+  if (!groups) return;
+
+  for (const g of groups) {
+    for (const ing of g.ingredients || []) {
+      if (!ing || typeof ing !== 'object') continue;
+      let amount = typeof ing.amount === 'number' ? ing.amount : Number(ing.amount);
+      if (!Number.isFinite(amount)) continue;
+      const name = String(ing.name || '');
+      let unit = String(ing.unit || '')
+        .toLowerCase()
+        .trim()
+        .replace(/\.$/, '');
+
+      if (['tbsp', 'tablespoon', 'tablespoons', 'matsked', 'matskedar'].includes(unit)) {
+        ing.unit = 'msk';
+        ing.amount = amount;
+        continue;
+      }
+      if (['tsp', 'teaspoon', 'teaspoons', 'tesked', 'teskedar'].includes(unit)) {
+        ing.unit = 'tsk';
+        ing.amount = amount;
+        continue;
+      }
+      if (['cup', 'cups', 'kopp', 'koppar'].includes(unit)) {
+        ing.amount = cupsToGrams(amount, name);
+        ing.unit = 'g';
+        continue;
+      }
+      if (unit === 'ml' || unit === 'milliliter' || unit === 'milliliters') {
+        ing.amount = Math.round(amount);
+        ing.unit = 'g';
+        continue;
+      }
+      if (unit === 'dl') {
+        ing.amount = Math.round(amount * 100);
+        ing.unit = 'g';
+        continue;
+      }
+      if (['oz', 'ounce', 'ounces'].includes(unit)) {
+        ing.amount = Math.round(amount * 28.35);
+        ing.unit = 'g';
+        continue;
+      }
+      if (['lb', 'lbs', 'pound', 'pounds'].includes(unit)) {
+        ing.amount = Math.round(amount * 453.6);
+        ing.unit = 'g';
+        continue;
+      }
+      if (['scoop', 'scoops'].includes(unit)) {
+        ing.amount = Math.round(amount * 30);
+        ing.unit = 'g';
+        continue;
+      }
+      if (['shot', 'shots'].includes(unit) && /espresso|kaffe|coffee/i.test(name)) {
+        ing.amount = Math.round(amount * 30);
+        ing.unit = 'g';
+        continue;
+      }
+
+      if (unit !== 'g' || amount <= 0 || amount > 16) continue;
+
+      // Falsk cup→g: 1.25 g mjölk o.dyl.
+      if (
+        /mjölk|milk|grädde|cream|yoghurt|yogurt|vatten|water|buljong|stock|juice/i.test(name) &&
+        amount <= 4 &&
+        (amount !== Math.floor(amount) || amount <= 3)
+      ) {
+        ing.amount = cupsToGrams(amount, name);
+        ing.unit = 'g';
+        continue;
+      }
+      if (amount === 1 && /proteinpulver|protein powder|whey|kasein|casein/i.test(name)) {
+        ing.amount = 30;
+        continue;
+      }
+      if (
+        amount >= 1 &&
+        amount <= 3 &&
+        Number.isInteger(amount) &&
+        /espresso/i.test(name)
+      ) {
+        ing.amount = amount * 30;
+        continue;
+      }
+      if (amount >= 2 && amount <= 6 && /keso|cottage/i.test(name)) {
+        ing.unit = 'msk';
+        continue;
+      }
+      if (
+        amount >= 1 &&
+        amount <= 4 &&
+        /vaniljpasta|vaniljextrakt|vanilla (paste|extract)|lönnsirap|maple|honung|honey/i.test(name)
+      ) {
+        ing.unit = 'tsk';
+        continue;
+      }
+      // Såser/pastor som 2–8 g ≈ troligen msk kvar från tbsp
+      if (
+        Number.isInteger(amount) &&
+        amount >= 1 &&
+        amount <= 8 &&
+        /ketchup|gochujang|vinäger|vinegar|sojasås|soy|mirin|sesamolja|sesame oil|olja\b|oil\b|mayo|chili.?crisp|sambal|miso|tahini|honung|honey|sirap|syrup|pasta\b(?!.*pulver)/i.test(
+          name
+        ) &&
+        !/salt|peppar|jäst|bakpulver|bikarbonat|kanel|vitlökspulver|krydda/i.test(name)
+      ) {
+        ing.unit = 'msk';
+      }
+    }
+  }
+}
+
 export function normalizeRecipe(r: Recipe): Recipe {
+  // Gemini returnerar ibland alternativa nycklar eller tom title
+  if (!r.title || !String(r.title).trim()) {
+    const alt =
+      r.Title ?? r.name ?? r.Name ?? r.titel ?? r.Titel ?? r.recipeName ?? r.dish;
+    if (alt != null && String(alt).trim()) r.title = String(alt).trim();
+  }
+  if (typeof r.title === 'string') {
+    r.title = r.title
+      .replace(/\b(hög\s*protein|högprotein|extra\s*protein|proteinrik|proteinpackad)\b/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/^[\s\-–—]+|[\s\-–—]+$/g, '')
+      .trim();
+  }
+  if ((!r.title || !String(r.title).trim()) && r.id && String(r.id) !== 'recept') {
+    r.title = String(r.id)
+      .split('-')
+      .filter(Boolean)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+
   if (!r.source || (typeof r.source === 'string' && !String(r.source).trim())) {
     r.source = 'Okänd källa';
   } else if (
@@ -147,6 +299,7 @@ export function normalizeRecipe(r: Recipe): Recipe {
   if (tips?.[0] && /^för barn$/i.test(String(tips[0].title || '').trim())) {
     tips[0].title = 'Seattle';
   }
+  normalizeIngredientMeasures(r);
   return r;
 }
 

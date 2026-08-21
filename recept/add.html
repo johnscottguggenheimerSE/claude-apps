@@ -85,6 +85,26 @@
   .preview-image-placeholder-actions {
     display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.4rem;
   }
+  .image-prompt-extra {
+    margin: -0.5rem 0 1.15rem;
+    padding: 0.75rem 0.85rem;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+  }
+  .image-prompt-extra.hidden { display: none; }
+  .image-prompt-extra label {
+    display: block; font-size: 0.8125rem; font-weight: 500;
+    margin-bottom: 0.35rem; color: var(--text2);
+  }
+  .image-prompt-extra textarea {
+    width: 100%; min-height: 72px; margin-bottom: 0.35rem;
+    font: inherit; font-size: 0.875rem; padding: 0.55rem 0.65rem;
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+    background: var(--bg2); color: var(--text); resize: vertical;
+  }
+  .image-prompt-extra .field-hint { margin: 0; }
+  .preview-image-btn--active { outline: 2px solid #fff; outline-offset: 1px; }
   .preview-image-wrap.no-image .preview-image-actions { display: none; }
   .preview-image-wrap.no-image #btn-generate-placeholder { display: inline-block; }
   .preview-image-wrap.no-image .preview-image-placeholder { display: flex; }
@@ -317,6 +337,7 @@
             <span class="preview-image-placeholder-text">Ingen bild</span>
             <div class="preview-image-placeholder-actions" id="preview-placeholder-actions">
               <button type="button" class="preview-image-btn preview-image-btn--primary" id="btn-generate-placeholder">generera med AI</button>
+              <button type="button" class="preview-image-btn" id="btn-image-prompt-extra" aria-expanded="false" aria-controls="image-prompt-extra">instruktioner</button>
               <div class="preview-image-upload" id="preview-upload-wrap">
                 <button type="button" class="preview-image-btn" id="btn-upload-image" aria-haspopup="menu" aria-expanded="false">ladda upp bild</button>
                 <div class="preview-image-menu hidden" id="preview-upload-menu" role="menu">
@@ -330,9 +351,15 @@
         </div>
         <div class="preview-image-actions" id="preview-image-actions">
           <button type="button" class="preview-image-btn hidden" id="btn-generate-image">generera med AI</button>
+          <button type="button" class="preview-image-btn hidden" id="btn-image-prompt-extra-overlay" aria-expanded="false" aria-controls="image-prompt-extra">instruktioner</button>
           <button type="button" class="preview-image-btn hidden" id="btn-enhance-image">förbättra med AI</button>
         </div>
         <input type="file" id="file-preview" accept="image/*" class="file-input-offscreen">
+      </div>
+      <div class="image-prompt-extra hidden" id="image-prompt-extra">
+        <label for="image-prompt-extra-text">Specifika instruktioner till bildgenerering</label>
+        <textarea id="image-prompt-extra-text" placeholder="t.ex. ovanifrån, på vit tallrik, ingen garnering, mörk bakgrund…"></textarea>
+        <p class="field-hint">Läggs till i AI-prompten — ersätter den inte.</p>
       </div>
       <h2 id="preview-title">Granska recept</h2>
       <p class="field-hint" id="preview-hint" style="margin-top:0;margin-bottom:0.75rem;">Redigera fält nedan och spara.</p>
@@ -340,6 +367,7 @@
       <div id="preview-form"></div>
       <div class="actions">
         <button type="button" class="primary" id="btn-save">Spara recept</button>
+        <button type="button" id="btn-recalc-macros">Räkna om makron</button>
         <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8125rem;margin-left:0.25rem;">
           <input type="checkbox" id="featured-new"> Visa som Nytt!
         </label>

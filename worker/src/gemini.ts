@@ -29,8 +29,8 @@ Fält (inget emoji-fält):
 - source (läsbar källa: @handle, «Ali Slagle, NYT Cooking», sajtnamn — **utan** «på Instagram/TikTok» i texten)
 - **source:** alltid **ursprunglig receptskapare** — @handle på Instagram/TikTok, blogg/sajtnamn, kock + publikation. **Aldrig** personen som vidarebefordrat receptet privat (vän/familj) om de inte själva är kreatören
 - **source:** vid skärmdump/reel/caption — läs @handle, kontonamn eller vattenstämpel synligt i bilden/texten; prioritera det. Om okänt: «Okänd källa» — gissa inte vidarebefordrare
-- **title:** alltid på **svenska** — översätt engelska/internationella receptnamn till naturlig svenska (behåll etablerade lånord som gochujang, teriyaki, buffalo där det passar)
-- **title:** inkludera **aldrig** ordet «protein» (eller «högprotein») — proteinhalt visas via badges och makros
+- **title:** alltid på **svenska** — översätt engelska/internationella receptnamn till naturlig svenska (behåll etablerade lånord som gochujang, teriyaki, buffalo där det passar). **Obligatoriskt** — title får aldrig vara tom
+- **title:** inkludera **aldrig** ordet «protein» (eller «högprotein») — ta bort proteinkrav från namnet men behåll resten (t.ex. «Proteinbanankaka» → «Banankaka»)
 - sourceUrl: publik recept-URL (matblogg, NYT Cooking, etc.). Tom sträng för Instagram/TikTok — vi kan inte läsa inloggade sociala länkar; använd @handle i source istället
 - badges: array med minst portioner (t.ex. «4 portioner») och tidsuppskattning som **endast** «XX min» (t.ex. «30 min») — aldrig «ca», «under» eller intervall i badge; vid intervall i källan använd högsta minut
 - macros: { kcal, prot, carb, fat } för HELA receptet
@@ -45,7 +45,17 @@ Kategori — måltidstyp:
 - tillbehor: sidor, spreads, bröd, pickles, tillbehör till annan måltid
 - fika: bakverk, sötsaker, bullar till fika
 
-Mått metriska, svenska. Uppskatta makros.`;
+Mått — kritiska regler (fel här ger 1g-mjölk o.dyl.):
+- Tillåtna unit: endast g|msk|tsk|st|pinch|näve|strimlor
+- tbsp/tablespoon → unit msk (samma siffra). tsp/teaspoon → unit tsk (samma siffra)
+- cup/cups → räkna om till gram: vätska/mjölk/yoghurt ≈ 240 g/cup, mjöl/socker/pulver ≈ 120 g/cup, smör ≈ 227 g/cup. Skriv amount i gram, unit g
+- ml → g 1:1 för vätskor; dl → amount×100 som g; oz → ×28; lb → ×454
+- scoop proteinpulver ≈ 30 g; espresso shot ≈ 30 g; ägg → st
+- **ALDRIG** byt bara etiketten till g utan att räkna om. 1 cup ≠ 1 g, 1 tbsp ≠ 1 g, 1 scoop ≠ 1 g, 1¼ cup mjölk ≠ 1.25 g
+- Föredra msk/tsk för olja, soja, vinäger, pastasåser, honung, kryddor i små mängder — tvinga inte allt till gram
+- Små äkta grammängder (salt, peppar, jäst, bakpulver) får vara några gram
+
+Uppskatta makros för hela receptet.`
 
 import { isSocialMediaUrl } from './fetch-url';
 
@@ -256,7 +266,8 @@ export async function generateFoodImageFromRecipe(
   apiKey: string,
   recipe: Recipe,
   imageBase64?: string | null,
-  mimeType?: string | null
+  mimeType?: string | null,
+  extraInstructions?: string | null
 ): Promise<{ data: string; mimeType: string }> {
   const title = String(recipe.title || 'maträtt');
   const { ingredients, steps } = recipeImageContext(recipe);
@@ -270,6 +281,11 @@ export async function generateFoodImageFromRecipe(
     ? 'An attached inspiration photo is provided — show the SAME dish but with clearly different composition: new camera angle, different plate/board/surface, new garnish placement, and fresh styling. Do NOT copy the reference framing, layout, or props.'
     : 'No reference photo — infer appearance from the recipe text below.';
 
+  const extra = String(extraInstructions || '').trim();
+  const extraBlock = extra
+    ? `\n5. ADDITIONAL USER DIRECTION (append — do not ignore the recipe above):\n${extra}\n`
+    : '';
+
   parts.push({
     text: `Create a completely new professional appetizing food photograph (not a retouch of an existing photo).
 
@@ -279,7 +295,7 @@ export async function generateFoodImageFromRecipe(
 ${ingredients || '(see dish name)'}
 4. INSTRUCTIONS (plating, texture, finish):
 ${steps || '(see dish name)'}
-
+${extraBlock}
 Vary angle (overhead OR 3/4), natural light, realistic, no people, restaurant quality. ${IMAGE_CLEANUP}`,
   });
 
@@ -298,4 +314,191 @@ export async function enhanceFoodImage(
       text: `This is a photo of "${title}". Create an improved version of THIS EXACT image — same dish, same plating, same bowl/plate, same camera angle and framing. Do not invent a different meal or change the composition. Fix and clean up: sharper focus, better natural lighting, richer appetizing colors, professional food photography. Photorealistic, no people. This may be a video screenshot — ${IMAGE_CLEANUP}`,
     },
   ]);
+}
+
+type MacroTotals = { kcal: number; prot: number; carb: number; fat: number };
+
+/** Näringsvärden per 100 g (typiska svenska/handelsvärden). */
+const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
+  { re: /kycklingfärs|malet kyckling|ground chicken/i, m: { kcal: 115, prot: 21, carb: 0, fat: 5 } },
+  { re: /nötfärs|malet nötkött|extra mager nöt/i, m: { kcal: 150, prot: 20, carb: 0, fat: 8 } },
+  { re: /fläsk|malet fläsk|pork/i, m: { kcal: 200, prot: 17, carb: 0, fat: 15 } },
+  { re: /kycklingbröst|kycklingfilé/i, m: { kcal: 110, prot: 23, carb: 0, fat: 1.5 } },
+  { re: /räk|shrimp|prawn/i, m: { kcal: 85, prot: 18, carb: 1, fat: 1 } },
+  { re: /tonfisk|tuna/i, m: { kcal: 130, prot: 25, carb: 0, fat: 3 } },
+  { re: /keso|cottage/i, m: { kcal: 80, prot: 12, carb: 3, fat: 2 } },
+  { re: /grekisk yoghurt|naturell yoghurt/i, m: { kcal: 70, prot: 7, carb: 4, fat: 3 } },
+  { re: /äggvita/i, m: { kcal: 50, prot: 11, carb: 1, fat: 0 } },
+  { re: /ägg/i, m: { kcal: 140, prot: 12, carb: 1, fat: 10 } },
+  { re: /vetemjöl|mjöl(?!k)/i, m: { kcal: 350, prot: 10, carb: 73, fat: 1 } },
+  { re: /havremjöl|havre/i, m: { kcal: 370, prot: 13, carb: 60, fat: 7 } },
+  { re: /ris(?!vin|papp)|jasminris|råris/i, m: { kcal: 350, prot: 7, carb: 78, fat: 1 } },
+  { re: /wrapper|wonton|gyoza|dumpling.?skal|degark/i, m: { kcal: 300, prot: 8, carb: 60, fat: 1.5 } },
+  { re: /rispapper/i, m: { kcal: 330, prot: 0, carb: 82, fat: 0 } },
+  { re: /panko|ströbröd/i, m: { kcal: 380, prot: 12, carb: 72, fat: 3 } },
+  { re: /parmesan|mozzarella|cheddar|ost\b/i, m: { kcal: 350, prot: 25, carb: 2, fat: 27 } },
+  { re: /olja|oil|smör|butter/i, m: { kcal: 884, prot: 0, carb: 0, fat: 100 } },
+  { re: /sesamolja/i, m: { kcal: 884, prot: 0, carb: 0, fat: 100 } },
+  { re: /sesamfrö/i, m: { kcal: 570, prot: 18, carb: 12, fat: 50 } },
+  { re: /soja|soy sauce|thaisoja|coconut aminos/i, m: { kcal: 55, prot: 8, carb: 5, fat: 0 } },
+  { re: /mirin/i, m: { kcal: 230, prot: 0, carb: 45, fat: 0 } },
+  { re: /honung|lönnsirap|maple/i, m: { kcal: 320, prot: 0, carb: 80, fat: 0 } },
+  { re: /socker|farinsocker/i, m: { kcal: 400, prot: 0, carb: 100, fat: 0 } },
+  { re: /risvinäger|vinäger|ättika/i, m: { kcal: 20, prot: 0, carb: 1, fat: 0 } },
+  { re: /gochujang|miso/i, m: { kcal: 200, prot: 5, carb: 35, fat: 3 } },
+  { re: /ostronsås/i, m: { kcal: 50, prot: 1, carb: 10, fat: 0 } },
+  { re: /fisksås/i, m: { kcal: 35, prot: 5, carb: 4, fat: 0 } },
+  { re: /vitlök/i, m: { kcal: 130, prot: 6, carb: 28, fat: 0 } },
+  { re: /ingefära/i, m: { kcal: 80, prot: 2, carb: 18, fat: 1 } },
+  { re: /vårlök|salladslök/i, m: { kcal: 32, prot: 2, carb: 7, fat: 0 } },
+  { re: /lök|rödlök|gul lök/i, m: { kcal: 40, prot: 1, carb: 9, fat: 0 } },
+  { re: /gurka/i, m: { kcal: 15, prot: 1, carb: 3, fat: 0 } },
+  { re: /morot/i, m: { kcal: 40, prot: 1, carb: 9, fat: 0 } },
+  { re: /paprika(?!pulver)/i, m: { kcal: 30, prot: 1, carb: 6, fat: 0 } },
+  { re: /banan/i, m: { kcal: 90, prot: 1, carb: 23, fat: 0 } },
+  { re: /kakao/i, m: { kcal: 230, prot: 20, carb: 10, fat: 14 } },
+  { re: /choklad/i, m: { kcal: 540, prot: 6, carb: 50, fat: 35 } },
+  { re: /pb2|jordnöts?pulver/i, m: { kcal: 375, prot: 40, carb: 30, fat: 10 } },
+  { re: /nötter|jordnöt|cashew|mandel/i, m: { kcal: 600, prot: 20, carb: 15, fat: 50 } },
+];
+
+/** Styckvikter (g) när unit = st. */
+const PIECE_G: Array<{ re: RegExp; g: number }> = [
+  { re: /wrapper|wonton|gyoza|dumpling/i, g: 7 },
+  { re: /äggvita/i, g: 33 },
+  { re: /ägg/i, g: 55 },
+  { re: /vårlök|salladslök/i, g: 10 },
+  { re: /vitlöksklyfta|vitlök/i, g: 3 },
+  { re: /banan/i, g: 120 },
+  { re: /rispapper/i, g: 10 },
+];
+
+function emptyMacros(): MacroTotals {
+  return { kcal: 0, prot: 0, carb: 0, fat: 0 };
+}
+
+function addMacros(a: MacroTotals, b: MacroTotals, factor = 1): MacroTotals {
+  return {
+    kcal: a.kcal + b.kcal * factor,
+    prot: a.prot + b.prot * factor,
+    carb: a.carb + b.carb * factor,
+    fat: a.fat + b.fat * factor,
+  };
+}
+
+function roundMacros(m: MacroTotals): MacroTotals {
+  return {
+    kcal: Math.max(0, Math.round(m.kcal)),
+    prot: Math.max(0, Math.round(m.prot)),
+    carb: Math.max(0, Math.round(m.carb)),
+    fat: Math.max(0, Math.round(m.fat)),
+  };
+}
+
+function lookupPer100g(name: string): MacroTotals | null {
+  for (const row of PER_100G) {
+    if (row.re.test(name)) return row.m;
+  }
+  return null;
+}
+
+function amountToGrams(amount: number, unit: string, name: string): number | null {
+  const u = String(unit || '').toLowerCase();
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+  if (u === 'g') return amount;
+  if (u === 'msk') {
+    // Olja/fetter: 1 msk ≈ 14 g; övriga vätskor ≈ 15 g
+    if (/olja|oil|smör|butter/i.test(name)) return amount * 14;
+    return amount * 15;
+  }
+  if (u === 'tsk') {
+    if (/olja|oil|smör|butter/i.test(name)) return amount * 4.5;
+    return amount * 5;
+  }
+  if (u === 'st') {
+    for (const row of PIECE_G) {
+      if (row.re.test(name)) return amount * row.g;
+    }
+    return null;
+  }
+  if (u === 'pinch' || u === 'näve' || u === 'strimlor') return 0;
+  return null;
+}
+
+/** Deterministisk makrosumma från ingredienslistan — används som primär källa. */
+export function estimateMacrosFromIngredients(recipe: Recipe): MacroTotals | null {
+  const groups = (recipe.groups || []) as {
+    ingredients?: { name?: string; amount?: number; unit?: string }[];
+  }[];
+  let total = emptyMacros();
+  let counted = 0;
+
+  for (const g of groups) {
+    for (const ing of g.ingredients || []) {
+      const name = String(ing.name || '').trim();
+      if (!name) continue;
+      const amount = typeof ing.amount === 'number' ? ing.amount : Number(ing.amount);
+      const grams = amountToGrams(amount, String(ing.unit || ''), name);
+      if (grams == null || grams <= 0) continue;
+      const per100 = lookupPer100g(name);
+      if (!per100) continue;
+      total = addMacros(total, per100, grams / 100);
+      counted += 1;
+    }
+  }
+
+  if (!counted) return null;
+  return roundMacros(total);
+}
+
+const MACRO_SYSTEM = `Du är nutritionist. Beräkna makron för HELA receptet/satsen (summan av alla ingredienser — INTE per portion).
+Returnera ENDAST JSON: {"kcal":number,"prot":number,"carb":number,"fat":number}
+- Avrunda till heltal; prot/carb/fat i gram
+- 1 msk matolja ≈ 14 g fett / ~120 kcal — räkna ALDRIG olja som mer än det
+- 400 g kycklingfärs (mager) ≈ 20 g fett / ~85 g protein / ~460 kcal
+- Summera rad för rad; hitta inte på extra fett`;
+
+export async function estimateRecipeMacros(
+  apiKey: string,
+  recipe: Recipe
+): Promise<MacroTotals> {
+  const local = estimateMacrosFromIngredients(recipe);
+  if (local) return local;
+
+  // Fallback till AI endast om lokala tabellen inte täcker ingredienserna
+  const title = String(recipe.title || 'recept');
+  const servings = typeof recipe.baseServings === 'number' ? recipe.baseServings : 1;
+  const { ingredients } = recipeImageContext(recipe);
+  if (!ingredients.trim()) {
+    throw new Error('Inga ingredienser att räkna makron från');
+  }
+
+  const raw = await geminiJson(
+    apiKey,
+    [
+      {
+        text: `Recept: ${title}
+baseServings: ${servings} (makron = HELA satsen)
+
+Ingredienser:
+${ingredients}
+
+Räkna rad för rad. 2 msk olja ≈ 28 g fett. 400 g mager kycklingfärs ≈ 20 g fett.`,
+      },
+    ],
+    MACRO_SYSTEM,
+    TEXT_MODELS_SIMPLE
+  );
+
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  const macros = roundMacros({
+    kcal: Number(parsed.kcal) || 0,
+    prot: Number(parsed.prot) || 0,
+    carb: Number(parsed.carb) || 0,
+    fat: Number(parsed.fat) || 0,
+  });
+  if (!macros.kcal && !macros.prot && !macros.carb && !macros.fat) {
+    throw new Error('Kunde inte beräkna makron');
+  }
+  return macros;
 }

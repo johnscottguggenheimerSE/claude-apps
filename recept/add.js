@@ -43,6 +43,10 @@
   var btnGenerateImage = document.getElementById('btn-generate-image');
   var btnEnhanceImage = document.getElementById('btn-enhance-image');
   var btnGeneratePlaceholder = document.getElementById('btn-generate-placeholder');
+  var btnImagePromptExtra = document.getElementById('btn-image-prompt-extra');
+  var btnImagePromptExtraOverlay = document.getElementById('btn-image-prompt-extra-overlay');
+  var imagePromptExtraPanel = document.getElementById('image-prompt-extra');
+  var imagePromptExtraText = document.getElementById('image-prompt-extra-text');
   var regenProgressTimer = null;
   var regenUndoSnapshot = null;
   var regenRedoSnapshot = null;
@@ -93,10 +97,32 @@
     var input = document.createElement('input');
     input.id = id;
     input.type = type || 'text';
+    input.autocomplete = 'off';
     input.value = value != null ? String(value) : '';
     wrap.appendChild(lbl);
     wrap.appendChild(input);
     return wrap;
+  }
+
+  function ensureRecipeTitle(recipe) {
+    if (!recipe) return recipe;
+    if (recipe.title && String(recipe.title).trim()) {
+      recipe.title = String(recipe.title).trim();
+      return recipe;
+    }
+    var alt = recipe.name || recipe.titel || recipe.Title || recipe.Name;
+    if (alt && String(alt).trim()) {
+      recipe.title = String(alt).trim();
+      return recipe;
+    }
+    if (recipe.id && recipe.id !== 'recept') {
+      recipe.title = String(recipe.id)
+        .split('-')
+        .filter(Boolean)
+        .map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); })
+        .join(' ');
+    }
+    return recipe;
   }
 
   function clearRegenProgress() {
@@ -390,6 +416,35 @@
     if (btnGenerateImage) btnGenerateImage.disabled = disabled;
     if (btnEnhanceImage) btnEnhanceImage.disabled = disabled;
     if (btnGeneratePlaceholder) btnGeneratePlaceholder.disabled = disabled;
+    if (btnImagePromptExtra) btnImagePromptExtra.disabled = disabled;
+    if (btnImagePromptExtraOverlay) btnImagePromptExtraOverlay.disabled = disabled;
+  }
+
+  function getImageInstructions() {
+    if (!imagePromptExtraText) return '';
+    return String(imagePromptExtraText.value || '').trim().slice(0, 1000);
+  }
+
+  function syncImagePromptExtraButtons(open) {
+    [btnImagePromptExtra, btnImagePromptExtraOverlay].forEach(function(btn) {
+      if (!btn) return;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.classList.toggle('preview-image-btn--active', open);
+    });
+  }
+
+  function setImagePromptExtraOpen(open) {
+    if (!imagePromptExtraPanel) return;
+    imagePromptExtraPanel.classList.toggle('hidden', !open);
+    syncImagePromptExtraButtons(open);
+    if (open && imagePromptExtraText) {
+      imagePromptExtraText.focus();
+    }
+  }
+
+  function toggleImagePromptExtra() {
+    if (!imagePromptExtraPanel) return;
+    setImagePromptExtraOpen(imagePromptExtraPanel.classList.contains('hidden'));
   }
 
   function clearPendingImage() {
@@ -1085,6 +1140,11 @@
       recipe.id = slugifyTitle(recipe.title);
       idEl.value = recipe.id;
     }
+    if ((!recipe.title || !recipe.title.trim()) && currentRecipe && currentRecipe.title) {
+      recipe.title = currentRecipe.title;
+      titleEl.value = recipe.title;
+    }
+    ensureRecipeTitle(recipe);
     if (currentRecipe && currentRecipe.badges) recipe.badges = currentRecipe.badges;
     return recipe;
   }
@@ -1351,6 +1411,8 @@
 
   function generatePreviewImageClient(recipe, snapshot) {
     var body = { recipe: recipe };
+    var instructions = getImageInstructions();
+    if (instructions) body.imageInstructions = instructions;
     if (snapshot) {
       body.imageBase64 = snapshot.data;
       body.mimeType = snapshot.mimeType;
@@ -1406,6 +1468,8 @@
       generateImage: true,
       featuredNew: document.getElementById('featured-new').checked
     };
+    var instructions = getImageInstructions();
+    if (instructions) body.imageInstructions = instructions;
     if (snapshot) {
       body.imageBase64 = snapshot.data;
       body.mimeType = snapshot.mimeType;
@@ -1525,11 +1589,17 @@
       previewPlaceholderActions.appendChild(previewUploadWrap);
     }
     if (btnGenerateImage) btnGenerateImage.classList.remove('hidden');
+    if (btnImagePromptExtraOverlay) btnImagePromptExtraOverlay.classList.remove('hidden');
     if (btnEnhanceImage) btnEnhanceImage.classList.toggle('hidden', !hasImage);
     if (btnGeneratePlaceholder) btnGeneratePlaceholder.classList.toggle('hidden', hasImage);
+    if (btnImagePromptExtra) btnImagePromptExtra.classList.toggle('hidden', hasImage);
   }
 
   function showPreview(recipe) {
+    ensureRecipeTitle(recipe);
+    if ((!recipe.id || recipe.id === 'recept') && recipe.title) {
+      recipe.id = slugifyTitle(recipe.title);
+    }
     currentRecipe = recipe;
     savedImageLoadFailed = false;
     reviewActive = true;
@@ -1555,6 +1625,8 @@
   btnGenerateImage.addEventListener('click', function() { runImageAi('generate'); });
   btnEnhanceImage.addEventListener('click', function() { runImageAi('enhance'); });
   btnGeneratePlaceholder.addEventListener('click', function() { runImageAi('generate'); });
+  if (btnImagePromptExtra) btnImagePromptExtra.addEventListener('click', toggleImagePromptExtra);
+  if (btnImagePromptExtraOverlay) btnImagePromptExtraOverlay.addEventListener('click', toggleImagePromptExtra);
 
   document.getElementById('btn-parse-text').addEventListener('click', function() {
     var btn = document.getElementById('btn-parse-text');
@@ -1670,6 +1742,67 @@
   function goToRecipe(id) {
     location.href = '/r/' + encodeURIComponent(id);
   }
+
+  function applyMacrosToForm(macros) {
+    if (!macros) return;
+    [
+      ['edit-kcal', 'kcal'],
+      ['edit-prot', 'prot'],
+      ['edit-carb', 'carb'],
+      ['edit-fat', 'fat']
+    ].forEach(function(pair) {
+      var el = document.getElementById(pair[0]);
+      if (el && macros[pair[1]] != null) el.value = String(macros[pair[1]]);
+    });
+    if (currentRecipe) currentRecipe.macros = {
+      kcal: macros.kcal,
+      prot: macros.prot,
+      carb: macros.carb,
+      fat: macros.fat
+    };
+  }
+
+  document.getElementById('btn-recalc-macros').addEventListener('click', function() {
+    if (!currentRecipe) return;
+    var btn = document.getElementById('btn-recalc-macros');
+    var recipe;
+    try {
+      recipe = readRecipeFromForm();
+    } catch (ex) {
+      setStatus(ex.message, true);
+      return;
+    }
+    if (!recipe.groups || !recipe.groups.length) {
+      setStatus('Lägg till ingredienser innan du räknar om makron.', true);
+      return;
+    }
+    btn.disabled = true;
+    setStatus('Räknar om makron…');
+    fetch('/api/estimate-macros', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ recipe: recipe })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Makroberäkning misslyckades');
+        return data;
+      });
+    }).then(function(data) {
+      applyMacrosToForm(data.macros);
+      setStatus(
+        'Makron uppdaterade: ' +
+        data.macros.kcal + ' kcal · ' +
+        data.macros.prot + 'g prot · ' +
+        data.macros.carb + 'g kh · ' +
+        data.macros.fat + 'g fett'
+      );
+      var macrosSec = previewForm.querySelector('.macros');
+      if (macrosSec) macrosSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }).catch(function(ex) {
+      setStatus(ex.message, true);
+    }).finally(function() { btn.disabled = false; });
+  });
 
   document.getElementById('btn-save').addEventListener('click', function() {
     if (!currentRecipe) return;
