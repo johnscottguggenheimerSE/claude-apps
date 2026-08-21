@@ -72,8 +72,12 @@ Språk — ingredienser och steg (naturlig svenska, inte ord-för-ord):
   - light ketchup / lättketchup / ketchup med lågt kaloriinnehåll → **«ketchup»** (marknadsföring — räkna som vanlig ketchup)
 - **Stegverb:** drizzle → «ringla» eller «droppa» — **aldrig** «dryppla». Fold gently → «vänd försiktigt».
 - **Maskin-/produktlägen** (Ninja Creami m.fl.): behåll **officiellt engelskt lägesnamn** i citattecken — översätt aldrig «Lite Ice Cream» till «lite glass». Ex: «kör på "Lite Ice Cream"-läget», «kör Re-spin». Skriv «Re-spin», inte «respinna».
+- **Engelska skafferitermer** — hitta inte på svenska kalques för ord som svenskar säger på engelska:
+  - chocolate chips → **«chocolate chips»** (aldrig «chokladchips» / «choklad chips»)
+  - PB2 → **«pb2»** (produktnamn; gärna «pb2 (pulver)» om källan menar pulver)
+  - monk fruit → **«monk fruit»** (aldrig «munkfrukt»)
 - Översätt instruktioner till flytande svenska men behåll varumärken, lägesnamn och etablerade lånord (gochujang, teriyaki, espresso, Creami).
-- Ingrediensnamn: lowercase, svenska vardagsord (cottage cheese → keso, scallion → salladslök, cornstarch → majsstärkelse). Prep före namn när det går («tärnad gurka»).
+- Ingrediensnamn: lowercase, svenska vardagsord (cottage cheese → keso, scallion → salladslök, cornstarch → majsstärkelse) — utom listan ovan. Prep före namn när det går («tärnad gurka»).
 
 Uppskatta makros för hela receptet.`
 
@@ -389,7 +393,7 @@ const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
   { re: /paprika(?!pulver)/i, m: { kcal: 30, prot: 1, carb: 6, fat: 0 } },
   { re: /banan/i, m: { kcal: 90, prot: 1, carb: 23, fat: 0 } },
   { re: /kakao/i, m: { kcal: 230, prot: 20, carb: 10, fat: 14 } },
-  { re: /choklad/i, m: { kcal: 540, prot: 6, carb: 50, fat: 35 } },
+  { re: /chocolate\s+chips?|choklad/i, m: { kcal: 540, prot: 6, carb: 50, fat: 35 } },
   { re: /pb2|jordnöts?pulver/i, m: { kcal: 375, prot: 40, carb: 30, fat: 10 } },
 
   { re: /proteinpulver|whey|kasein|casein|protein powder/i, m: { kcal: 380, prot: 80, carb: 5, fat: 3 } },

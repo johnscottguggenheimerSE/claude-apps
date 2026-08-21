@@ -340,7 +340,7 @@ var ING_PER_100G = [
   { re: /paprika(?!pulver)/i, m: { kcal: 30, prot: 1, carb: 6, fat: 0 } },
   { re: /banan/i, m: { kcal: 90, prot: 1, carb: 23, fat: 0 } },
   { re: /kakao/i, m: { kcal: 230, prot: 20, carb: 10, fat: 14 } },
-  { re: /choklad/i, m: { kcal: 540, prot: 6, carb: 50, fat: 35 } },
+  { re: /chocolate\s+chips?|choklad/i, m: { kcal: 540, prot: 6, carb: 50, fat: 35 } },
   { re: /pb2|jordnöts?pulver/i, m: { kcal: 375, prot: 40, carb: 30, fat: 10 } },
   { re: /nötter|jordnöt|cashew|mandel/i, m: { kcal: 600, prot: 20, carb: 15, fat: 50 } }
 ];

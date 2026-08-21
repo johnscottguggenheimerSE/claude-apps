@@ -321,7 +321,11 @@ function normalizeIngredientName(name: string): string {
     .replace(/\bhot\s+sauce\b/gi, 'chilisås')
     .replace(/\bstark\s+sås\b/gi, 'chilisås')
     .replace(/\bblue\s+cheese[\s-]?dressing\b/gi, 'blåmögelostdressing')
-    .replace(/\bchocolate\s+chips?\b/gi, 'chokladchips')
+    // Engelska skafferitermer (inga svenska kalques)
+    .replace(/\bchoklad\s*chips?\b/gi, 'chocolate chips')
+    .replace(/\bchocolate\s+chip\b/gi, 'chocolate chips')
+    .replace(/\bpb\s*2\b/gi, 'pb2')
+    .replace(/\bmunkfrukt\b/gi, 'monk fruit')
     .replace(/\bgyoza\s+wrappers?\b/gi, 'gyozaskal')
     .replace(/\bwonton[\s-]?wrappers?\b/gi, 'wontonskal')
     .replace(/\bcornstarch\b/gi, 'majsstärkelse')
@@ -372,7 +376,8 @@ function normalizeStepText(text: string): string {
     .replace(/\bsimma\b/gi, 'sjuda')
     .replace(/\bfold gently\b/gi, 'vänd försiktigt')
     .replace(/\bset aside\b/gi, 'ställ åt sidan')
-    .replace(/\bpreheat\b/gi, 'förvärm');
+    .replace(/\bpreheat\b/gi, 'förvärm')
+    .replace(/\bchoklad\s*chips(?:en|ens)?\b/gi, 'chocolate chips');
 
   return t;
 }
