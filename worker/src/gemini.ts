@@ -358,7 +358,8 @@ const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
   { re: /ägg/i, m: { kcal: 140, prot: 12, carb: 1, fat: 10 } },
   { re: /vetemjöl|mjöl(?!k)/i, m: { kcal: 350, prot: 10, carb: 73, fat: 1 } },
   { re: /havremjöl|havre/i, m: { kcal: 370, prot: 13, carb: 60, fat: 7 } },
-  { re: /ris(?!vin|papp)|jasminris|råris/i, m: { kcal: 350, prot: 7, carb: 78, fat: 1 } },
+  { re: /kokt\s+.*\bris\b|\bris\b.*kokt|cooked\s+rice/i, m: { kcal: 130, prot: 2.5, carb: 28, fat: 0.3 } },
+  { re: /ris(?!vin|papp)|jasminris|råris|basmati|klibbigt ris/i, m: { kcal: 350, prot: 7, carb: 78, fat: 1 } },
   { re: /wrapper|wonton|gyoza|dumpling.?skal|degark/i, m: { kcal: 300, prot: 8, carb: 60, fat: 1.5 } },
   { re: /rispapper/i, m: { kcal: 330, prot: 0, carb: 82, fat: 0 } },
   { re: /panko|ströbröd/i, m: { kcal: 380, prot: 12, carb: 72, fat: 3 } },
@@ -390,12 +391,53 @@ const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
   { re: /kakao/i, m: { kcal: 230, prot: 20, carb: 10, fat: 14 } },
   { re: /choklad/i, m: { kcal: 540, prot: 6, carb: 50, fat: 35 } },
   { re: /pb2|jordnöts?pulver/i, m: { kcal: 375, prot: 40, carb: 30, fat: 10 } },
+
+  { re: /proteinpulver|whey|kasein|casein|protein powder/i, m: { kcal: 380, prot: 80, carb: 5, fat: 3 } },
+  { re: /helmjölk|whole milk/i, m: { kcal: 60, prot: 3.4, carb: 5, fat: 3.5 } },
+  { re: /mellanmjölk/i, m: { kcal: 45, prot: 3.5, carb: 5, fat: 1.5 } },
+  { re: /lättmjölk|skim milk/i, m: { kcal: 35, prot: 3.5, carb: 5, fat: 0.5 } },
+  { re: /\bmjölk\b|milk/i, m: { kcal: 45, prot: 3.5, carb: 5, fat: 1.5 } },
+  { re: /espresso|kaffe|coffee/i, m: { kcal: 2, prot: 0.1, carb: 0, fat: 0 } },
+  { re: /spaghetti|pasta|nudlar|noodles|linguine|fettuccine/i, m: { kcal: 350, prot: 12, carb: 70, fat: 1.5 } },
+  { re: /gnocchi/i, m: { kcal: 160, prot: 4, carb: 33, fat: 0.5 } },
+  { re: /dumpling|gyoza|wonton(?!\s*skal)/i, m: { kcal: 220, prot: 8, carb: 30, fat: 8 } },
+  { re: /brioche|hamburgerbröd|hoagie|bulle|bröd|wrap|tunnbröd|tortilla/i, m: { kcal: 280, prot: 9, carb: 50, fat: 5 } },
+  { re: /majs(?!stärkelse)|corn/i, m: { kcal: 90, prot: 3, carb: 19, fat: 1 } },
+  { re: /edamame/i, m: { kcal: 120, prot: 12, carb: 9, fat: 5 } },
+  { re: /majonnäs|mayo/i, m: { kcal: 650, prot: 1, carb: 1, fat: 70 } },
+  { re: /gräddfil|sour cream/i, m: { kcal: 180, prot: 3, carb: 4, fat: 18 } },
+  { re: /labneh/i, m: { kcal: 150, prot: 8, carb: 4, fat: 10 } },
+  { re: /tomat/i, m: { kcal: 18, prot: 1, carb: 4, fat: 0 } },
+  { re: /jalapeño|chili(?!\s*(sauce|sås|crisp|crunch|olja|oil|flakes|flingor|pulver))/i, m: { kcal: 40, prot: 2, carb: 9, fat: 0 } },
+  { re: /basilika|koriander|mynta|persilja|dill/i, m: { kcal: 40, prot: 3, carb: 6, fat: 0.5 } },
+  { re: /vetegluten|gluten/i, m: { kcal: 370, prot: 75, carb: 14, fat: 2 } },
+  { re: /jäst|yeast/i, m: { kcal: 325, prot: 40, carb: 35, fat: 5 } },
+  { re: /näringsjäst/i, m: { kcal: 325, prot: 50, carb: 35, fat: 5 } },
+  { re: /bakpulver|bikarbonat|baking/i, m: { kcal: 0, prot: 0, carb: 0, fat: 0 } },
+  { re: /salt|peppar|msg|krydda|paprika|kummin|cayenne|oregano|kanel|gurkmeja|kardemumma|tajín|vitlökspulver|lökpulver/i, m: { kcal: 0, prot: 0, carb: 0, fat: 0 } },
+  { re: /vatten|water|buljong|stock/i, m: { kcal: 5, prot: 0.5, carb: 0.5, fat: 0 } },
+  { re: /sötningsmedel|stevia|monk fruit/i, m: { kcal: 0, prot: 0, carb: 0, fat: 0 } },
+  { re: /pickles?\b/i, m: { kcal: 15, prot: 1, carb: 3, fat: 0 } },
+  { re: /bacon/i, m: { kcal: 400, prot: 25, carb: 1, fat: 35 } },
+  { re: /buffalosås|buffalo/i, m: { kcal: 20, prot: 0, carb: 2, fat: 1 } },
+  { re: /pizzasås|tomatsås/i, m: { kcal: 30, prot: 1, carb: 6, fat: 0 } },
+  { re: /ansjovis|anchovy/i, m: { kcal: 200, prot: 25, carb: 0, fat: 10 } },
+  { re: /pecorino|parmesan/i, m: { kcal: 400, prot: 32, carb: 0, fat: 30 } },
+  { re: /lime|citron|lemon/i, m: { kcal: 30, prot: 1, carb: 10, fat: 0 } },
+  { re: /jordnöt|peanut/i, m: { kcal: 580, prot: 25, carb: 15, fat: 50 } },
+  { re: /self[- ]?rising flour|självjäsande/i, m: { kcal: 350, prot: 10, carb: 73, fat: 1 } },
+
   { re: /nötter|jordnöt|cashew|mandel/i, m: { kcal: 600, prot: 20, carb: 15, fat: 50 } },
 ];
 
 /** Styckvikter (g) när unit = st. */
 const PIECE_G: Array<{ re: RegExp; g: number }> = [
   { re: /wrapper|wonton|gyoza|dumpling/i, g: 7 },
+  { re: /brioche|hamburgerbröd|slider|hoagie|bulle|bröd|wrap|tunnbröd|tortilla/i, g: 60 },
+  { re: /lime|citron|lemon/i, g: 60 },
+  { re: /tomat/i, g: 100 },
+  { re: /jalapeño/i, g: 15 },
+  { re: /rödlök|gul lök|\blök\b/i, g: 80 },
   { re: /äggvita/i, g: 33 },
   { re: /ägg/i, g: 55 },
   { re: /avokado|avocado/i, g: 170 },
@@ -526,6 +568,10 @@ export function estimateMacrosFromIngredients(recipe: Recipe): MacroTotals | nul
   }[];
   let total = emptyMacros();
   let counted = 0;
+  let eligible = 0;
+  let countedGrams = 0;
+  let eligibleGrams = 0;
+  const unknown: string[] = [];
 
   for (const g of groups) {
     for (const ing of g.ingredients || []) {
@@ -533,15 +579,31 @@ export function estimateMacrosFromIngredients(recipe: Recipe): MacroTotals | nul
       if (!name) continue;
       const amount = typeof ing.amount === 'number' ? ing.amount : Number(ing.amount);
       const grams = amountToGrams(amount, String(ing.unit || ''), name);
-      if (grams == null || grams <= 0) continue;
+      if (grams == null) {
+        // unknown unit/amount — skip eligibility
+        continue;
+      }
+      if (grams <= 0) continue;
+      eligible += 1;
+      eligibleGrams += grams;
       const per100 = lookupPer100g(name);
-      if (!per100) continue;
+      if (!per100) {
+        unknown.push(name);
+        continue;
+      }
       total = addMacros(total, per100, grams / 100);
       counted += 1;
+      countedGrams += grams;
     }
   }
 
   if (!counted) return null;
+  // För låg täckning → behåll befintliga makros (undvik systematisk undercounting)
+  const countCoverage = counted / eligible;
+  const gramCoverage = eligibleGrams > 0 ? countedGrams / eligibleGrams : 0;
+  if (countCoverage < 0.6 || gramCoverage < 0.55) {
+    return null;
+  }
   return roundMacros(total);
 }
 

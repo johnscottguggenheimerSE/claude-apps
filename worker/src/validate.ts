@@ -254,6 +254,9 @@ function normalizeIngredientMeasures(r: Recipe): void {
   }
 }
 
+const PREP_WORDS =
+  'tärnad|tärnade|finhackad|finhackade|hackad|hackade|grovhackad|grovhackade|skivad|skivade|smashad|smashade|juliennad|juliennade|riven|rivna|kokt|kokta|pressad|pressade|smulad|smulade';
+
 /** Ord-för-ord-översättningar → svensk butiksnomenklatur. */
 function normalizeIngredientName(name: string): string {
   let n = String(name || '').trim();
@@ -267,6 +270,7 @@ function normalizeIngredientName(name: string): string {
     .replace(/\bfullfet\s+keso\b/gi, 'keso 4%')
     .replace(/\bkeso\s*\((?:fullfet|full[\s-]?fat)\)/gi, 'keso 4%')
     .replace(/\bkeso\s*\((?:låg\s*fetthalt|low[\s-]?fat|lätt)\)/gi, 'keso 1,5%')
+    .replace(/\bkeso\s*\((?:valfri\s+fetthalt|any\s+fat)\)/gi, 'keso 4%')
     .replace(/\bkeso\s+fullfet\b/gi, 'keso 4%')
     .replace(/\bkeso\s+lågfet(?:t)?\b/gi, 'keso 1,5%')
     .replace(/\bfullfet\s+grekisk\s+yoghurt\b/gi, 'grekisk yoghurt 10%')
@@ -275,9 +279,13 @@ function normalizeIngredientName(name: string): string {
     .replace(/\b(nonfat|fat[\s-]?free|0%)\s+greek\s+yoghurt?\b/gi, 'grekisk yoghurt 0%')
     .replace(/\bwhole\s+milk\b/gi, 'helmjölk')
     .replace(/\bskim\s+milk\b/gi, 'lättmjölk')
-    // sojasås → soja
+    // sojasås / soyasås → soja
     .replace(/\bsoy\s*sauce\b/gi, 'soja')
+    .replace(/\bsoya[\s-]?sås\b/gi, 'soja')
     .replace(/\bsoja[\s-]?sås\b/gi, 'soja')
+    .replace(/\bsoyasås\b/gi, 'soja')
+    .replace(/\bsoja\s*\(\s*low[\s-]?sodium\s*\)/gi, 'soja')
+    .replace(/\blow[\s-]?sodium\s+soja\b/gi, 'soja')
     // persisk gurka → gurka
     .replace(/\bpersisk(?:a)?\s+gurk(?:a|or)\b/gi, 'gurka')
     .replace(/\bpersian\s+cucumbers?\b/gi, 'gurka')
@@ -285,7 +293,13 @@ function normalizeIngredientName(name: string): string {
     .replace(/\bkuberad(?:e|a)?\b/gi, 'tärnad')
     .replace(/\bcubed\b/gi, 'tärnad')
     .replace(/\bdiced\b/gi, 'tärnad')
-    .replace(/^(.+?),\s*(tärnad|tärnade|finhackad|finhackade|hackad|hackade|skivad|skivade|smashad|smashade)\s*$/i, '$2 $1')
+    .replace(
+      new RegExp(
+        `^(.+?),\\s*((?:${PREP_WORDS})(?:\\s+och\\s+(?:${PREP_WORDS}|[\\wåäö-]+(?:\\s+[\\wåäö-]+)?))?)$`,
+        'i'
+      ),
+      '$2 $1'
+    )
     // vaniljpasta → vaniljextrakt (vardagligt svenskt skafferi)
     .replace(/\bvanilla\s+(bean\s+)?paste\b/gi, 'vaniljextrakt')
     .replace(/\bvaniljpasta\s+eller\s+vaniljextrakt\b/gi, 'vaniljextrakt')
@@ -303,6 +317,18 @@ function normalizeIngredientName(name: string): string {
     .replace(/\b(lätt|light|low[\s-]?cal(?:orie)?)\s*ketchup\b/gi, 'ketchup')
     .replace(/\bketchup\s+med\s+lågt\s+kaloriinnehåll\b/gi, 'ketchup')
     .replace(/\bketchup\s*\([^)]*kalor[^)]*\)/gi, 'ketchup')
+    // övriga anglicismer / stavfel
+    .replace(/\bhot\s+sauce\b/gi, 'chilisås')
+    .replace(/\bstark\s+sås\b/gi, 'chilisås')
+    .replace(/\bblue\s+cheese[\s-]?dressing\b/gi, 'blåmögelostdressing')
+    .replace(/\bchocolate\s+chips?\b/gi, 'chokladchips')
+    .replace(/\bgyoza\s+wrappers?\b/gi, 'gyozaskal')
+    .replace(/\bwonton[\s-]?wrappers?\b/gi, 'wontonskal')
+    .replace(/\bcornstarch\b/gi, 'majsstärkelse')
+    .replace(/\bscallions?\b/gi, 'salladslök')
+    .replace(/\bgreen\s+onions?\b/gi, 'salladslök')
+    .replace(/\bchilidpulver\b/gi, 'chilipulver')
+    .replace(/\brtsvinsvinäger\b/gi, 'risvinsvinäger')
     .replace(/\s{2,}/g, ' ')
     .trim()
     .toLowerCase();
@@ -328,22 +354,45 @@ function normalizeStepText(text: string): string {
     .replace(/\bDryppla\b/g, 'Ringla')
     .replace(/\bdryppla\b/gi, 'ringla')
     .replace(/\bdrizzle\b/gi, 'ringla')
-    .replace(/\bpikant\s+majonnäs\b/gi, 'chilimajonnäs')
+    .replace(/\bpikant(?:a|e)?\s+majonnäs(?:en)?\b/gi, 'chilimajonnäs')
     .replace(/\bspicy\s+mayo(?:nnaise)?\b/gi, 'chilimajonnäs')
     .replace(/\bavocado\b/gi, 'avokado')
     .replace(/avocado/gi, 'avokado')
+    .replace(/\bsoya[\s-]?sås\b/gi, 'soja')
     .replace(/\bsoja[\s-]?sås\b/gi, 'soja')
+    .replace(/\bsoyasås\b/gi, 'soja')
+    .replace(/\bsoy\s*sauce\b/gi, 'soja')
+    .replace(/\bhot\s+sauce\b/gi, 'chilisås')
+    .replace(/\bstark\s+sås\b/gi, 'chilisås')
+    .replace(/\bblue\s+cheese[\s-]?dressing\b/gi, 'blåmögelostdressing')
     .replace(/\bpersisk(?:a)?\s+gurk(?:a|or)\b/gi, 'gurka')
     .replace(/\bkuberad(?:e|a)?\b/gi, 'tärnad')
-    .replace(/\blaxkuberna\b/gi, 'de tärnade laxbitarna');
+    .replace(/\blaxkuberna\b/gi, 'de tärnade laxbitarna')
+    .replace(/\bsimmer\b/gi, 'sjuda')
+    .replace(/\bsimma\b/gi, 'sjuda')
+    .replace(/\bfold gently\b/gi, 'vänd försiktigt')
+    .replace(/\bset aside\b/gi, 'ställ åt sidan')
+    .replace(/\bpreheat\b/gi, 'förvärm');
 
   return t;
 }
 
+/** Kända engelska titlar som saknar svensk översättning i datan. */
+const TITLE_OVERRIDES: Record<string, string> = {
+  'pb2-banana-chocolate-chip-bread': 'Banankaka med PB2 och choklad',
+  'cinnamon-sugar-donut-holes': 'Kanelsockrade munkbullar',
+};
+
 function normalizeRecipeLanguage(r: Recipe): void {
-  const groups = r.groups as { ingredients?: { name?: string }[] }[] | undefined;
+  const groups = r.groups as { name?: string; ingredients?: { name?: string }[] }[] | undefined;
   if (groups) {
     for (const g of groups) {
+      if (g?.name) {
+        g.name = String(g.name)
+          .replace(/\bsrira?cha\s*mayo(?:nnaise)?\b/gi, 'Chilimajonnäs')
+          .replace(/\bRolls\b/g, 'Rullar')
+          .replace(/\bLasagna\b/g, 'Lasagne');
+      }
       for (const ing of g.ingredients || []) {
         if (ing?.name) ing.name = normalizeIngredientName(String(ing.name));
       }
@@ -353,6 +402,18 @@ function normalizeRecipeLanguage(r: Recipe): void {
   if (steps) {
     for (const s of steps) {
       if (s?.text) s.text = normalizeStepText(String(s.text));
+      if (s?.title) s.title = normalizeStepText(String(s.title));
+    }
+  }
+  const tips = r.tips as { title?: string; text?: string }[] | undefined;
+  if (tips) {
+    for (const tip of tips) {
+      if (tip?.text) tip.text = normalizeStepText(String(tip.text));
+      if (tip?.title) {
+        tip.title = normalizeStepText(String(tip.title))
+          .replace(/^pikant majonnäs$/i, 'Chilimajonnäs')
+          .replace(/^chilimajonnäs$/i, 'Chilimajonnäs');
+      }
     }
   }
 }
@@ -364,7 +425,10 @@ export function normalizeRecipe(r: Recipe): Recipe {
       r.Title ?? r.name ?? r.Name ?? r.titel ?? r.Titel ?? r.recipeName ?? r.dish;
     if (alt != null && String(alt).trim()) r.title = String(alt).trim();
   }
-  if (typeof r.title === 'string') {
+  const id = String(r.id || '');
+  if (TITLE_OVERRIDES[id]) {
+    r.title = TITLE_OVERRIDES[id];
+  } else if (typeof r.title === 'string') {
     r.title = r.title
       .replace(/\b(hög\s*protein|högprotein|extra\s*protein|proteinrik|proteinpackad)\b/gi, '')
       .replace(/\bproteins?\b/gi, '')
@@ -372,8 +436,8 @@ export function normalizeRecipe(r: Recipe): Recipe {
       .replace(/^[\s\-–—]+|[\s\-–—]+$/g, '')
       .trim();
   }
-  if ((!r.title || !String(r.title).trim()) && r.id && String(r.id) !== 'recept') {
-    r.title = String(r.id)
+  if ((!r.title || !String(r.title).trim()) && id && id !== 'recept') {
+    r.title = id
       .split('-')
       .filter(Boolean)
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))

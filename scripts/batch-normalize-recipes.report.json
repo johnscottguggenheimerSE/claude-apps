@@ -1,0 +1,16 @@
+{
+  "total": 27,
+  "updated": 2,
+  "macrosUpdated": 2,
+  "macrosFailed": [],
+  "titleChanges": [],
+  "notableRenames": [
+    "mexican-chicken-corn-salad: stark sås → chilisås",
+    "hot-honey-chicken-sliders: stark sås → chilisås"
+  ],
+  "unchanged": 25,
+  "macroDeltas": [
+    "mexican-chicken-corn-salad: {\"kcal\":1732,\"prot\":227,\"carb\":94,\"fat\":50} → {\"kcal\":1746,\"prot\":227,\"carb\":97,\"fat\":50}",
+    "hot-honey-chicken-sliders: {\"kcal\":3904,\"prot\":330,\"carb\":225,\"fat\":184} → {\"kcal\":3961,\"prot\":330,\"carb\":237,\"fat\":185}"
+  ]
+}
