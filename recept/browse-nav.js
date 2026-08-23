@@ -109,8 +109,8 @@
     }
   ];
 
-  var MAX_KCAL_100_OPTIONS = [100, 150, 200, 250, 300];
-  var MIN_PROT_100_OPTIONS = [10, 15, 20, 25, 30];
+  var MAX_KCAL_100_OPTIONS = [80, 100, 120, 150, 180, 200, 250, 300, 350, 400];
+  var MIN_PROT_100_OPTIONS = [5, 8, 10, 12, 15, 18, 20, 25, 30, 35, 40];
   var MACRO_RANGE_MENUS = [
     {
       id: 'maxKcal100',
