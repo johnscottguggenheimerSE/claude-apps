@@ -252,7 +252,9 @@ function getFilterState() {
 function applyFilterState(state) {
   if (!state) return;
   activeFilter = state.activeFilter || { type: 'all', value: null };
-  activeMultiFilter = state.activeMulti || { protein: [], cuisine: [] };
+  activeMultiFilter = state.activeMulti || {
+    protein: [], cuisine: [], maxKcal100: null, minProt100: null
+  };
   showFavoritesOnly = !!state.favorites;
   searchQuery = state.search || '';
   var searchInput = document.getElementById('recipe-search');
@@ -281,7 +283,7 @@ function applyFiltersFromUrl() {
 var recipes = [];
 var reviewSummaries = {};
 var activeFilter = { type: 'all', value: null };
-var activeMultiFilter = { protein: [], cuisine: [] };
+var activeMultiFilter = { protein: [], cuisine: [], maxKcal100: null, minProt100: null };
 var searchQuery = '';
 var showFavoritesOnly = false;
 var currentServings = 1;
@@ -573,8 +575,8 @@ function estimateRecipeTotalGrams(r) {
   return counted ? total : null;
 }
 
-/** Compact list-card label: «30P - 100🔥 / 100g». Omits when grams/macros unusable. */
-function formatCardMacrosPer100g(r) {
+/** Per-100g macros from recipe totals + estimated edible grams. Null if unusable. */
+function recipeMacrosPer100g(r) {
   if (!r || !r.macros) return null;
   var kcal = finiteOrNull(r.macros.kcal);
   var prot = finiteOrNull(r.macros.prot);
@@ -584,7 +586,14 @@ function formatCardMacrosPer100g(r) {
   var kcal100 = Math.round((kcal / totalGrams) * 100);
   var prot100 = Math.round((prot / totalGrams) * 100);
   if (!Number.isFinite(kcal100) || !Number.isFinite(prot100)) return null;
-  return prot100 + 'P - ' + kcal100 + '🔥 / 100g';
+  return { kcal: kcal100, prot: prot100 };
+}
+
+/** Compact list-card label: «30P - 100🔥 / 100g». Omits when grams/macros unusable. */
+function formatCardMacrosPer100g(r) {
+  var m = recipeMacrosPer100g(r);
+  if (!m) return null;
+  return m.prot + 'P - ' + m.kcal + '🔥 / 100g';
 }
 
 function mk(tag, cls) {
@@ -783,17 +792,29 @@ function isAllFilter() {
   return !activeFilter || activeFilter.type === 'all';
 }
 
+function recipeMatchesMacroDensity(r) {
+  var maxKcal = activeMultiFilter && activeMultiFilter.maxKcal100;
+  var minProt = activeMultiFilter && activeMultiFilter.minProt100;
+  if (maxKcal == null && minProt == null) return true;
+  var m = recipeMacrosPer100g(r);
+  if (!m) return false;
+  if (maxKcal != null && m.kcal > maxKcal) return false;
+  if (minProt != null && m.prot < minProt) return false;
+  return true;
+}
+
 function recipeMatchesFilter(r) {
   if (window.ReceptBrowseNav) {
     if (!ReceptBrowseNav.recipeMatchesFilter(r, activeFilter)) return false;
-    return ReceptBrowseNav.recipeMatchesMultiFilters(r, activeMultiFilter);
+    if (!ReceptBrowseNav.recipeMatchesMultiFilters(r, activeMultiFilter)) return false;
+    return recipeMatchesMacroDensity(r);
   }
   if (isAllFilter()) return true;
   if (activeFilter.type === 'category') return r.category === activeFilter.value;
   if (activeFilter.type === 'tag') {
     return r.tags && r.tags.indexOf(activeFilter.value) !== -1;
   }
-  return true;
+  return recipeMatchesMacroDensity(r);
 }
 
 function updateListHeading() {

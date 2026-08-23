@@ -109,6 +109,40 @@
     }
   ];
 
+  var MAX_KCAL_100_OPTIONS = [100, 150, 200, 250, 300];
+  var MIN_PROT_100_OPTIONS = [10, 15, 20, 25, 30];
+  var MACRO_RANGE_MENUS = [
+    {
+      id: 'maxKcal100',
+      label: 'Max kcal/100g',
+      param: 'maxkcal',
+      options: MAX_KCAL_100_OPTIONS
+    },
+    {
+      id: 'minProt100',
+      label: 'Min protein/100g',
+      param: 'minprot',
+      options: MIN_PROT_100_OPTIONS
+    }
+  ];
+
+  function parseMacroOption(raw, allowed) {
+    if (raw == null || raw === '') return null;
+    var n = typeof raw === 'number' ? raw : parseInt(String(raw), 10);
+    if (!Number.isFinite(n)) return null;
+    return allowed.indexOf(n) !== -1 ? n : null;
+  }
+
+  function copyActiveMulti(multi) {
+    multi = multi || {};
+    return {
+      protein: multi.protein ? multi.protein.slice() : [],
+      cuisine: multi.cuisine ? multi.cuisine.slice() : [],
+      maxKcal100: multi.maxKcal100 != null ? multi.maxKcal100 : null,
+      minProt100: multi.minProt100 != null ? multi.minProt100 : null
+    };
+  }
+
   function mk(tag, cls) {
     var el = document.createElement(tag);
     if (cls) el.className = cls;
@@ -250,11 +284,14 @@
 
   function normalizeListState(state) {
     state = state || {};
+    var multi = state.activeMulti || {};
     return {
       activeFilter: state.activeFilter || { type: 'all', value: null },
       activeMulti: {
-        protein: (state.activeMulti && state.activeMulti.protein) ? state.activeMulti.protein.slice() : [],
-        cuisine: (state.activeMulti && state.activeMulti.cuisine) ? state.activeMulti.cuisine.slice() : []
+        protein: multi.protein ? multi.protein.slice() : [],
+        cuisine: multi.cuisine ? multi.cuisine.slice() : [],
+        maxKcal100: parseMacroOption(multi.maxKcal100, MAX_KCAL_100_OPTIONS),
+        minProt100: parseMacroOption(multi.minProt100, MIN_PROT_100_OPTIONS)
       },
       favorites: !!state.favorites,
       search: String(state.search || '').trim()
@@ -272,6 +309,8 @@
     }
     if (state.activeMulti.protein.length) params.set('protein', state.activeMulti.protein.join(','));
     if (state.activeMulti.cuisine.length) params.set('kok', state.activeMulti.cuisine.join(','));
+    if (state.activeMulti.maxKcal100 != null) params.set('maxkcal', String(state.activeMulti.maxKcal100));
+    if (state.activeMulti.minProt100 != null) params.set('minprot', String(state.activeMulti.minProt100));
     if (state.favorites) params.set('favoriter', '1');
     if (state.search) params.set('q', state.search);
     var qs = params.toString();
@@ -303,6 +342,8 @@
         return CUISINE_LABELS[v];
       });
     }
+    state.activeMulti.maxKcal100 = parseMacroOption(params.get('maxkcal'), MAX_KCAL_100_OPTIONS);
+    state.activeMulti.minProt100 = parseMacroOption(params.get('minprot'), MIN_PROT_100_OPTIONS);
     if (params.get('favoriter') === '1') state.favorites = true;
     var q = params.get('q');
     if (q) state.search = q;
@@ -462,6 +503,12 @@
     return menu.label + ' (' + labels.length + ')';
   }
 
+  function macroRangeTriggerLabel(menu, selected) {
+    var value = selected[menu.id];
+    if (value == null) return menu.label;
+    return menu.label + ': ' + value;
+  }
+
   function listFilterChevron() {
     var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'list-filter-chevron');
@@ -481,13 +528,9 @@
   function renderListFilters(container, options) {
     options = options || {};
     var recipes = options.recipes || null;
-    var activeMulti = options.activeMulti || { protein: [], cuisine: [] };
+    var activeMulti = copyActiveMulti(options.activeMulti);
     var menus = filterMenus(recipes, LIST_FILTER_MENUS);
     container.replaceChildren();
-    if (!menus.length) {
-      container.hidden = true;
-      return;
-    }
     container.hidden = false;
 
     menus.forEach(function(menu) {
@@ -522,11 +565,8 @@
           list.appendChild(li);
 
           input.addEventListener('change', function() {
-            var next = {
-              protein: (activeMulti.protein || []).slice(),
-              cuisine: (activeMulti.cuisine || []).slice()
-            };
-            var bucket = next[menu.id] || [];
+            var next = copyActiveMulti(activeMulti);
+            var bucket = (next[menu.id] || []).slice();
             if (input.checked) {
               if (bucket.indexOf(item.value) === -1) bucket.push(item.value);
             } else {
@@ -535,6 +575,50 @@
             next[menu.id] = bucket;
             if (options.onChange) options.onChange(next);
           });
+        });
+      });
+      panel.appendChild(list);
+      wrap.appendChild(panel);
+      container.appendChild(wrap);
+    });
+
+    MACRO_RANGE_MENUS.forEach(function(menu) {
+      var wrap = mk('div', 'list-filter-menu');
+      var selectedValue = activeMulti[menu.id];
+      var trigger = mk('button', 'list-filter-trigger');
+      trigger.type = 'button';
+      var triggerLabel = mk('span', 'list-filter-trigger-label');
+      triggerLabel.textContent = macroRangeTriggerLabel(menu, activeMulti);
+      trigger.appendChild(triggerLabel);
+      trigger.appendChild(listFilterChevron());
+      trigger.setAttribute('aria-haspopup', 'true');
+      trigger.setAttribute('aria-expanded', 'false');
+      if (selectedValue != null) trigger.classList.add('has-selection');
+      wrap.appendChild(trigger);
+
+      var panel = mk('div', 'list-filter-panel');
+      var list = mk('ul', 'list-filter-options');
+      var choices = [null].concat(menu.options);
+      choices.forEach(function(opt) {
+        var li = mk('li');
+        var label = mk('label', 'list-filter-option');
+        var input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'list-filter-' + menu.id;
+        input.value = opt == null ? '' : String(opt);
+        input.checked = selectedValue == null ? opt == null : selectedValue === opt;
+        label.appendChild(input);
+        var span = document.createElement('span');
+        span.textContent = opt == null ? 'Alla' : String(opt);
+        label.appendChild(span);
+        li.appendChild(label);
+        list.appendChild(li);
+
+        input.addEventListener('change', function() {
+          if (!input.checked) return;
+          var next = copyActiveMulti(activeMulti);
+          next[menu.id] = opt == null ? null : opt;
+          if (options.onChange) options.onChange(next);
         });
       });
       panel.appendChild(list);
