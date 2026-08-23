@@ -11,6 +11,7 @@ import {
   generateFoodImageFromRecipe,
   generateFoodImage,
   parseRecipe,
+  mergeRecipe,
   estimateRecipeMacros,
   estimateMacrosFromIngredients,
 } from './gemini';
@@ -284,6 +285,8 @@ async function handleParse(request: Request, env: Env): Promise<Response> {
     sourceUrl?: string;
     imageBase64?: string;
     mimeType?: string;
+    /** When set, merge additions into this recipe instead of creating from scratch. */
+    recipe?: Recipe;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -297,7 +300,26 @@ async function handleParse(request: Request, env: Env): Promise<Response> {
     return json({ error: 'Ange text eller bild' }, 400);
   }
 
+  const existing = body.recipe && typeof body.recipe === 'object' ? body.recipe : null;
+
   try {
+    if (existing) {
+      const recipe = await mergeRecipe(
+        env.GEMINI_API_KEY,
+        existing,
+        text,
+        body.imageBase64 || null,
+        body.mimeType || null
+      );
+      delete recipe.emoji;
+      if (!recipe.id) {
+        recipe.id = existing.id
+          ? String(existing.id)
+          : slugify(String(recipe.title || existing.title || 'recept'));
+      }
+      return json({ recipe, saveImage: false, merged: true });
+    }
+
     const recipe = await parseRecipe(
       env.GEMINI_API_KEY,
       text,

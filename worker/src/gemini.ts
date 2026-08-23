@@ -251,6 +251,73 @@ export async function parseRecipe(
   return recipe;
 }
 
+const MERGE_SYSTEM = `${PARSE_SYSTEM}
+
+MERGE-LÄGE (gäller alltid här):
+- Du får ett **befintligt recept** (JSON) plus tillägg (text och/eller bild: caption, anteckningar, fler ingredienser/steg, skärmdump).
+- Returnera ett **uppdaterat** recept som **slår ihop** tilläggen med det befintliga — ersätt **inte** receptet wholesale.
+- **Behåll** id, title, source, sourceUrl, image, category och övrigt befintligt innehåll om tillägget inte tydligt ersätter dem.
+- Nya ingredienser: lägg i befintliga groups när det passar, annars skapa nya groups. Ta inte bort ingredienser som fortfarande gäller.
+- Nya steg: integrera/lägg till utan att radera steg som fortfarande gäller. Om tillägget förtydligar ett steg, uppdatera det steget.
+- tips: fortfarande exakt 4; uppdatera vid behov (första title "För barn").
+- badges: uppdatera portioner/tid om tillägget ändrar det.
+- Räkna om macros för **hela** det sammanslagna receptet.
+- Samma språk-, mått- och fältregler som ovan.`;
+
+/** Merge additions into an existing recipe without wholesale replacement. */
+export async function mergeRecipe(
+  apiKey: string,
+  existing: Recipe,
+  text: string,
+  imageBase64: string | null,
+  mimeType: string | null
+): Promise<Recipe> {
+  const parts: GeminiPart[] = [];
+  if (imageBase64 && mimeType) {
+    parts.push({ inlineData: { mimeType, data: imageBase64 } });
+  }
+  const prompt = [
+    `Befintligt recept (JSON) — behåll struktur och innehåll, slå bara ihop tilläggen:\n${JSON.stringify(existing)}`,
+    text.trim()
+      ? `Tillägg att slå ihop med receptet:\n${text.trim()}`
+      : 'Extrahera tillägg från bilden och slå ihop med receptet ovan.',
+    imageBase64 && mimeType
+      ? 'Bilden kan vara skärmdump/caption med extra info — extrahera bara det som ska läggas till eller korrigeras.'
+      : '',
+    'Returnera det uppdaterade receptet som JSON. Behåll id, title, source, sourceUrl och image från det befintliga receptet om tillägget inte tydligt ersätter dem.',
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+  parts.push({ text: prompt });
+
+  const raw = await geminiJson(apiKey, parts, MERGE_SYSTEM, TEXT_MODELS_PARSE);
+  const recipe = normalizeRecipe(JSON.parse(raw) as Recipe);
+
+  // Hard-preserve identity / media unless AI returned clear replacements
+  if (existing.id) recipe.id = existing.id;
+  if ((!recipe.title || !String(recipe.title).trim()) && existing.title) {
+    recipe.title = existing.title;
+  }
+  if ((!recipe.source || recipe.source === 'Okänd källa') && existing.source) {
+    recipe.source = existing.source;
+  }
+  if (!recipe.sourceUrl && existing.sourceUrl) recipe.sourceUrl = existing.sourceUrl;
+  if (recipe.sourceUrl && isSocialMediaUrl(String(recipe.sourceUrl))) {
+    recipe.sourceUrl = '';
+  }
+  if (!recipe.image && existing.image) recipe.image = existing.image;
+  if (!recipe.category && existing.category) recipe.category = existing.category;
+  if (
+    (!Array.isArray(recipe.badges) || !(recipe.badges as unknown[]).length) &&
+    Array.isArray(existing.badges)
+  ) {
+    recipe.badges = existing.badges;
+  }
+
+  delete recipe.emoji;
+  return recipe;
+}
+
 const IMAGE_CLEANUP =
   'Remove ALL overlays and non-food UI: play/pause buttons, mute/volume icons, video progress bars, Reels/TikTok/Instagram chrome, timestamps, captions, subtitles, stickers, logos, watermarks, profile avatars, like/comment/share icons, screenshot borders, phone status bar. Output must be clean food photo only — zero text or interface elements.';
 

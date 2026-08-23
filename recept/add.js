@@ -10,6 +10,8 @@
   var editMode = false;
   var pendingImageBase64 = null;
   var pendingMimeType = null;
+  var mergeImageBase64 = null;
+  var mergeMimeType = null;
   var createSubMode = 'text';
   var ADD_BASE = (function() {
     var p = location.pathname.replace(/\/$/, '');
@@ -87,6 +89,30 @@
     document.getElementById('panel-create').classList.toggle('hidden', hideInputs || editMode);
     var panelEdit = document.getElementById('panel-edit');
     if (panelEdit) panelEdit.classList.toggle('hidden', hideInputs || !editMode);
+    var mergePanel = document.getElementById('panel-merge-more');
+    if (mergePanel) {
+      mergePanel.classList.toggle('hidden', !(hideInputs && currentRecipe));
+    }
+  }
+
+  function clearMergeInputs() {
+    mergeImageBase64 = null;
+    mergeMimeType = null;
+    var textEl = document.getElementById('merge-text');
+    if (textEl) textEl.value = '';
+    clearImageDrop('drop-merge', 'thumb-merge', 'file-merge');
+  }
+
+  function setMergeImage(data, mime) {
+    mergeImageBase64 = data;
+    mergeMimeType = mime;
+    var thumb = document.getElementById('thumb-merge');
+    var drop = document.getElementById('drop-merge');
+    if (thumb) {
+      thumb.src = 'data:' + mime + ';base64,' + data;
+      thumb.classList.remove('hidden');
+    }
+    if (drop) drop.classList.add('has-image');
   }
 
   function fieldInput(id, label, value, type) {
@@ -585,6 +611,11 @@
   }
 
   function getActiveImageDropTarget() {
+    var mergePanel = document.getElementById('panel-merge-more');
+    if (mergePanel && !mergePanel.classList.contains('hidden')) {
+      if (document.activeElement === document.getElementById('merge-text')) return null;
+      return { dropId: 'drop-merge', thumbId: 'thumb-merge', merge: true };
+    }
     if (document.getElementById('panel-create').classList.contains('hidden')) return null;
     var fromImage = document.getElementById('panel-from-image');
     if (fromImage && !fromImage.classList.contains('hidden')) {
@@ -598,25 +629,28 @@
     return null;
   }
 
-  function pasteImageToDrop(e, dropId, thumbId) {
+  function pasteImageToDrop(e, dropId, thumbId, asMerge) {
     var file = extractImageFromClipboard(e);
     if (!file) return false;
     e.preventDefault();
     readFileAsBase64(file).then(function(r) {
-      setPendingImage(r.data, r.mimeType, dropId, thumbId);
+      if (asMerge) setMergeImage(r.data, r.mimeType);
+      else setPendingImage(r.data, r.mimeType, dropId, thumbId);
     }).catch(function() { setStatus('Kunde inte läsa bilden', true); });
     return true;
   }
 
-  function bindImageDrop(dropId, fileId, thumbId) {
+  function bindImageDrop(dropId, fileId, thumbId, asMerge) {
     var drop = document.getElementById(dropId);
     var file = document.getElementById(fileId);
     var thumb = document.getElementById(thumbId);
+    if (!drop || !file) return;
 
     function applyFile(f) {
       if (!isLikelyImageFile(f)) return;
       readFileAsBase64(f).then(function(r) {
-        setPendingImage(r.data, r.mimeType, dropId, thumbId);
+        if (asMerge) setMergeImage(r.data, r.mimeType);
+        else setPendingImage(r.data, r.mimeType, dropId, thumbId);
       }).catch(function() { setStatus('Kunde inte läsa bilden', true); });
     }
 
@@ -642,6 +676,17 @@
 
   document.addEventListener('paste', function(e) {
     if (previewEl && previewEl.classList.contains('visible')) {
+      var mergePanel = document.getElementById('panel-merge-more');
+      var ae = document.activeElement;
+      var inMerge = mergePanel
+        && !mergePanel.classList.contains('hidden')
+        && ae
+        && mergePanel.contains(ae);
+      if (inMerge) {
+        if (ae === document.getElementById('merge-text')) return;
+        pasteImageToDrop(e, 'drop-merge', 'thumb-merge', true);
+        return;
+      }
       var file = extractImageFromClipboard(e);
       if (file) {
         e.preventDefault();
@@ -660,11 +705,12 @@
     }
     var target = getActiveImageDropTarget();
     if (!target) return;
-    pasteImageToDrop(e, target.dropId, target.thumbId);
+    pasteImageToDrop(e, target.dropId, target.thumbId, !!target.merge);
   });
 
   bindImageDrop('drop-text', 'file-text', 'thumb-text');
   bindImageDrop('drop-image', 'file-image', 'thumb-image');
+  bindImageDrop('drop-merge', 'file-merge', 'thumb-merge', true);
 
   if (btnUploadPaste) {
     btnUploadPaste.textContent = 'Klistra in (' + pasteShortcutHint + ')';
@@ -769,11 +815,13 @@
       previewEl.classList.remove('visible');
       reviewActive = false;
       clearPendingImage();
+      clearMergeInputs();
       populateEditSelect();
       editSelect.value = '';
       updateDeleteButton();
       setStatus('Recept borttaget.');
       history.replaceState(null, '', ADD_BASE + '/redigera');
+      syncInputPanels();
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() {
@@ -856,7 +904,10 @@
   }
 
   function navigateAddRoute(route, replace, editId) {
-    if (route === 'text' || route === 'url' || route === 'bild') reviewActive = false;
+    if (route === 'text' || route === 'url' || route === 'bild') {
+      reviewActive = false;
+      clearMergeInputs();
+    }
     var url = addRouteUrl(route, editId);
     applyAddRoute(route);
     syncTabLinks();
@@ -1734,6 +1785,57 @@
           ? 'Granska och spara — matfotot sparas med receptet.'
           : 'Recept tolkat från bilden, men ingen matfoto sparas (lägg till i Redigera vid behov).'
       );
+    }).catch(function(ex) {
+      setStatus(ex.message, true);
+    }).finally(function() { btn.disabled = false; });
+  });
+
+  document.getElementById('btn-merge-ai').addEventListener('click', function() {
+    if (!currentRecipe || !previewEl.classList.contains('visible')) {
+      setStatus('Granska ett recept först.', true);
+      return;
+    }
+    var btn = document.getElementById('btn-merge-ai');
+    var text = (document.getElementById('merge-text').value || '').trim();
+    if (!text && !mergeImageBase64) {
+      setStatus('Ange fritext eller en bild att slå ihop.', true);
+      return;
+    }
+    var existing;
+    try {
+      existing = readRecipeFromForm();
+    } catch (ex) {
+      setStatus(ex.message, true);
+      return;
+    }
+    var keepId = editingRecipeId || existing.id || (currentRecipe && currentRecipe.id) || null;
+    var keepImage = existing.image || (currentRecipe && currentRecipe.image) || null;
+
+    btn.disabled = true;
+    setStatus('Slår ihop tillägg med receptet…');
+    fetch('/api/parse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        recipe: existing,
+        text: text,
+        imageBase64: mergeImageBase64,
+        mimeType: mergeMimeType
+      })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Sammanslagning misslyckades');
+        return data;
+      });
+    }).then(function(data) {
+      var merged = data.recipe;
+      if (keepId) merged.id = keepId;
+      if (keepImage && !merged.image) merged.image = keepImage;
+      // Do not clear recipe food photo pending state — merge image is separate
+      clearMergeInputs();
+      showPreview(merged);
+      setStatus('Tillägg sammanslaget — granska och spara när du är nöjd.');
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() { btn.disabled = false; });
