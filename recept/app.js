@@ -313,14 +313,16 @@ function fmt(val, unit) {
 
 /** Prep-/variantord som ignoreras vid makrouppslag (speglar worker). */
 var ING_PREP_RE =
-  'tärnad|tärnade|kuberad|kuberade|hackad|hackade|finhackad|finhackade|grovhackad|grovhackade|skivad|skivade|smashad|smashade|juliennad|juliennade|riven|rivna|persisk|persiska|färsk|färska';
+  'tärnad|tärnade|kuberad|kuberade|hackad|hackade|finhackad|finhackade|grovhackad|grovhackade|skivad|skivade|smashad|smashade|juliennad|juliennade|riven|rivna|persisk|persiska|färsk|färska|benfri|benfria|boneless|skinless';
 
 /** Näringsvärden per 100 g — speglar worker/src/gemini.ts */
 var ING_PER_100G = [
   { re: /kycklingfärs|malet kyckling|ground chicken/i, m: { kcal: 115, prot: 21, carb: 0, fat: 5 } },
   { re: /nötfärs|malet nötkött|extra mager nöt/i, m: { kcal: 150, prot: 20, carb: 0, fat: 8 } },
   { re: /fläsk|malet fläsk|pork/i, m: { kcal: 200, prot: 17, carb: 0, fat: 15 } },
-  { re: /kycklingbröst|kycklingfilé/i, m: { kcal: 110, prot: 23, carb: 0, fat: 1.5 } },
+  { re: /kycklingbröst|kycklingfilé|chicken\s*breast/i, m: { kcal: 110, prot: 23, carb: 0, fat: 1.5 } },
+  { re: /kycklinglår|lårfilé|kycklingben|drumstick|chicken\s*thigh|thigh/i, m: { kcal: 140, prot: 20, carb: 0, fat: 7 } },
+  { re: /kyckling|chicken/i, m: { kcal: 120, prot: 22, carb: 0, fat: 3 } },
   { re: /räk|shrimp|prawn/i, m: { kcal: 85, prot: 18, carb: 1, fat: 1 } },
   { re: /lax|salmon/i, m: { kcal: 190, prot: 20, carb: 0, fat: 12 } },
   { re: /tonfisk|tuna/i, m: { kcal: 130, prot: 25, carb: 0, fat: 3 } },
@@ -364,6 +366,11 @@ var ING_PER_100G = [
   { re: /kakao/i, m: { kcal: 230, prot: 20, carb: 10, fat: 14 } },
   { re: /chocolate\s+chips?|choklad/i, m: { kcal: 540, prot: 6, carb: 50, fat: 35 } },
   { re: /pb2|jordnöts?pulver/i, m: { kcal: 375, prot: 40, carb: 30, fat: 10 } },
+  /* Juice före hel frukt (citronsaft ≠ citron) */
+  { re: /citronsaft|limejuice|citronjuice|lemon\s*juice|lime\s*juice/i, m: { kcal: 22, prot: 0.4, carb: 7, fat: 0 } },
+  { re: /lime|citron|lemon/i, m: { kcal: 30, prot: 1, carb: 10, fat: 0 } },
+  { re: /kryddmix|spice\s*mix|seasoning|italiensk\s*krydda|italian\s*seasoning/i, m: { kcal: 250, prot: 10, carb: 50, fat: 5 } },
+  { re: /salt|peppar|pepper|\bmsg\b|krydda|paprikapulver|kummin|cayenne|oregano|kanel|gurkmeja|kardemumma|vitlökspulver|lökpulver/i, m: { kcal: 0, prot: 0, carb: 0, fat: 0 } },
   { re: /nötter|jordnöt|cashew|mandel/i, m: { kcal: 600, prot: 20, carb: 15, fat: 50 } }
 ];
 
@@ -376,6 +383,8 @@ var ING_PIECE_G = [
   { re: /vårlök|salladslök|scallion/i, g: 10 },
   { re: /vitlöksklyfta|vitlök/i, g: 3 },
   { re: /banan/i, g: 120 },
+  /* Hel frukt — inte juice (citronsaft) */
+  { re: /lime(?!\s*juice)|citron(?!saft|juice)|lemon(?!\s*juice)/i, g: 60 },
   { re: /rispapper/i, g: 10 }
 ];
 
@@ -406,6 +415,10 @@ function normalizeNameForMacros(name) {
     .replace(new RegExp(',\\s*(?:' + ING_PREP_RE + ')(?:\\s+(?:och|och\\s+)?[\\wåäö-]*)*$', 'i'), '')
     .replace(new RegExp('^(?:' + ING_PREP_RE + ')\\s+', 'i'), '')
     .replace(/\bpersisk(?:a)?\s+/gi, '')
+    .replace(/\b(utan|med)\s+skinn\b/gi, '')
+    .replace(/\b(with|without)\s+skin\b/gi, '')
+    .replace(/\bskinless\b/gi, '')
+    .replace(/\bboneless\b/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
   return n;
@@ -435,6 +448,10 @@ function lookupNaveG(name) {
   return null;
 }
 
+function isCitrusJuiceName(name) {
+  return /citronsaft|limejuice|citronjuice|lemon\s*juice|lime\s*juice/i.test(name);
+}
+
 function amountToGrams(amount, unit, name) {
   var u = String(unit || '').toLowerCase();
   if (!isFinite(amount) || amount <= 0) return 0;
@@ -449,6 +466,8 @@ function amountToGrams(amount, unit, name) {
   }
   if (u === 'st') {
     if (isCookingSprayName(name)) return amount * 1.5;
+    /* «0.5 st citronsaft» = juice från ½ citron ≈ 1 msk (15 g) */
+    if (isCitrusJuiceName(name)) return amount * 30;
     var piece = lookupPieceG(name);
     if (piece != null) return amount * piece;
     return null;

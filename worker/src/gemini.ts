@@ -410,14 +410,16 @@ export async function enhanceFoodImage(
 type MacroTotals = { kcal: number; prot: number; carb: number; fat: number };
 
 const ING_PREP_RE =
-  'tärnad|tärnade|kuberad|kuberade|hackad|hackade|finhackad|finhackade|grovhackad|grovhackade|skivad|skivade|smashad|smashade|juliennad|juliennade|riven|rivna|persisk|persiska|färsk|färska';
+  'tärnad|tärnade|kuberad|kuberade|hackad|hackade|finhackad|finhackade|grovhackad|grovhackade|skivad|skivade|smashad|smashade|juliennad|juliennade|riven|rivna|persisk|persiska|färsk|färska|benfri|benfria|boneless|skinless';
 
 /** Näringsvärden per 100 g (typiska svenska/handelsvärden). Speglar recept/app.js. */
 const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
   { re: /kycklingfärs|malet kyckling|ground chicken/i, m: { kcal: 115, prot: 21, carb: 0, fat: 5 } },
   { re: /nötfärs|malet nötkött|extra mager nöt/i, m: { kcal: 150, prot: 20, carb: 0, fat: 8 } },
   { re: /fläsk|malet fläsk|pork/i, m: { kcal: 200, prot: 17, carb: 0, fat: 15 } },
-  { re: /kycklingbröst|kycklingfilé/i, m: { kcal: 110, prot: 23, carb: 0, fat: 1.5 } },
+  { re: /kycklingbröst|kycklingfilé|chicken\s*breast/i, m: { kcal: 110, prot: 23, carb: 0, fat: 1.5 } },
+  { re: /kycklinglår|lårfilé|kycklingben|drumstick|chicken\s*thigh|thigh/i, m: { kcal: 140, prot: 20, carb: 0, fat: 7 } },
+  { re: /kyckling|chicken/i, m: { kcal: 120, prot: 22, carb: 0, fat: 3 } },
   { re: /räk|shrimp|prawn/i, m: { kcal: 85, prot: 18, carb: 1, fat: 1 } },
   { re: /lax|salmon/i, m: { kcal: 190, prot: 20, carb: 0, fat: 12 } },
   { re: /tonfisk|tuna/i, m: { kcal: 130, prot: 25, carb: 0, fat: 3 } },
@@ -485,6 +487,9 @@ const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
   { re: /jäst|yeast/i, m: { kcal: 325, prot: 40, carb: 35, fat: 5 } },
   { re: /näringsjäst/i, m: { kcal: 325, prot: 50, carb: 35, fat: 5 } },
   { re: /bakpulver|bikarbonat|baking/i, m: { kcal: 0, prot: 0, carb: 0, fat: 0 } },
+  /* Juice före hel frukt (citronsaft ≠ citron) */
+  { re: /citronsaft|limejuice|citronjuice|lemon\s*juice|lime\s*juice/i, m: { kcal: 22, prot: 0.4, carb: 7, fat: 0 } },
+  { re: /kryddmix|spice\s*mix|seasoning|italiensk\s*krydda|italian\s*seasoning/i, m: { kcal: 250, prot: 10, carb: 50, fat: 5 } },
   { re: /salt|peppar|msg|krydda|paprika|kummin|cayenne|oregano|kanel|gurkmeja|kardemumma|tajín|vitlökspulver|lökpulver/i, m: { kcal: 0, prot: 0, carb: 0, fat: 0 } },
   { re: /vatten|water|buljong|stock/i, m: { kcal: 5, prot: 0.5, carb: 0.5, fat: 0 } },
   { re: /sötningsmedel|stevia|monk fruit/i, m: { kcal: 0, prot: 0, carb: 0, fat: 0 } },
@@ -505,7 +510,8 @@ const PER_100G: Array<{ re: RegExp; m: MacroTotals }> = [
 const PIECE_G: Array<{ re: RegExp; g: number }> = [
   { re: /wrapper|wonton|gyoza|dumpling/i, g: 7 },
   { re: /brioche|hamburgerbröd|slider|hoagie|bulle|bröd|wrap|tunnbröd|tortilla/i, g: 60 },
-  { re: /lime|citron|lemon/i, g: 60 },
+  /* Hel frukt — inte juice (citronsaft) */
+  { re: /lime(?!\s*juice)|citron(?!saft|juice)|lemon(?!\s*juice)/i, g: 60 },
   { re: /tomat/i, g: 100 },
   { re: /jalapeño/i, g: 15 },
   { re: /rödlök|gul lök|\blök\b/i, g: 80 },
@@ -568,6 +574,10 @@ function normalizeNameForMacros(name: string): string {
     .replace(new RegExp(`,\\s*(?:${ING_PREP_RE})(?:\\s+(?:och|och\\s+)?[\\wåäö-]*)*$`, 'i'), '')
     .replace(new RegExp(`^(?:${ING_PREP_RE})\\s+`, 'i'), '')
     .replace(/\bpersisk(?:a)?\s+/gi, '')
+    .replace(/\b(utan|med)\s+skinn\b/gi, '')
+    .replace(/\b(with|without)\s+skin\b/gi, '')
+    .replace(/\bskinless\b/gi, '')
+    .replace(/\bboneless\b/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
   return n;
@@ -597,6 +607,10 @@ function lookupNaveG(name: string): number | null {
   return null;
 }
 
+function isCitrusJuiceName(name: string): boolean {
+  return /citronsaft|limejuice|citronjuice|lemon\s*juice|lime\s*juice/i.test(name);
+}
+
 function amountToGrams(amount: number, unit: string, name: string): number | null {
   const u = String(unit || '').toLowerCase();
   if (!Number.isFinite(amount) || amount <= 0) return 0;
@@ -611,6 +625,8 @@ function amountToGrams(amount: number, unit: string, name: string): number | nul
   }
   if (u === 'st') {
     if (isCookingSprayName(name)) return amount * 1.5;
+    /* «0.5 st citronsaft» = juice från ½ citron ≈ 1 msk (15 g) → 30 g per hel */
+    if (isCitrusJuiceName(name)) return amount * 30;
     const piece = lookupPieceG(name);
     if (piece != null) return amount * piece;
     return null;
@@ -633,7 +649,10 @@ function amountToGrams(amount: number, unit: string, name: string): number | nul
 }
 
 /** Deterministisk makrosumma från ingredienslistan — används som primär källa. */
-export function estimateMacrosFromIngredients(recipe: Recipe): MacroTotals | null {
+export function estimateMacrosFromIngredients(
+  recipe: Recipe,
+  opts?: { minCountCoverage?: number; minGramCoverage?: number }
+): MacroTotals | null {
   const groups = (recipe.groups || []) as {
     ingredients?: { name?: string; amount?: number; unit?: string }[];
   }[];
@@ -643,6 +662,8 @@ export function estimateMacrosFromIngredients(recipe: Recipe): MacroTotals | nul
   let countedGrams = 0;
   let eligibleGrams = 0;
   const unknown: string[] = [];
+  const minCountCoverage = opts?.minCountCoverage ?? 0.6;
+  const minGramCoverage = opts?.minGramCoverage ?? 0.55;
 
   for (const g of groups) {
     for (const ing of g.ingredients || []) {
@@ -672,7 +693,7 @@ export function estimateMacrosFromIngredients(recipe: Recipe): MacroTotals | nul
   // För låg täckning → behåll befintliga makros (undvik systematisk undercounting)
   const countCoverage = counted / eligible;
   const gramCoverage = eligibleGrams > 0 ? countedGrams / eligibleGrams : 0;
-  if (countCoverage < 0.6 || gramCoverage < 0.55) {
+  if (countCoverage < minCountCoverage || gramCoverage < minGramCoverage) {
     return null;
   }
   return roundMacros(total);

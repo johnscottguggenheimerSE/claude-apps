@@ -201,6 +201,18 @@ function normalizeIngredientMeasures(r: Recipe): void {
         continue;
       }
 
+      // Juice mäts i msk/tsk/g — aldrig «st» (½ citron juice ≠ 0.5 st)
+      if (
+        unit === 'st' &&
+        /citronsaft|limejuice|citronjuice|lemon\s*juice|lime\s*juice/i.test(name)
+      ) {
+        // 1 citron ≈ 2 msk juice
+        const msk = Math.round(amount * 2 * 10) / 10;
+        ing.amount = msk >= 1 ? Math.round(msk) : msk;
+        ing.unit = 'msk';
+        continue;
+      }
+
       if (unit !== 'g' || amount <= 0 || amount > 16) continue;
 
       // Falsk cup→g: 1.25 g mjölk o.dyl.
@@ -333,6 +345,9 @@ function normalizeIngredientName(name: string): string {
     .replace(/\bgreen\s+onions?\b/gi, 'salladslök')
     .replace(/\bchilidpulver\b/gi, 'chilipulver')
     .replace(/\brtsvinsvinäger\b/gi, 'risvinsvinäger')
+    .replace(/\blemon\s*juice\b/gi, 'citronsaft')
+    .replace(/\blime\s*juice\b/gi, 'limejuice')
+    .replace(/\bcitronjuice\b/gi, 'citronsaft')
     .replace(/\s{2,}/g, ' ')
     .trim()
     .toLowerCase();

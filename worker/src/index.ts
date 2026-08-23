@@ -12,7 +12,6 @@ import {
   generateFoodImage,
   parseRecipe,
   mergeRecipe,
-  estimateRecipeMacros,
   estimateMacrosFromIngredients,
 } from './gemini';
 import { fetchImageAsBase64, fetchRecipePage, isSocialMediaUrl } from './fetch-url';
@@ -202,12 +201,21 @@ async function handleEstimateMacros(request: Request, env: Env): Promise<Respons
   if (!recipe) return json({ error: 'Saknar recipe' }, 400);
 
   try {
+    // «Räkna om makron» måste vara deterministisk — bara lokal kalkylator (ingen Gemini).
     const local = estimateMacrosFromIngredients(recipe);
     if (local) return json({ ok: true, macros: local, source: 'local' });
 
-    if (!env.GEMINI_API_KEY) return json({ error: 'GEMINI_API_KEY saknas' }, 503);
-    const macros = await estimateRecipeMacros(env.GEMINI_API_KEY, recipe);
-    return json({ ok: true, macros, source: 'ai' });
+    // Låg täckning: returnera ändå lokal summa så upprepade klick ger samma siffror
+    const partial = estimateMacrosFromIngredients(recipe, {
+      minCountCoverage: 0,
+      minGramCoverage: 0,
+    });
+    if (partial) return json({ ok: true, macros: partial, source: 'local' });
+
+    return json(
+      { error: 'Inga igenkända ingredienser att räkna makron från' },
+      422
+    );
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Makroberäkning misslyckades' }, 502);
   }
