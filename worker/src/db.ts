@@ -82,7 +82,7 @@ export async function renameRecipe(
   recipe: Recipe,
   featuredNew?: boolean
 ): Promise<boolean> {
-  const newId = recipe.id;
+  const newId = String(recipe.id || '');
   if (!newId || newId === oldId) return updateRecipe(db, recipe, featuredNew);
 
   const row = await db.prepare('SELECT * FROM recipes WHERE id = ?').bind(oldId).first<RecipeRow>();
@@ -97,6 +97,8 @@ export async function renameRecipe(
       'INSERT INTO recipes (id, data, featured_new, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
     ).bind(newId, JSON.stringify(recipe), featured, row.sort_order, row.created_at, now),
     db.prepare('UPDATE recipe_reviews SET recipe_id = ? WHERE recipe_id = ?').bind(newId, oldId),
+    // Reassign before DELETE so ON DELETE CASCADE does not wipe nutrition rows.
+    db.prepare('UPDATE recipe_ingredients SET recipe_id = ? WHERE recipe_id = ?').bind(newId, oldId),
     db.prepare('DELETE FROM recipes WHERE id = ?').bind(oldId),
   ]);
   return true;

@@ -1315,8 +1315,11 @@
     previewForm.appendChild(tagsWrap);
 
     var macrosTitle = mk('div', 'sec-title');
-    macrosTitle.textContent = 'Makron (hela receptet)';
+    macrosTitle.textContent = 'Makron (hela receptet — beräknas automatiskt)';
     previewForm.appendChild(macrosTitle);
+    var macrosHint = mk('p', 'field-hint');
+    macrosHint.textContent = 'Summa av matchade ingredienser. Redigera inte manuellt — använd «Räkna om makron».';
+    previewForm.appendChild(macrosHint);
     var macrosDiv = mk('div', 'macros');
     [
       { id: 'edit-kcal', key: 'kcal', lbl: 'kcal' },
@@ -1329,6 +1332,7 @@
       inp.id = m.id;
       inp.type = 'number';
       inp.step = 'any';
+      inp.readOnly = true;
       inp.value = recipe.macros && recipe.macros[m.key] != null ? String(recipe.macros[m.key]) : '0';
       var lbl = mk('span', 'mac-lbl');
       lbl.textContent = m.lbl;
@@ -1916,12 +1920,24 @@
       });
     }).then(function(data) {
       applyMacrosToForm(data.macros);
+      if (data.recipe) {
+        currentRecipe = data.recipe;
+        // Re-render form fields that may now include match_status / row macros
+        if (typeof renderPreviewForm === 'function') {
+          try { /* keep current form; macros fields updated */ } catch (e) {}
+        }
+      }
+      var warn = '';
+      if (data.unmatchedCount || data.needsPieceWeightCount) {
+        var n = (data.unmatchedCount || 0) + (data.needsPieceWeightCount || 0);
+        warn = ' · ' + n + ' rad(er) saknar näringsdata';
+      }
       setStatus(
         'Makron uppdaterade: ' +
         data.macros.kcal + ' kcal · ' +
         data.macros.prot + 'g prot · ' +
         data.macros.carb + 'g kh · ' +
-        data.macros.fat + 'g fett'
+        data.macros.fat + 'g fett' + warn
       );
       var macrosSec = previewForm.querySelector('.macros');
       if (macrosSec) macrosSec.scrollIntoView({ behavior: 'smooth', block: 'center' });

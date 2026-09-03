@@ -16,9 +16,13 @@ const API = 'https://receptbok.receptbok.workers.dev/api/recipes';
 const { normalizeRecipe } = await import(
   pathToFileURL(join(root, 'worker/src/validate.ts')).href
 );
-const { estimateMacrosFromIngredients } = await import(
-  pathToFileURL(join(root, 'worker/src/gemini.ts')).href
+const { catalogFromSeed, resolveAndApplyRecipe } = await import(
+  pathToFileURL(join(root, 'worker/src/nutrition/index.ts')).href
 );
+const seed = JSON.parse(
+  (await import('fs')).readFileSync(join(root, 'scripts/nutrition-seed.json'), 'utf8')
+);
+const nutritionCatalog = catalogFromSeed(seed.ingredients);
 
 function escSql(s) {
   return String(s).replace(/'/g, "''");
@@ -81,16 +85,15 @@ for (const raw of recipes) {
   delete after.updatedAt;
   delete after.createdAt;
 
-  const estimated = estimateMacrosFromIngredients(after);
-  if (estimated) {
+  const { recipe: resolved } = resolveAndApplyRecipe(nutritionCatalog, after);
+  Object.assign(after, resolved);
+  const estimated = after.macros;
+  if (estimated && (estimated.kcal || estimated.prot || estimated.carb || estimated.fat)) {
     if (!macrosEqual(before.macros, estimated)) {
       report.macroDeltas.push(
         `${after.id}: ${JSON.stringify(before.macros)} → ${JSON.stringify(estimated)}`
       );
-      after.macros = estimated;
       report.macrosUpdated += 1;
-    } else {
-      after.macros = estimated;
     }
   } else {
     report.macrosFailed.push(after.id);

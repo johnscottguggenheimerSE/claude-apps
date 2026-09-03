@@ -1,0 +1,3588 @@
+{
+  "ingredients": [
+    {
+      "id": 1,
+      "canonical_name": "kycklingfärs",
+      "category": null,
+      "kcal_per_100g": 143.0,
+      "protein_per_100g": 17.4,
+      "fat_per_100g": 8.1,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "malet kyckling",
+        "ground chicken",
+        "kycklingfärs mager"
+      ]
+    },
+    {
+      "id": 2,
+      "canonical_name": "kycklingving",
+      "category": null,
+      "kcal_per_100g": 191.0,
+      "protein_per_100g": 17.5,
+      "fat_per_100g": 12.8,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "chicken wing",
+        "wings"
+      ]
+    },
+    {
+      "id": 3,
+      "canonical_name": "kycklinglår",
+      "category": null,
+      "kcal_per_100g": 161.0,
+      "protein_per_100g": 19.7,
+      "fat_per_100g": 9.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "lårfil",
+        "benfria lår",
+        "kycklingben",
+        "drumstick",
+        "chicken thigh",
+        "thighs"
+      ]
+    },
+    {
+      "id": 4,
+      "canonical_name": "kycklingbröst",
+      "category": null,
+      "kcal_per_100g": 107.0,
+      "protein_per_100g": 23.1,
+      "fat_per_100g": 1.2,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "kycklingfil",
+        "chicken breast",
+        "malet kycklingbröst"
+      ]
+    },
+    {
+      "id": 5,
+      "canonical_name": "hel kyckling",
+      "category": null,
+      "kcal_per_100g": 178.0,
+      "protein_per_100g": 19.5,
+      "fat_per_100g": 11.1,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "whole chicken"
+      ]
+    },
+    {
+      "id": 6,
+      "canonical_name": "kycklinglever",
+      "category": null,
+      "kcal_per_100g": 119.0,
+      "protein_per_100g": 16.9,
+      "fat_per_100g": 4.8,
+      "carbs_per_100g": 0.7,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "chicken liver"
+      ]
+    },
+    {
+      "id": 7,
+      "canonical_name": "kyckling",
+      "category": null,
+      "kcal_per_100g": 120.0,
+      "protein_per_100g": 21.0,
+      "fat_per_100g": 3.5,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "chicken"
+      ]
+    },
+    {
+      "id": 8,
+      "canonical_name": "kalkonfärs",
+      "category": null,
+      "kcal_per_100g": 148.0,
+      "protein_per_100g": 20.0,
+      "fat_per_100g": 7.5,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "malet kalkon",
+        "ground turkey"
+      ]
+    },
+    {
+      "id": 9,
+      "canonical_name": "kalkonbröst",
+      "category": null,
+      "kcal_per_100g": 104.0,
+      "protein_per_100g": 23.5,
+      "fat_per_100g": 0.7,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "turkey breast"
+      ]
+    },
+    {
+      "id": 10,
+      "canonical_name": "kalkon",
+      "category": null,
+      "kcal_per_100g": 111.0,
+      "protein_per_100g": 22.0,
+      "fat_per_100g": 2.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "turkey"
+      ]
+    },
+    {
+      "id": 11,
+      "canonical_name": "extra mager nöt",
+      "category": null,
+      "kcal_per_100g": 137.0,
+      "protein_per_100g": 20.5,
+      "fat_per_100g": 5.5,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "nötfärs 5 5",
+        "lean ground beef"
+      ]
+    },
+    {
+      "id": 12,
+      "canonical_name": "nötfärs",
+      "category": null,
+      "kcal_per_100g": 215.0,
+      "protein_per_100g": 18.5,
+      "fat_per_100g": 15.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "malet nötkött",
+        "ground beef",
+        "extra mager nötfärs"
+      ]
+    },
+    {
+      "id": 13,
+      "canonical_name": "oxfil",
+      "category": null,
+      "kcal_per_100g": 137.0,
+      "protein_per_100g": 21.5,
+      "fat_per_100g": 5.5,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "innerfil",
+        "file de boeuf",
+        "tenderloin"
+      ]
+    },
+    {
+      "id": 14,
+      "canonical_name": "ryggbiff",
+      "category": null,
+      "kcal_per_100g": 180.0,
+      "protein_per_100g": 21.0,
+      "fat_per_100g": 10.5,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "entrecte",
+        "biff",
+        "higherib",
+        "sirloin",
+        "ribeye"
+      ]
+    },
+    {
+      "id": 15,
+      "canonical_name": "högrev",
+      "category": null,
+      "kcal_per_100g": 210.0,
+      "protein_per_100g": 19.0,
+      "fat_per_100g": 15.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "bringa",
+        "brisket",
+        "chuck"
+      ]
+    },
+    {
+      "id": 16,
+      "canonical_name": "nötkött",
+      "category": null,
+      "kcal_per_100g": 170.0,
+      "protein_per_100g": 22.0,
+      "fat_per_100g": 8.5,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "beef"
+      ]
+    },
+    {
+      "id": 17,
+      "canonical_name": "bacon",
+      "category": null,
+      "kcal_per_100g": 393.0,
+      "protein_per_100g": 13.7,
+      "fat_per_100g": 37.0,
+      "carbs_per_100g": 0.7,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 18,
+      "canonical_name": "pancetta",
+      "category": null,
+      "kcal_per_100g": 450.0,
+      "protein_per_100g": 12.0,
+      "fat_per_100g": 45.0,
+      "carbs_per_100g": 0.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "guanciale"
+      ]
+    },
+    {
+      "id": 19,
+      "canonical_name": "skinka",
+      "category": null,
+      "kcal_per_100g": 120.0,
+      "protein_per_100g": 19.0,
+      "fat_per_100g": 4.5,
+      "carbs_per_100g": 1.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "ham"
+      ]
+    },
+    {
+      "id": 20,
+      "canonical_name": "fläskfil",
+      "category": null,
+      "kcal_per_100g": 116.0,
+      "protein_per_100g": 21.5,
+      "fat_per_100g": 3.2,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "pork tenderloin",
+        "pork fillet"
+      ]
+    },
+    {
+      "id": 21,
+      "canonical_name": "fläskfärs",
+      "category": null,
+      "kcal_per_100g": 242.0,
+      "protein_per_100g": 16.5,
+      "fat_per_100g": 19.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "malet fläsk",
+        "ground pork",
+        "malet fläskkött"
+      ]
+    },
+    {
+      "id": 22,
+      "canonical_name": "fläskkarr",
+      "category": null,
+      "kcal_per_100g": 196.0,
+      "protein_per_100g": 19.0,
+      "fat_per_100g": 13.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "karre",
+        "kotlett",
+        "pork chop",
+        "pork shoulder"
+      ]
+    },
+    {
+      "id": 23,
+      "canonical_name": "revbensspjäll",
+      "category": null,
+      "kcal_per_100g": 277.0,
+      "protein_per_100g": 16.0,
+      "fat_per_100g": 23.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "spare ribs",
+        "pork ribs"
+      ]
+    },
+    {
+      "id": 24,
+      "canonical_name": "fläsk",
+      "category": null,
+      "kcal_per_100g": 200.0,
+      "protein_per_100g": 18.0,
+      "fat_per_100g": 14.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "pork"
+      ]
+    },
+    {
+      "id": 25,
+      "canonical_name": "lammfärs",
+      "category": null,
+      "kcal_per_100g": 230.0,
+      "protein_per_100g": 17.0,
+      "fat_per_100g": 18.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "ground lamb"
+      ]
+    },
+    {
+      "id": 26,
+      "canonical_name": "lamm",
+      "category": null,
+      "kcal_per_100g": 200.0,
+      "protein_per_100g": 19.0,
+      "fat_per_100g": 14.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "lamb"
+      ]
+    },
+    {
+      "id": 27,
+      "canonical_name": "anka",
+      "category": null,
+      "kcal_per_100g": 220.0,
+      "protein_per_100g": 18.0,
+      "fat_per_100g": 16.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "duck"
+      ]
+    },
+    {
+      "id": 28,
+      "canonical_name": "korv",
+      "category": null,
+      "kcal_per_100g": 300.0,
+      "protein_per_100g": 14.0,
+      "fat_per_100g": 26.0,
+      "carbs_per_100g": 2.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "sausage",
+        "chorizo",
+        "salami",
+        "pepperoni"
+      ]
+    },
+    {
+      "id": 29,
+      "canonical_name": "köttbull",
+      "category": null,
+      "kcal_per_100g": 230.0,
+      "protein_per_100g": 14.0,
+      "fat_per_100g": 16.0,
+      "carbs_per_100g": 8.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 30,
+      "canonical_name": "rökt lax",
+      "category": null,
+      "kcal_per_100g": 170.0,
+      "protein_per_100g": 22.0,
+      "fat_per_100g": 9.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "smoked salmon",
+        "gravad lax"
+      ]
+    },
+    {
+      "id": 31,
+      "canonical_name": "lax",
+      "category": null,
+      "kcal_per_100g": 179.0,
+      "protein_per_100g": 19.9,
+      "fat_per_100g": 10.9,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "salmon"
+      ]
+    },
+    {
+      "id": 32,
+      "canonical_name": "makrill",
+      "category": null,
+      "kcal_per_100g": 205.0,
+      "protein_per_100g": 19.0,
+      "fat_per_100g": 14.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "mackerel"
+      ]
+    },
+    {
+      "id": 33,
+      "canonical_name": "strömming",
+      "category": null,
+      "kcal_per_100g": 160.0,
+      "protein_per_100g": 18.0,
+      "fat_per_100g": 10.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "sill",
+        "herring"
+      ]
+    },
+    {
+      "id": 34,
+      "canonical_name": "torsk",
+      "category": null,
+      "kcal_per_100g": 82.0,
+      "protein_per_100g": 18.1,
+      "fat_per_100g": 0.7,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "sej",
+        "kolja",
+        "hoki",
+        "vitfisk",
+        "cod",
+        "haddock",
+        "white fish"
+      ]
+    },
+    {
+      "id": 35,
+      "canonical_name": "tonfisk.olja",
+      "category": null,
+      "kcal_per_100g": 198.0,
+      "protein_per_100g": 25.0,
+      "fat_per_100g": 10.5,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "tuna.oil",
+        "ventresca"
+      ]
+    },
+    {
+      "id": 36,
+      "canonical_name": "tonfisk",
+      "category": null,
+      "kcal_per_100g": 116.0,
+      "protein_per_100g": 25.5,
+      "fat_per_100g": 1.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "tuna"
+      ]
+    },
+    {
+      "id": 37,
+      "canonical_name": "ansjovis",
+      "category": null,
+      "kcal_per_100g": 210.0,
+      "protein_per_100g": 29.0,
+      "fat_per_100g": 10.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": 5.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "anchovy",
+        "ansjovisfilé"
+      ]
+    },
+    {
+      "id": 38,
+      "canonical_name": "räk",
+      "category": null,
+      "kcal_per_100g": 85.0,
+      "protein_per_100g": 18.1,
+      "fat_per_100g": 0.9,
+      "carbs_per_100g": 0.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "shrimp",
+        "prawn"
+      ]
+    },
+    {
+      "id": 39,
+      "canonical_name": "kräft",
+      "category": null,
+      "kcal_per_100g": 90.0,
+      "protein_per_100g": 18.0,
+      "fat_per_100g": 1.2,
+      "carbs_per_100g": 1.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "krabba",
+        "lobster",
+        "crab",
+        "crayfish"
+      ]
+    },
+    {
+      "id": 40,
+      "canonical_name": "blåmussla",
+      "category": null,
+      "kcal_per_100g": 86.0,
+      "protein_per_100g": 12.0,
+      "fat_per_100g": 2.2,
+      "carbs_per_100g": 3.7,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "mussla",
+        "scallop",
+        "kamussla",
+        "mussel",
+        "oyster",
+        "ostron"
+      ]
+    },
+    {
+      "id": 41,
+      "canonical_name": "fisk",
+      "category": null,
+      "kcal_per_100g": 110.0,
+      "protein_per_100g": 20.0,
+      "fat_per_100g": 3.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "fish"
+      ]
+    },
+    {
+      "id": 42,
+      "canonical_name": "äggvita",
+      "category": null,
+      "kcal_per_100g": 52.0,
+      "protein_per_100g": 10.9,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 0.7,
+      "piece_weight_g": 33.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "egg white"
+      ]
+    },
+    {
+      "id": 43,
+      "canonical_name": "äggula",
+      "category": null,
+      "kcal_per_100g": 322.0,
+      "protein_per_100g": 15.9,
+      "fat_per_100g": 26.5,
+      "carbs_per_100g": 3.6,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "egg yolk"
+      ]
+    },
+    {
+      "id": 44,
+      "canonical_name": "ägg",
+      "category": null,
+      "kcal_per_100g": 143.0,
+      "protein_per_100g": 12.6,
+      "fat_per_100g": 9.5,
+      "carbs_per_100g": 0.7,
+      "piece_weight_g": 55.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "eggs"
+      ]
+    },
+    {
+      "id": 45,
+      "canonical_name": "tofu",
+      "category": null,
+      "kcal_per_100g": 120.0,
+      "protein_per_100g": 12.0,
+      "fat_per_100g": 7.2,
+      "carbs_per_100g": 1.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 46,
+      "canonical_name": "tempeh",
+      "category": null,
+      "kcal_per_100g": 193.0,
+      "protein_per_100g": 19.0,
+      "fat_per_100g": 10.8,
+      "carbs_per_100g": 9.4,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 47,
+      "canonical_name": "edamame",
+      "category": null,
+      "kcal_per_100g": 121.0,
+      "protein_per_100g": 11.9,
+      "fat_per_100g": 5.2,
+      "carbs_per_100g": 8.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "fryst edamame"
+      ]
+    },
+    {
+      "id": 48,
+      "canonical_name": "kikärt",
+      "category": null,
+      "kcal_per_100g": 164.0,
+      "protein_per_100g": 8.9,
+      "fat_per_100g": 2.6,
+      "carbs_per_100g": 27.4,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "chickpea",
+        "garbanzo"
+      ]
+    },
+    {
+      "id": 49,
+      "canonical_name": "linser",
+      "category": null,
+      "kcal_per_100g": 116.0,
+      "protein_per_100g": 9.0,
+      "fat_per_100g": 0.4,
+      "carbs_per_100g": 20.1,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "lentil"
+      ]
+    },
+    {
+      "id": 50,
+      "canonical_name": "svarta bönor",
+      "category": null,
+      "kcal_per_100g": 127.0,
+      "protein_per_100g": 8.7,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 22.8,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "kidney",
+        "vita bönor",
+        "böna",
+        "beans"
+      ]
+    },
+    {
+      "id": 51,
+      "canonical_name": "ärt",
+      "category": null,
+      "kcal_per_100g": 81.0,
+      "protein_per_100g": 5.4,
+      "fat_per_100g": 0.4,
+      "carbs_per_100g": 14.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "peas",
+        "gröna ärtor"
+      ]
+    },
+    {
+      "id": 52,
+      "canonical_name": "hummus",
+      "category": null,
+      "kcal_per_100g": 166.0,
+      "protein_per_100g": 7.9,
+      "fat_per_100g": 9.6,
+      "carbs_per_100g": 14.3,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "houmous"
+      ]
+    },
+    {
+      "id": 53,
+      "canonical_name": "vego färskött",
+      "category": null,
+      "kcal_per_100g": 95.0,
+      "protein_per_100g": 14.5,
+      "fat_per_100g": 2.0,
+      "carbs_per_100g": 4.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "quorn",
+        "plantbased mince"
+      ]
+    },
+    {
+      "id": 54,
+      "canonical_name": "keso 0",
+      "category": null,
+      "kcal_per_100g": 72.0,
+      "protein_per_100g": 12.5,
+      "fat_per_100g": 0.4,
+      "carbs_per_100g": 3.4,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "cottage cheese fatfreenonfat0"
+      ]
+    },
+    {
+      "id": 55,
+      "canonical_name": "keso 1 5",
+      "category": null,
+      "kcal_per_100g": 80.0,
+      "protein_per_100g": 12.0,
+      "fat_per_100g": 1.5,
+      "carbs_per_100g": 3.3,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "cottage cheese lowreduced15"
+      ]
+    },
+    {
+      "id": 56,
+      "canonical_name": "keso 4",
+      "category": null,
+      "kcal_per_100g": 98.0,
+      "protein_per_100g": 11.1,
+      "fat_per_100g": 4.0,
+      "carbs_per_100g": 3.4,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "keso",
+        "cottage",
+        "keso 4%",
+        "keso 1,5%",
+        "keso 1.5%"
+      ]
+    },
+    {
+      "id": 57,
+      "canonical_name": "kvarg 0",
+      "category": null,
+      "kcal_per_100g": 60.0,
+      "protein_per_100g": 12.0,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 3.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "skyr 0",
+        "fatfree quark"
+      ]
+    },
+    {
+      "id": 58,
+      "canonical_name": "kvarg",
+      "category": null,
+      "kcal_per_100g": 70.0,
+      "protein_per_100g": 12.0,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 3.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "skyr",
+        "quark"
+      ]
+    },
+    {
+      "id": 59,
+      "canonical_name": "grekisk yoghurt 0",
+      "category": null,
+      "kcal_per_100g": 54.0,
+      "protein_per_100g": 10.0,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 3.8,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "naturell grekisk yoghurt 0",
+        "nonfat greek",
+        "0% greek",
+        "tjock grekisk yoghurt 0"
+      ]
+    },
+    {
+      "id": 60,
+      "canonical_name": "grekisk yoghurt",
+      "category": null,
+      "kcal_per_100g": 97.0,
+      "protein_per_100g": 9.0,
+      "fat_per_100g": 5.0,
+      "carbs_per_100g": 3.6,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "tjock grekisk",
+        "naturell yoghurt",
+        "greek yoghurt",
+        "greek yogurt",
+        "grekisk yoghurt 0%",
+        "grekisk yoghurt 2%",
+        "naturell grekisk yoghurt 0%",
+        "tjock grekisk yoghurt",
+        "tjock grekisk yoghurt 0%"
+      ]
+    },
+    {
+      "id": 61,
+      "canonical_name": "yoghurt 0",
+      "category": null,
+      "kcal_per_100g": 40.0,
+      "protein_per_100g": 4.0,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 5.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "yogurt 0",
+        "lätt yoghurt"
+      ]
+    },
+    {
+      "id": 62,
+      "canonical_name": "yoghurt",
+      "category": null,
+      "kcal_per_100g": 62.0,
+      "protein_per_100g": 4.5,
+      "fat_per_100g": 2.2,
+      "carbs_per_100g": 6.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "yogurt"
+      ]
+    },
+    {
+      "id": 63,
+      "canonical_name": "labneh",
+      "category": null,
+      "kcal_per_100g": 150.0,
+      "protein_per_100g": 8.0,
+      "fat_per_100g": 10.0,
+      "carbs_per_100g": 4.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 64,
+      "canonical_name": "vispgrädde",
+      "category": null,
+      "kcal_per_100g": 373.0,
+      "protein_per_100g": 2.0,
+      "fat_per_100g": 40.0,
+      "carbs_per_100g": 2.8,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "visp grädde",
+        "whipping cream"
+      ]
+    },
+    {
+      "id": 65,
+      "canonical_name": "matlagningsgrädde",
+      "category": null,
+      "kcal_per_100g": 190.0,
+      "protein_per_100g": 2.5,
+      "fat_per_100g": 18.0,
+      "carbs_per_100g": 3.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "matgrädde",
+        "cooking cream"
+      ]
+    },
+    {
+      "id": 66,
+      "canonical_name": "grädde",
+      "category": null,
+      "kcal_per_100g": 292.0,
+      "protein_per_100g": 2.2,
+      "fat_per_100g": 30.0,
+      "carbs_per_100g": 3.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "cream"
+      ]
+    },
+    {
+      "id": 67,
+      "canonical_name": "gräddfil",
+      "category": null,
+      "kcal_per_100g": 193.0,
+      "protein_per_100g": 2.8,
+      "fat_per_100g": 19.0,
+      "carbs_per_100g": 3.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "sour cream"
+      ]
+    },
+    {
+      "id": 68,
+      "canonical_name": "creme fraiche",
+      "category": null,
+      "kcal_per_100g": 292.0,
+      "protein_per_100g": 2.4,
+      "fat_per_100g": 30.0,
+      "carbs_per_100g": 2.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 69,
+      "canonical_name": "färskost",
+      "category": null,
+      "kcal_per_100g": 250.0,
+      "protein_per_100g": 5.5,
+      "fat_per_100g": 24.0,
+      "carbs_per_100g": 3.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "philadelphia",
+        "cream cheese"
+      ]
+    },
+    {
+      "id": 70,
+      "canonical_name": "ricotta",
+      "category": null,
+      "kcal_per_100g": 140.0,
+      "protein_per_100g": 8.0,
+      "fat_per_100g": 10.0,
+      "carbs_per_100g": 4.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 71,
+      "canonical_name": "helmjölk",
+      "category": null,
+      "kcal_per_100g": 60.0,
+      "protein_per_100g": 3.4,
+      "fat_per_100g": 3.5,
+      "carbs_per_100g": 4.8,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "whole milk"
+      ]
+    },
+    {
+      "id": 72,
+      "canonical_name": "mellanmjölk",
+      "category": null,
+      "kcal_per_100g": 47.0,
+      "protein_per_100g": 3.5,
+      "fat_per_100g": 1.5,
+      "carbs_per_100g": 4.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 73,
+      "canonical_name": "lättmjölk",
+      "category": null,
+      "kcal_per_100g": 36.0,
+      "protein_per_100g": 3.5,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 4.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "skim milk"
+      ]
+    },
+    {
+      "id": 74,
+      "canonical_name": "minimjölk",
+      "category": null,
+      "kcal_per_100g": 32.0,
+      "protein_per_100g": 3.4,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 4.8,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 75,
+      "canonical_name": "kokosmjölk",
+      "category": null,
+      "kcal_per_100g": 180.0,
+      "protein_per_100g": 1.8,
+      "fat_per_100g": 18.0,
+      "carbs_per_100g": 3.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "coconut milk"
+      ]
+    },
+    {
+      "id": 76,
+      "canonical_name": "havremjölk",
+      "category": null,
+      "kcal_per_100g": 46.0,
+      "protein_per_100g": 1.0,
+      "fat_per_100g": 1.5,
+      "carbs_per_100g": 6.7,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "oat milk"
+      ]
+    },
+    {
+      "id": 77,
+      "canonical_name": "mandelmjölk",
+      "category": null,
+      "kcal_per_100g": 22.0,
+      "protein_per_100g": 0.6,
+      "fat_per_100g": 1.8,
+      "carbs_per_100g": 0.8,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "almond milk"
+      ]
+    },
+    {
+      "id": 78,
+      "canonical_name": "sojamjölk",
+      "category": null,
+      "kcal_per_100g": 40.0,
+      "protein_per_100g": 3.3,
+      "fat_per_100g": 1.8,
+      "carbs_per_100g": 2.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "soy milk"
+      ]
+    },
+    {
+      "id": 79,
+      "canonical_name": "mjölk",
+      "category": null,
+      "kcal_per_100g": 47.0,
+      "protein_per_100g": 3.5,
+      "fat_per_100g": 1.5,
+      "carbs_per_100g": 4.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "milk",
+        "skummjölk"
+      ]
+    },
+    {
+      "id": 80,
+      "canonical_name": "pecorino",
+      "category": null,
+      "kcal_per_100g": 392.0,
+      "protein_per_100g": 33.0,
+      "fat_per_100g": 28.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "parmesan",
+        "parmigiano",
+        "parmesanost",
+        "riven parmesanost"
+      ]
+    },
+    {
+      "id": 81,
+      "canonical_name": "lättost",
+      "category": null,
+      "kcal_per_100g": 220.0,
+      "protein_per_100g": 28.0,
+      "fat_per_100g": 12.0,
+      "carbs_per_100g": 1.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "light cheese",
+        "50% cheddarswissleerdamer",
+        "lättost 50% cheddar"
+      ]
+    },
+    {
+      "id": 82,
+      "canonical_name": "mozzarella",
+      "category": null,
+      "kcal_per_100g": 280.0,
+      "protein_per_100g": 18.0,
+      "fat_per_100g": 22.0,
+      "carbs_per_100g": 2.2,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 83,
+      "canonical_name": "feta",
+      "category": null,
+      "kcal_per_100g": 264.0,
+      "protein_per_100g": 14.0,
+      "fat_per_100g": 21.0,
+      "carbs_per_100g": 4.1,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 84,
+      "canonical_name": "halloumi",
+      "category": null,
+      "kcal_per_100g": 321.0,
+      "protein_per_100g": 21.0,
+      "fat_per_100g": 25.0,
+      "carbs_per_100g": 2.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 85,
+      "canonical_name": "cheddar",
+      "category": null,
+      "kcal_per_100g": 403.0,
+      "protein_per_100g": 25.0,
+      "fat_per_100g": 33.0,
+      "carbs_per_100g": 1.3,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 86,
+      "canonical_name": "herrgård",
+      "category": null,
+      "kcal_per_100g": 360.0,
+      "protein_per_100g": 27.0,
+      "fat_per_100g": 28.0,
+      "carbs_per_100g": 1.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "cotija",
+        "swiss",
+        "leerdamer",
+        "emmentaler",
+        "grev",
+        "präst",
+        "cotijaost",
+        "smulad cotija-ost"
+      ]
+    },
+    {
+      "id": 87,
+      "canonical_name": "blåmögel",
+      "category": null,
+      "kcal_per_100g": 353.0,
+      "protein_per_100g": 21.0,
+      "fat_per_100g": 29.0,
+      "carbs_per_100g": 2.3,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "gorgonzola",
+        "roquefort",
+        "blue cheese"
+      ]
+    },
+    {
+      "id": 88,
+      "canonical_name": "ost",
+      "category": null,
+      "kcal_per_100g": 350.0,
+      "protein_per_100g": 25.0,
+      "fat_per_100g": 28.0,
+      "carbs_per_100g": 1.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "cheese"
+      ]
+    },
+    {
+      "id": 89,
+      "canonical_name": "kokt .ris",
+      "category": null,
+      "kcal_per_100g": 130.0,
+      "protein_per_100g": 2.7,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 28.2,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "ris.kokt",
+        "cooked rice"
+      ]
+    },
+    {
+      "id": 90,
+      "canonical_name": "råris",
+      "category": null,
+      "kcal_per_100g": 356.0,
+      "protein_per_100g": 6.7,
+      "fat_per_100g": 0.6,
+      "carbs_per_100g": 79.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "ris",
+        "jasminris",
+        "basmati",
+        "klibbigt ris",
+        "okokat.ris",
+        "kokt ris",
+        "kokt vitt ris",
+        "kokt kortkornat ris",
+        "basmatiris",
+        "okokat klibbigt ris"
+      ]
+    },
+    {
+      "id": 91,
+      "canonical_name": "kokt .pasta",
+      "category": null,
+      "kcal_per_100g": 131.0,
+      "protein_per_100g": 5.0,
+      "fat_per_100g": 1.1,
+      "carbs_per_100g": 25.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "pasta.kokt",
+        "cooked pastanoodle"
+      ]
+    },
+    {
+      "id": 92,
+      "canonical_name": "risnudlar",
+      "category": null,
+      "kcal_per_100g": 364.0,
+      "protein_per_100g": 3.5,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 84.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "rice noodle"
+      ]
+    },
+    {
+      "id": 93,
+      "canonical_name": "ägg nudlar",
+      "category": null,
+      "kcal_per_100g": 350.0,
+      "protein_per_100g": 12.0,
+      "fat_per_100g": 2.0,
+      "carbs_per_100g": 70.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "egg noodle",
+        "udon",
+        "soba"
+      ]
+    },
+    {
+      "id": 94,
+      "canonical_name": "spaghetti",
+      "category": null,
+      "kcal_per_100g": 359.0,
+      "protein_per_100g": 12.5,
+      "fat_per_100g": 1.5,
+      "carbs_per_100g": 72.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "pasta",
+        "nudlar",
+        "noodles",
+        "linguine",
+        "fettuccine",
+        "penne",
+        "fusilli",
+        "rigatoni"
+      ]
+    },
+    {
+      "id": 95,
+      "canonical_name": "gnocchi",
+      "category": null,
+      "kcal_per_100g": 133.0,
+      "protein_per_100g": 3.5,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 27.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "potatisgnocchi"
+      ]
+    },
+    {
+      "id": 96,
+      "canonical_name": "couscous",
+      "category": null,
+      "kcal_per_100g": 376.0,
+      "protein_per_100g": 12.8,
+      "fat_per_100g": 0.6,
+      "carbs_per_100g": 77.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 97,
+      "canonical_name": "quinoa",
+      "category": null,
+      "kcal_per_100g": 368.0,
+      "protein_per_100g": 14.1,
+      "fat_per_100g": 6.1,
+      "carbs_per_100g": 64.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 98,
+      "canonical_name": "bulgur",
+      "category": null,
+      "kcal_per_100g": 342.0,
+      "protein_per_100g": 12.3,
+      "fat_per_100g": 1.3,
+      "carbs_per_100g": 76.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 99,
+      "canonical_name": "kokt .potatis",
+      "category": null,
+      "kcal_per_100g": 87.0,
+      "protein_per_100g": 1.9,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 20.1,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "potatis.kokt",
+        "cooked potato"
+      ]
+    },
+    {
+      "id": 100,
+      "canonical_name": "sötpotatis",
+      "category": null,
+      "kcal_per_100g": 86.0,
+      "protein_per_100g": 1.6,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 20.1,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "sweet potato"
+      ]
+    },
+    {
+      "id": 101,
+      "canonical_name": "potatis",
+      "category": null,
+      "kcal_per_100g": 77.0,
+      "protein_per_100g": 2.0,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 17.5,
+      "piece_weight_g": 150.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "potato"
+      ]
+    },
+    {
+      "id": 102,
+      "canonical_name": "wrapper",
+      "category": null,
+      "kcal_per_100g": 300.0,
+      "protein_per_100g": 8.0,
+      "fat_per_100g": 1.5,
+      "carbs_per_100g": 60.0,
+      "piece_weight_g": 7.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "wonton",
+        "gyoza",
+        "dumpling.skal",
+        "degark",
+        "gyozaskal",
+        "wontonskal"
+      ]
+    },
+    {
+      "id": 103,
+      "canonical_name": "rispapper",
+      "category": null,
+      "kcal_per_100g": 333.0,
+      "protein_per_100g": 0.5,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 82.0,
+      "piece_weight_g": 10.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 104,
+      "canonical_name": "dumpling",
+      "category": null,
+      "kcal_per_100g": 220.0,
+      "protein_per_100g": 8.0,
+      "fat_per_100g": 8.0,
+      "carbs_per_100g": 30.0,
+      "piece_weight_g": 7.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "frysta dumplings",
+        "dumplings"
+      ]
+    },
+    {
+      "id": 105,
+      "canonical_name": "ströbröd",
+      "category": null,
+      "kcal_per_100g": 395.0,
+      "protein_per_100g": 13.4,
+      "fat_per_100g": 5.3,
+      "carbs_per_100g": 72.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "panko",
+        "brödsmul",
+        "panko-ströbröd"
+      ]
+    },
+    {
+      "id": 106,
+      "canonical_name": "brioche",
+      "category": null,
+      "kcal_per_100g": 345.0,
+      "protein_per_100g": 9.0,
+      "fat_per_100g": 12.0,
+      "carbs_per_100g": 50.0,
+      "piece_weight_g": 60.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 107,
+      "canonical_name": "hamburgerbröd",
+      "category": null,
+      "kcal_per_100g": 270.0,
+      "protein_per_100g": 9.0,
+      "fat_per_100g": 4.0,
+      "carbs_per_100g": 50.0,
+      "piece_weight_g": 60.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "slider",
+        "hoagie",
+        "bulle",
+        "ciabatta",
+        "baguette",
+        "bröd",
+        "wrap",
+        "tunnbröd",
+        "tortilla",
+        "libanesisk",
+        "libanesiska tunnbröd",
+        "brioche hamburgerbröd"
+      ]
+    },
+    {
+      "id": 108,
+      "canonical_name": "rågmjöl",
+      "category": null,
+      "kcal_per_100g": 335.0,
+      "protein_per_100g": 9.0,
+      "fat_per_100g": 1.5,
+      "carbs_per_100g": 70.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "rye flour"
+      ]
+    },
+    {
+      "id": 109,
+      "canonical_name": "grahamsmjöl",
+      "category": null,
+      "kcal_per_100g": 340.0,
+      "protein_per_100g": 13.0,
+      "fat_per_100g": 2.5,
+      "carbs_per_100g": 64.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "fullkornsmjöl",
+        "whole wheat flour"
+      ]
+    },
+    {
+      "id": 110,
+      "canonical_name": "vetemjöl",
+      "category": null,
+      "kcal_per_100g": 348.0,
+      "protein_per_100g": 10.5,
+      "fat_per_100g": 1.0,
+      "carbs_per_100g": 73.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "selfrising",
+        "självjäsande",
+        "mjöl",
+        "vetemjöl special",
+        "självjäsande mjöl"
+      ]
+    },
+    {
+      "id": 111,
+      "canonical_name": "havremjöl",
+      "category": null,
+      "kcal_per_100g": 370.0,
+      "protein_per_100g": 13.2,
+      "fat_per_100g": 7.0,
+      "carbs_per_100g": 58.7,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "havregryn",
+        "havre",
+        "oat meals"
+      ]
+    },
+    {
+      "id": 112,
+      "canonical_name": "majsstärkelse",
+      "category": null,
+      "kcal_per_100g": 357.0,
+      "protein_per_100g": 0.3,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 88.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "potato starch",
+        "corn starch",
+        "stärkelse",
+        "potatismjöl"
+      ]
+    },
+    {
+      "id": 113,
+      "canonical_name": "majskärn",
+      "category": null,
+      "kcal_per_100g": 96.0,
+      "protein_per_100g": 3.4,
+      "fat_per_100g": 1.5,
+      "carbs_per_100g": 19.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "majs",
+        "corn",
+        "konserverad majs"
+      ]
+    },
+    {
+      "id": 114,
+      "canonical_name": "stekspray",
+      "category": null,
+      "kcal_per_100g": 884.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 100.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "olivoljespray",
+        "cooking spray",
+        "oil spray",
+        "pam",
+        "matlagningsspray"
+      ]
+    },
+    {
+      "id": 115,
+      "canonical_name": "lätt smör",
+      "category": null,
+      "kcal_per_100g": 380.0,
+      "protein_per_100g": 0.5,
+      "fat_per_100g": 42.0,
+      "carbs_per_100g": 0.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "light butter"
+      ]
+    },
+    {
+      "id": 116,
+      "canonical_name": "smör",
+      "category": null,
+      "kcal_per_100g": 717.0,
+      "protein_per_100g": 0.9,
+      "fat_per_100g": 81.0,
+      "carbs_per_100g": 0.1,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "butter"
+      ]
+    },
+    {
+      "id": 117,
+      "canonical_name": "klarat smör",
+      "category": null,
+      "kcal_per_100g": 876.0,
+      "protein_per_100g": 0.2,
+      "fat_per_100g": 99.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "ghee"
+      ]
+    },
+    {
+      "id": 118,
+      "canonical_name": "sesamolja",
+      "category": null,
+      "kcal_per_100g": 884.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 100.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "sesame oil",
+        "rostad sesamolja"
+      ]
+    },
+    {
+      "id": 119,
+      "canonical_name": "olivolja",
+      "category": null,
+      "kcal_per_100g": 884.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 100.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "olive oil",
+        "extra virgin olivolja",
+        "extra virgin olive oil"
+      ]
+    },
+    {
+      "id": 120,
+      "canonical_name": "kokosolja",
+      "category": null,
+      "kcal_per_100g": 862.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 100.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "coconut oil"
+      ]
+    },
+    {
+      "id": 121,
+      "canonical_name": "avokadoolja",
+      "category": null,
+      "kcal_per_100g": 884.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 100.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "rapsolja",
+        "matolja",
+        "olja",
+        "oil",
+        "neutral matolja"
+      ]
+    },
+    {
+      "id": 122,
+      "canonical_name": "sesamfrö",
+      "category": null,
+      "kcal_per_100g": 573.0,
+      "protein_per_100g": 17.7,
+      "fat_per_100g": 49.7,
+      "carbs_per_100g": 23.4,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "sesame seed",
+        "sesamfrön",
+        "rostat sesamfrö",
+        "rostat sesamfrön"
+      ]
+    },
+    {
+      "id": 123,
+      "canonical_name": "linfrö",
+      "category": null,
+      "kcal_per_100g": 486.0,
+      "protein_per_100g": 18.0,
+      "fat_per_100g": 34.0,
+      "carbs_per_100g": 30.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "chia",
+        "flax"
+      ]
+    },
+    {
+      "id": 124,
+      "canonical_name": "vallmofrö",
+      "category": null,
+      "kcal_per_100g": 525.0,
+      "protein_per_100g": 18.0,
+      "fat_per_100g": 42.0,
+      "carbs_per_100g": 28.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "poppy seed"
+      ]
+    },
+    {
+      "id": 125,
+      "canonical_name": "jordnötssmör",
+      "category": null,
+      "kcal_per_100g": 588.0,
+      "protein_per_100g": 25.0,
+      "fat_per_100g": 50.0,
+      "carbs_per_100g": 20.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "peanut butter",
+        "nötbutter",
+        "mandelsmör",
+        "almond butter"
+      ]
+    },
+    {
+      "id": 126,
+      "canonical_name": "tahini",
+      "category": null,
+      "kcal_per_100g": 595.0,
+      "protein_per_100g": 17.0,
+      "fat_per_100g": 54.0,
+      "carbs_per_100g": 21.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "sesampasta"
+      ]
+    },
+    {
+      "id": 127,
+      "canonical_name": "jordnötspulver",
+      "category": null,
+      "kcal_per_100g": 375.0,
+      "protein_per_100g": 40.0,
+      "fat_per_100g": 10.0,
+      "carbs_per_100g": 30.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "pb2",
+        "peanut powder",
+        "pulveriserat jordnötssmör"
+      ]
+    },
+    {
+      "id": 128,
+      "canonical_name": "cashew",
+      "category": null,
+      "kcal_per_100g": 553.0,
+      "protein_per_100g": 18.0,
+      "fat_per_100g": 44.0,
+      "carbs_per_100g": 30.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 129,
+      "canonical_name": "mandel",
+      "category": null,
+      "kcal_per_100g": 579.0,
+      "protein_per_100g": 21.0,
+      "fat_per_100g": 50.0,
+      "carbs_per_100g": 22.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "almond",
+        "mandelmjöl"
+      ]
+    },
+    {
+      "id": 130,
+      "canonical_name": "valnöt",
+      "category": null,
+      "kcal_per_100g": 654.0,
+      "protein_per_100g": 15.0,
+      "fat_per_100g": 65.0,
+      "carbs_per_100g": 14.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "walnut"
+      ]
+    },
+    {
+      "id": 131,
+      "canonical_name": "pecan",
+      "category": null,
+      "kcal_per_100g": 691.0,
+      "protein_per_100g": 9.0,
+      "fat_per_100g": 72.0,
+      "carbs_per_100g": 14.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 132,
+      "canonical_name": "jordnöt",
+      "category": null,
+      "kcal_per_100g": 567.0,
+      "protein_per_100g": 26.0,
+      "fat_per_100g": 49.0,
+      "carbs_per_100g": 16.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "peanut"
+      ]
+    },
+    {
+      "id": 133,
+      "canonical_name": "nötter",
+      "category": null,
+      "kcal_per_100g": 600.0,
+      "protein_per_100g": 18.0,
+      "fat_per_100g": 52.0,
+      "carbs_per_100g": 18.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "nuts"
+      ]
+    },
+    {
+      "id": 134,
+      "canonical_name": "mörk soja",
+      "category": null,
+      "kcal_per_100g": 53.0,
+      "protein_per_100g": 8.0,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 4.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "soja",
+        "soy sauce",
+        "thaisoja",
+        "tamari",
+        "coconut aminos"
+      ]
+    },
+    {
+      "id": 135,
+      "canonical_name": "chili crispcruncholjaoil",
+      "category": null,
+      "kcal_per_100g": 450.0,
+      "protein_per_100g": 1.0,
+      "fat_per_100g": 48.0,
+      "carbs_per_100g": 5.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "chiliolja",
+        "chili crisp",
+        "chili crunch",
+        "chili olja",
+        "kelp chili crisp"
+      ]
+    },
+    {
+      "id": 136,
+      "canonical_name": "chilisås",
+      "category": null,
+      "kcal_per_100g": 93.0,
+      "protein_per_100g": 1.8,
+      "fat_per_100g": 1.0,
+      "carbs_per_100g": 19.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "sriracha",
+        "chili sauce",
+        "hot sauce"
+      ]
+    },
+    {
+      "id": 137,
+      "canonical_name": "ketchup",
+      "category": null,
+      "kcal_per_100g": 101.0,
+      "protein_per_100g": 1.0,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 25.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 138,
+      "canonical_name": "lätt majonnäs",
+      "category": null,
+      "kcal_per_100g": 270.0,
+      "protein_per_100g": 0.8,
+      "fat_per_100g": 26.0,
+      "carbs_per_100g": 8.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "light mayo"
+      ]
+    },
+    {
+      "id": 139,
+      "canonical_name": "majonnäs",
+      "category": null,
+      "kcal_per_100g": 680.0,
+      "protein_per_100g": 1.1,
+      "fat_per_100g": 75.0,
+      "carbs_per_100g": 0.6,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "mayo"
+      ]
+    },
+    {
+      "id": 140,
+      "canonical_name": "blåmögelostdressing",
+      "category": null,
+      "kcal_per_100g": 430.0,
+      "protein_per_100g": 1.5,
+      "fat_per_100g": 45.0,
+      "carbs_per_100g": 5.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "ranch",
+        "blue cheese dressing"
+      ]
+    },
+    {
+      "id": 141,
+      "canonical_name": "mirin",
+      "category": null,
+      "kcal_per_100g": 230.0,
+      "protein_per_100g": 0.1,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 45.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 142,
+      "canonical_name": "teriyaki",
+      "category": null,
+      "kcal_per_100g": 89.0,
+      "protein_per_100g": 5.9,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 15.6,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 143,
+      "canonical_name": "worcester",
+      "category": null,
+      "kcal_per_100g": 78.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 19.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "worcestershire"
+      ]
+    },
+    {
+      "id": 144,
+      "canonical_name": "honung",
+      "category": null,
+      "kcal_per_100g": 304.0,
+      "protein_per_100g": 0.3,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 82.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "honey"
+      ]
+    },
+    {
+      "id": 145,
+      "canonical_name": "lönnsirap",
+      "category": null,
+      "kcal_per_100g": 260.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 67.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "maple"
+      ]
+    },
+    {
+      "id": 146,
+      "canonical_name": "strösocker",
+      "category": null,
+      "kcal_per_100g": 400.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 100.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "farinsocker",
+        "socker",
+        "sugar"
+      ]
+    },
+    {
+      "id": 147,
+      "canonical_name": "risvinäger",
+      "category": null,
+      "kcal_per_100g": 18.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 0.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "vinäger",
+        "ättika",
+        "balsamico",
+        "ättik",
+        "chinkiang",
+        "umepickle",
+        "umeboshi",
+        "risvinsvinäger",
+        "osötad risvinäger",
+        "balsamicovinäger",
+        "kinesisk svart vinäger"
+      ]
+    },
+    {
+      "id": 148,
+      "canonical_name": "gochujang",
+      "category": null,
+      "kcal_per_100g": 200.0,
+      "protein_per_100g": 5.0,
+      "fat_per_100g": 3.0,
+      "carbs_per_100g": 35.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "miso",
+        "vit misopasta",
+        "misopasta",
+        "gochujangpasta"
+      ]
+    },
+    {
+      "id": 149,
+      "canonical_name": "ostronsås",
+      "category": null,
+      "kcal_per_100g": 51.0,
+      "protein_per_100g": 1.4,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 11.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "oyster sauce"
+      ]
+    },
+    {
+      "id": 150,
+      "canonical_name": "fisksås",
+      "category": null,
+      "kcal_per_100g": 35.0,
+      "protein_per_100g": 5.1,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 3.6,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "fish sauce"
+      ]
+    },
+    {
+      "id": 151,
+      "canonical_name": "buffalosås",
+      "category": null,
+      "kcal_per_100g": 22.0,
+      "protein_per_100g": 0.5,
+      "fat_per_100g": 1.5,
+      "carbs_per_100g": 1.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "buffalo",
+        "extra buffalosås"
+      ]
+    },
+    {
+      "id": 152,
+      "canonical_name": "pizzasås",
+      "category": null,
+      "kcal_per_100g": 30.0,
+      "protein_per_100g": 1.3,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 5.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "tomatsås",
+        "passata",
+        "krossade tomater",
+        "tomato saucepastepuree"
+      ]
+    },
+    {
+      "id": 153,
+      "canonical_name": "barbecuesås",
+      "category": null,
+      "kcal_per_100g": 150.0,
+      "protein_per_100g": 0.8,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 35.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "bbq"
+      ]
+    },
+    {
+      "id": 154,
+      "canonical_name": "senap",
+      "category": null,
+      "kcal_per_100g": 66.0,
+      "protein_per_100g": 4.4,
+      "fat_per_100g": 3.3,
+      "carbs_per_100g": 5.3,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "mustard"
+      ]
+    },
+    {
+      "id": 155,
+      "canonical_name": "pesto",
+      "category": null,
+      "kcal_per_100g": 420.0,
+      "protein_per_100g": 5.0,
+      "fat_per_100g": 42.0,
+      "carbs_per_100g": 6.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 156,
+      "canonical_name": "harissa",
+      "category": null,
+      "kcal_per_100g": 120.0,
+      "protein_per_100g": 2.0,
+      "fat_per_100g": 8.0,
+      "carbs_per_100g": 10.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 157,
+      "canonical_name": "vitlök",
+      "category": null,
+      "kcal_per_100g": 149.0,
+      "protein_per_100g": 6.4,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 33.0,
+      "piece_weight_g": 3.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "garlic"
+      ]
+    },
+    {
+      "id": 158,
+      "canonical_name": "ingefära",
+      "category": null,
+      "kcal_per_100g": 80.0,
+      "protein_per_100g": 1.8,
+      "fat_per_100g": 0.8,
+      "carbs_per_100g": 18.0,
+      "piece_weight_g": 15.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "ginger"
+      ]
+    },
+    {
+      "id": 159,
+      "canonical_name": "vårlök",
+      "category": null,
+      "kcal_per_100g": 32.0,
+      "protein_per_100g": 1.8,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 7.3,
+      "piece_weight_g": 10.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "salladslök",
+        "scallion",
+        "green onion",
+        "spring onion"
+      ]
+    },
+    {
+      "id": 160,
+      "canonical_name": "schälotten",
+      "category": null,
+      "kcal_per_100g": 72.0,
+      "protein_per_100g": 2.5,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 17.0,
+      "piece_weight_g": 80.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "shallot"
+      ]
+    },
+    {
+      "id": 161,
+      "canonical_name": "lök",
+      "category": null,
+      "kcal_per_100g": 40.0,
+      "protein_per_100g": 1.1,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 9.3,
+      "piece_weight_g": 80.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "rödlök",
+        "gul lök",
+        "onion",
+        "röd lök"
+      ]
+    },
+    {
+      "id": 162,
+      "canonical_name": "gurka",
+      "category": null,
+      "kcal_per_100g": 12.0,
+      "protein_per_100g": 0.6,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 2.0,
+      "piece_weight_g": 300.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "cucumber"
+      ]
+    },
+    {
+      "id": 163,
+      "canonical_name": "avokado",
+      "category": null,
+      "kcal_per_100g": 160.0,
+      "protein_per_100g": 2.0,
+      "fat_per_100g": 14.7,
+      "carbs_per_100g": 8.5,
+      "piece_weight_g": 150.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "avocado"
+      ]
+    },
+    {
+      "id": 164,
+      "canonical_name": "morot",
+      "category": null,
+      "kcal_per_100g": 41.0,
+      "protein_per_100g": 0.9,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 9.6,
+      "piece_weight_g": 80.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "carrot"
+      ]
+    },
+    {
+      "id": 165,
+      "canonical_name": "körsbärstomat",
+      "category": null,
+      "kcal_per_100g": 18.0,
+      "protein_per_100g": 0.9,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 3.9,
+      "piece_weight_g": 15.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "cherry tomato",
+        "tomat",
+        "tomato"
+      ]
+    },
+    {
+      "id": 166,
+      "canonical_name": "jalapeno",
+      "category": null,
+      "kcal_per_100g": 40.0,
+      "protein_per_100g": 1.9,
+      "fat_per_100g": 0.4,
+      "carbs_per_100g": 9.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "peperoncino",
+        "chili"
+      ]
+    },
+    {
+      "id": 167,
+      "canonical_name": "paprika",
+      "category": null,
+      "kcal_per_100g": 31.0,
+      "protein_per_100g": 1.0,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 6.0,
+      "piece_weight_g": 150.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "bell pepper",
+        "röd paprika",
+        "grön paprika"
+      ]
+    },
+    {
+      "id": 168,
+      "canonical_name": "grönkål",
+      "category": null,
+      "kcal_per_100g": 49.0,
+      "protein_per_100g": 4.3,
+      "fat_per_100g": 0.9,
+      "carbs_per_100g": 8.8,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "kale",
+        "fryst grönkål"
+      ]
+    },
+    {
+      "id": 169,
+      "canonical_name": "spenat",
+      "category": null,
+      "kcal_per_100g": 23.0,
+      "protein_per_100g": 2.9,
+      "fat_per_100g": 0.4,
+      "carbs_per_100g": 3.6,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "spinach"
+      ]
+    },
+    {
+      "id": 170,
+      "canonical_name": "ruccola",
+      "category": null,
+      "kcal_per_100g": 25.0,
+      "protein_per_100g": 2.6,
+      "fat_per_100g": 0.7,
+      "carbs_per_100g": 3.7,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "rocket"
+      ]
+    },
+    {
+      "id": 171,
+      "canonical_name": "sallad",
+      "category": null,
+      "kcal_per_100g": 15.0,
+      "protein_per_100g": 1.4,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 2.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "lettuce",
+        "blad",
+        "iceberg",
+        "romansallad"
+      ]
+    },
+    {
+      "id": 172,
+      "canonical_name": "selleri",
+      "category": null,
+      "kcal_per_100g": 14.0,
+      "protein_per_100g": 0.7,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 3.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "celery",
+        "selleristjälkar"
+      ]
+    },
+    {
+      "id": 173,
+      "canonical_name": "broccoli",
+      "category": null,
+      "kcal_per_100g": 34.0,
+      "protein_per_100g": 2.8,
+      "fat_per_100g": 0.4,
+      "carbs_per_100g": 7.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 174,
+      "canonical_name": "blomkål",
+      "category": null,
+      "kcal_per_100g": 25.0,
+      "protein_per_100g": 1.9,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 5.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "cauliflower"
+      ]
+    },
+    {
+      "id": 175,
+      "canonical_name": "zucchini",
+      "category": null,
+      "kcal_per_100g": 17.0,
+      "protein_per_100g": 1.2,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 3.1,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "squash",
+        "courgette"
+      ]
+    },
+    {
+      "id": 176,
+      "canonical_name": "aubergine",
+      "category": null,
+      "kcal_per_100g": 25.0,
+      "protein_per_100g": 1.0,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 6.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "eggplant"
+      ]
+    },
+    {
+      "id": 177,
+      "canonical_name": "champinjon",
+      "category": null,
+      "kcal_per_100g": 22.0,
+      "protein_per_100g": 3.1,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 3.3,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "svamp",
+        "mushroom"
+      ]
+    },
+    {
+      "id": 178,
+      "canonical_name": "vitkål",
+      "category": null,
+      "kcal_per_100g": 25.0,
+      "protein_per_100g": 1.3,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 5.8,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "rödkål",
+        "savoy",
+        "kål",
+        "cabbage"
+      ]
+    },
+    {
+      "id": 179,
+      "canonical_name": "sparris",
+      "category": null,
+      "kcal_per_100g": 20.0,
+      "protein_per_100g": 2.2,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 3.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "asparagus"
+      ]
+    },
+    {
+      "id": 180,
+      "canonical_name": "rödbeta",
+      "category": null,
+      "kcal_per_100g": 43.0,
+      "protein_per_100g": 1.6,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 10.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "beet"
+      ]
+    },
+    {
+      "id": 181,
+      "canonical_name": "squash",
+      "category": null,
+      "kcal_per_100g": 26.0,
+      "protein_per_100g": 1.0,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 6.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "pumpa",
+        "pumpkin"
+      ]
+    },
+    {
+      "id": 182,
+      "canonical_name": "örter",
+      "category": null,
+      "kcal_per_100g": 40.0,
+      "protein_per_100g": 3.0,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 6.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "basilika",
+        "koriander",
+        "mynta",
+        "persilja",
+        "dill",
+        "herb",
+        "bladpersilja",
+        "thaibasilika"
+      ]
+    },
+    {
+      "id": 183,
+      "canonical_name": "gurkinläggning",
+      "category": null,
+      "kcal_per_100g": 16.0,
+      "protein_per_100g": 0.7,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 3.2,
+      "piece_weight_g": 40.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "pickles",
+        "bananpeppar",
+        "hela pickles"
+      ]
+    },
+    {
+      "id": 184,
+      "canonical_name": "oliver",
+      "category": null,
+      "kcal_per_100g": 115.0,
+      "protein_per_100g": 0.8,
+      "fat_per_100g": 11.0,
+      "carbs_per_100g": 6.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "olives"
+      ]
+    },
+    {
+      "id": 185,
+      "canonical_name": "banan",
+      "category": null,
+      "kcal_per_100g": 89.0,
+      "protein_per_100g": 1.1,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 23.0,
+      "piece_weight_g": 120.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "banana",
+        "mogna bananer"
+      ]
+    },
+    {
+      "id": 186,
+      "canonical_name": "äpple",
+      "category": null,
+      "kcal_per_100g": 52.0,
+      "protein_per_100g": 0.3,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 14.0,
+      "piece_weight_g": 150.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "apple"
+      ]
+    },
+    {
+      "id": 187,
+      "canonical_name": "päron",
+      "category": null,
+      "kcal_per_100g": 57.0,
+      "protein_per_100g": 0.4,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 15.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "pear"
+      ]
+    },
+    {
+      "id": 188,
+      "canonical_name": "apelsin",
+      "category": null,
+      "kcal_per_100g": 47.0,
+      "protein_per_100g": 0.9,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 12.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "orange"
+      ]
+    },
+    {
+      "id": 189,
+      "canonical_name": "blåbär",
+      "category": null,
+      "kcal_per_100g": 57.0,
+      "protein_per_100g": 0.7,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 14.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "blueberry"
+      ]
+    },
+    {
+      "id": 190,
+      "canonical_name": "jordgubb",
+      "category": null,
+      "kcal_per_100g": 32.0,
+      "protein_per_100g": 0.7,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 8.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "strawberry"
+      ]
+    },
+    {
+      "id": 191,
+      "canonical_name": "hallon",
+      "category": null,
+      "kcal_per_100g": 52.0,
+      "protein_per_100g": 1.2,
+      "fat_per_100g": 0.7,
+      "carbs_per_100g": 12.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "raspberry"
+      ]
+    },
+    {
+      "id": 192,
+      "canonical_name": "bär",
+      "category": null,
+      "kcal_per_100g": 50.0,
+      "protein_per_100g": 0.8,
+      "fat_per_100g": 0.4,
+      "carbs_per_100g": 12.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "berry",
+        "berries"
+      ]
+    },
+    {
+      "id": 193,
+      "canonical_name": "mango",
+      "category": null,
+      "kcal_per_100g": 60.0,
+      "protein_per_100g": 0.8,
+      "fat_per_100g": 0.4,
+      "carbs_per_100g": 15.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": []
+    },
+    {
+      "id": 194,
+      "canonical_name": "ananas",
+      "category": null,
+      "kcal_per_100g": 50.0,
+      "protein_per_100g": 0.5,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 13.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "pineapple"
+      ]
+    },
+    {
+      "id": 195,
+      "canonical_name": "druva",
+      "category": null,
+      "kcal_per_100g": 69.0,
+      "protein_per_100g": 0.7,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 18.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "grape"
+      ]
+    },
+    {
+      "id": 196,
+      "canonical_name": "russin",
+      "category": null,
+      "kcal_per_100g": 299.0,
+      "protein_per_100g": 3.0,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 79.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "raisin",
+        "dadlar",
+        "dates"
+      ]
+    },
+    {
+      "id": 197,
+      "canonical_name": "proteinpulver",
+      "category": null,
+      "kcal_per_100g": 380.0,
+      "protein_per_100g": 80.0,
+      "fat_per_100g": 3.0,
+      "carbs_per_100g": 5.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "whey",
+        "kasein",
+        "casein",
+        "protein powder",
+        "vaniljprotein",
+        "vaniljproteinpulver"
+      ]
+    },
+    {
+      "id": 198,
+      "canonical_name": "kakao",
+      "category": null,
+      "kcal_per_100g": 228.0,
+      "protein_per_100g": 19.6,
+      "fat_per_100g": 13.7,
+      "carbs_per_100g": 58.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "cocoa"
+      ]
+    },
+    {
+      "id": 199,
+      "canonical_name": "chocolate chips",
+      "category": null,
+      "kcal_per_100g": 546.0,
+      "protein_per_100g": 4.9,
+      "fat_per_100g": 31.0,
+      "carbs_per_100g": 61.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "choklad",
+        "chocolate",
+        "mörk choklad",
+        "mörk choklad 70%",
+        "hackad mörk choklad"
+      ]
+    },
+    {
+      "id": 200,
+      "canonical_name": "vetegluten",
+      "category": null,
+      "kcal_per_100g": 370.0,
+      "protein_per_100g": 75.0,
+      "fat_per_100g": 1.9,
+      "carbs_per_100g": 14.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "vital wheat gluten",
+        "gluten"
+      ]
+    },
+    {
+      "id": 201,
+      "canonical_name": "näringsjäst",
+      "category": null,
+      "kcal_per_100g": 325.0,
+      "protein_per_100g": 50.0,
+      "fat_per_100g": 4.5,
+      "carbs_per_100g": 36.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "nutritional yeast"
+      ]
+    },
+    {
+      "id": 202,
+      "canonical_name": "jäst",
+      "category": null,
+      "kcal_per_100g": 325.0,
+      "protein_per_100g": 40.4,
+      "fat_per_100g": 5.0,
+      "carbs_per_100g": 41.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "yeast",
+        "torrjäst"
+      ]
+    },
+    {
+      "id": 203,
+      "canonical_name": "bakpulver",
+      "category": null,
+      "kcal_per_100g": 0.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "bikarbonat",
+        "baking powdersoda"
+      ]
+    },
+    {
+      "id": 204,
+      "canonical_name": "espresso",
+      "category": null,
+      "kcal_per_100g": 2.0,
+      "protein_per_100g": 0.1,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "kaffe",
+        "coffee"
+      ]
+    },
+    {
+      "id": 205,
+      "canonical_name": "te",
+      "category": null,
+      "kcal_per_100g": 1.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "tea"
+      ]
+    },
+    {
+      "id": 206,
+      "canonical_name": "vaniljextrakt",
+      "category": null,
+      "kcal_per_100g": 288.0,
+      "protein_per_100g": 0.1,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 13.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "vanilla extract"
+      ]
+    },
+    {
+      "id": 207,
+      "canonical_name": "sötningsmedel",
+      "category": null,
+      "kcal_per_100g": 0.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "stevia",
+        "monk fruit",
+        "sukrin",
+        "lakanto",
+        "brunt stevia"
+      ]
+    },
+    {
+      "id": 208,
+      "canonical_name": "citronsaft",
+      "category": null,
+      "kcal_per_100g": 22.0,
+      "protein_per_100g": 0.4,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 6.9,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "limejuice",
+        "citronjuice",
+        "lemon juice",
+        "lime juice"
+      ]
+    },
+    {
+      "id": 209,
+      "canonical_name": "lime",
+      "category": null,
+      "kcal_per_100g": 29.0,
+      "protein_per_100g": 1.1,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 9.3,
+      "piece_weight_g": 60.0,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "citron",
+        "lemon",
+        "citronzest",
+        "citronskal",
+        "pressad lime"
+      ]
+    },
+    {
+      "id": 210,
+      "canonical_name": "örtkrydda",
+      "category": null,
+      "kcal_per_100g": 250.0,
+      "protein_per_100g": 10.0,
+      "fat_per_100g": 5.0,
+      "carbs_per_100g": 50.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "kryddmix",
+        "spice mix",
+        "seasoning",
+        "italiensk krydda",
+        "italian seasoning",
+        "italiensk kryddmix",
+        "italiensk örtkrydda"
+      ]
+    },
+    {
+      "id": 211,
+      "canonical_name": "rökt paprika",
+      "category": null,
+      "kcal_per_100g": 0.0,
+      "protein_per_100g": 0.0,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 0.0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "salt",
+        "peppar",
+        "pepper",
+        "msg",
+        "krydda",
+        "paprikapulver",
+        "kummin",
+        "cayenne",
+        "oregano",
+        "kanel",
+        "gurkmeja",
+        "kardemumma",
+        "vitlökspulver",
+        "lökpulver",
+        "chilipulver",
+        "chiliflakes",
+        "chiliflingor",
+        "persiljeflakes",
+        "tajn",
+        "gochugaru",
+        "sichuan",
+        "flingsalt",
+        "vitpeppar",
+        "spiskummin",
+        "svartpeppar",
+        "cayennepeppar",
+        "tajín",
+        "tajin",
+        "salt och peppar"
+      ]
+    },
+    {
+      "id": 212,
+      "canonical_name": "pocheringsvätska",
+      "category": null,
+      "kcal_per_100g": 5.0,
+      "protein_per_100g": 0.5,
+      "fat_per_100g": 0.0,
+      "carbs_per_100g": 0.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "vatten",
+        "water",
+        "buljong",
+        "stock",
+        "broth",
+        "pickling lake"
+      ]
+    },
+    {
+      "id": 213,
+      "canonical_name": "hjortfärs",
+      "category": "kott",
+      "kcal_per_100g": 120,
+      "protein_per_100g": 21,
+      "fat_per_100g": 4,
+      "carbs_per_100g": 0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 1,
+      "aliases": [
+        "hjortfars",
+        "viltfärs",
+        "venison mince",
+        "ground venison",
+        "deer mince"
+      ]
+    },
+    {
+      "id": 214,
+      "canonical_name": "rådjurfärs",
+      "category": "kott",
+      "kcal_per_100g": 120,
+      "protein_per_100g": 21,
+      "fat_per_100g": 4,
+      "carbs_per_100g": 0,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 1,
+      "aliases": [
+        "radjursfärs"
+      ]
+    },
+    {
+      "id": 215,
+      "canonical_name": "palsternacka",
+      "category": "gronsak",
+      "kcal_per_100g": 75,
+      "protein_per_100g": 1.2,
+      "fat_per_100g": 0.3,
+      "carbs_per_100g": 18,
+      "piece_weight_g": 120,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "parsnip",
+        "palsternackor"
+      ]
+    },
+    {
+      "id": 216,
+      "canonical_name": "timjan",
+      "category": "ort",
+      "kcal_per_100g": 101,
+      "protein_per_100g": 5.6,
+      "fat_per_100g": 1.7,
+      "carbs_per_100g": 24,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "thyme",
+        "färsk timjan"
+      ]
+    },
+    {
+      "id": 217,
+      "canonical_name": "rosmarin",
+      "category": "ort",
+      "kcal_per_100g": 131,
+      "protein_per_100g": 3.3,
+      "fat_per_100g": 5.9,
+      "carbs_per_100g": 21,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "rosemary",
+        "färsk rosmarin"
+      ]
+    },
+    {
+      "id": 218,
+      "canonical_name": "kycklingbuljong",
+      "category": "buljong",
+      "kcal_per_100g": 5,
+      "protein_per_100g": 0.5,
+      "fat_per_100g": 0,
+      "carbs_per_100g": 0.5,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "chicken broth",
+        "chicken stock",
+        "kycklingfond",
+        "fond kyckling"
+      ]
+    },
+    {
+      "id": 219,
+      "canonical_name": "grönsaksbuljong",
+      "category": "buljong",
+      "kcal_per_100g": 5,
+      "protein_per_100g": 0.3,
+      "fat_per_100g": 0,
+      "carbs_per_100g": 0.7,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "vegetable broth",
+        "vegetable stock",
+        "gronsaksbuljong"
+      ]
+    },
+    {
+      "id": 220,
+      "canonical_name": "nötbuljong",
+      "category": "buljong",
+      "kcal_per_100g": 6,
+      "protein_per_100g": 0.8,
+      "fat_per_100g": 0.2,
+      "carbs_per_100g": 0.4,
+      "piece_weight_g": null,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "beef broth",
+        "beef stock"
+      ]
+    },
+    {
+      "id": 221,
+      "canonical_name": "vitlöksklyfta",
+      "category": "gronsak",
+      "kcal_per_100g": 149,
+      "protein_per_100g": 6.4,
+      "fat_per_100g": 0.5,
+      "carbs_per_100g": 33,
+      "piece_weight_g": 3,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "garlic clove"
+      ]
+    },
+    {
+      "id": 222,
+      "canonical_name": "schalottenlök",
+      "category": "gronsak",
+      "kcal_per_100g": 72,
+      "protein_per_100g": 2.5,
+      "fat_per_100g": 0.1,
+      "carbs_per_100g": 17,
+      "piece_weight_g": 30,
+      "density_g_per_ml": null,
+      "needs_review": 0,
+      "aliases": [
+        "schalotten",
+        "schalottenlökar"
+      ]
+    }
+  ]
+}

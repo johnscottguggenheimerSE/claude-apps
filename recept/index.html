@@ -557,6 +557,24 @@
     letter-spacing: 0.01em;
   }
   .ing-table .ing-macros:empty { display: none; }
+  .ing-nutrition-warning {
+    margin: 0 0 0.75rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius);
+    border: 0.5px solid color-mix(in srgb, #c47a00 45%, var(--border));
+    background: color-mix(in srgb, #c47a00 12%, var(--bg2));
+    color: var(--text);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+  .ing-row--unresolved .ing-name-text { opacity: 0.92; }
+  .ing-unresolved-flag {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.75rem;
+    color: #a05a00;
+  }
+  [data-theme="dark"] .ing-unresolved-flag { color: #e0a04a; }
   .ing-mac-kcal { color: #d35400; }
   .ing-mac-p { color: #1f7a4d; }
   .ing-mac-f { color: #b8860b; }

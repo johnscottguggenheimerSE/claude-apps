@@ -12,10 +12,10 @@ import {
   generateFoodImage,
   parseRecipe,
   mergeRecipe,
-  estimateMacrosFromIngredients,
 } from './gemini';
 import { fetchImageAsBase64, fetchRecipePage, isSocialMediaUrl } from './fetch-url';
 import { getRecipe, getRecipeWithMeta, idExists, insertRecipe, listRecipes, updateRecipe, deleteRecipe, renameRecipe } from './db';
+import { resolveRecipeNutrition, replaceRecipeIngredients } from './nutrition';
 import {
   ensureVisitor,
   getRecipeReviewData,
@@ -201,21 +201,15 @@ async function handleEstimateMacros(request: Request, env: Env): Promise<Respons
   if (!recipe) return json({ error: 'Saknar recipe' }, 400);
 
   try {
-    // «Räkna om makron» måste vara deterministisk — bara lokal kalkylator (ingen Gemini).
-    const local = estimateMacrosFromIngredients(recipe);
-    if (local) return json({ ok: true, macros: local, source: 'local' });
-
-    // Låg täckning: returnera ändå lokal summa så upprepade klick ger samma siffror
-    const partial = estimateMacrosFromIngredients(recipe, {
-      minCountCoverage: 0,
-      minGramCoverage: 0,
+    const { recipe: resolved, resolution } = await resolveRecipeNutrition(env.DB, recipe);
+    return json({
+      ok: true,
+      macros: resolved.macros,
+      recipe: resolved,
+      source: 'nutrition',
+      unmatchedCount: resolution.unmatchedCount,
+      needsPieceWeightCount: resolution.needsPieceWeightCount,
     });
-    if (partial) return json({ ok: true, macros: partial, source: 'local' });
-
-    return json(
-      { error: 'Inga igenkända ingredienser att räkna makron från' },
-      422
-    );
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Makroberäkning misslyckades' }, 502);
   }
@@ -325,7 +319,8 @@ async function handleParse(request: Request, env: Env): Promise<Response> {
           ? String(existing.id)
           : slugify(String(recipe.title || existing.title || 'recept'));
       }
-      return json({ recipe, saveImage: false, merged: true });
+      const { recipe: resolved } = await resolveRecipeNutrition(env.DB, recipe);
+      return json({ recipe: resolved, saveImage: false, merged: true });
     }
 
     const recipe = await parseRecipe(
@@ -343,7 +338,8 @@ async function handleParse(request: Request, env: Env): Promise<Response> {
       saveImage = await detectFoodPhoto(env.GEMINI_API_KEY, body.imageBase64, body.mimeType);
     }
 
-    return json({ recipe, saveImage });
+    const { recipe: resolved } = await resolveRecipeNutrition(env.DB, recipe);
+    return json({ recipe: resolved, saveImage });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Parse misslyckades' }, 502);
   }
@@ -456,8 +452,9 @@ async function handleParseUrl(request: Request, env: Env): Promise<Response> {
     }
     delete recipe.emoji;
     if (!recipe.id) recipe.id = slugify(String(recipe.title || 'recept'));
+    const { recipe: resolved } = await resolveRecipeNutrition(env.DB, recipe);
     return json({
-      recipe,
+      recipe: resolved,
       imageBase64,
       mimeType,
       imageFromUrl: !!imageBase64,
@@ -519,8 +516,10 @@ async function handleCreateRecipe(request: Request, env: Env): Promise<Response>
     return json({ error: e instanceof Error ? e.message : 'Bild misslyckades' }, 502);
   }
 
-  await insertRecipe(env.DB, recipe, { featuredNew: !!body.featuredNew });
-  return json({ ok: true, recipe, featuredNew: !!body.featuredNew }, 201);
+  const { recipe: resolved, resolution } = await resolveRecipeNutrition(env.DB, recipe);
+  await insertRecipe(env.DB, resolved, { featuredNew: !!body.featuredNew });
+  await replaceRecipeIngredients(env.DB, String(resolved.id), resolution.rows);
+  return json({ ok: true, recipe: resolved, featuredNew: !!body.featuredNew }, 201);
 }
 
 async function migrateRecipeImage(
@@ -637,14 +636,16 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
     if (migrated) recipe.image = migrated;
   }
 
+  const { recipe: resolved, resolution } = await resolveRecipeNutrition(env.DB, recipe);
   const saved = renaming
-    ? await renameRecipe(env.DB, id, recipe, body.featuredNew)
-    : await updateRecipe(env.DB, recipe, body.featuredNew);
+    ? await renameRecipe(env.DB, id, resolved, body.featuredNew)
+    : await updateRecipe(env.DB, resolved, body.featuredNew);
   if (!saved) {
     return json({ error: renaming ? 'Id upptaget eller kunde inte byta id' : 'Kunde inte spara' }, 400);
   }
+  await replaceRecipeIngredients(env.DB, String(resolved.id), resolution.rows);
   const featuredNew = body.featuredNew !== undefined ? !!body.featuredNew : undefined;
-  return json({ ok: true, recipe, featuredNew });
+  return json({ ok: true, recipe: resolved, featuredNew });
 }
 
 async function handleDeleteRecipe(env: Env, id: string): Promise<Response> {
