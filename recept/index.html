@@ -423,12 +423,13 @@
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .detail-source a.recipe-card-source-label:hover { color: var(--info); }
-  .detail-tags-line { margin: 0; font-size: 0.8125rem; color: var(--text2); }
-  .detail-tags-row {
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem;
-    margin: 0; min-width: 0;
+  .detail-after-title {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem 1rem; align-items: start;
   }
-  .detail-tags-row .detail-tags-line { flex: 1; min-width: 0; }
+  .detail-after-title-main { display: flex; flex-direction: column; gap: 0.85rem; min-width: 0; }
+  .detail-tags-line { margin: 0; font-size: 0.8125rem; color: var(--text2); }
+  .detail-tags-row { margin: 0; min-width: 0; }
   .detail-diet-wrap {
     position: relative; flex-shrink: 0;
     display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;
@@ -438,16 +439,32 @@
     letter-spacing: 0.01em; line-height: 1.2;
   }
   .detail-diet-btn {
-    display: inline-flex; align-items: center; gap: 0.3rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
     font: inherit; font-size: 0.8125rem; font-weight: 600;
-    padding: 0.4rem 0.75rem; border-radius: 999px;
-    border: 1px solid var(--info); background: var(--info);
+    min-width: 7.9rem; padding: 0.4rem 0.9rem; border-radius: 999px;
+    border: 1px solid #fff; background: transparent;
     color: #fff; cursor: pointer; white-space: nowrap;
   }
-  .detail-diet-btn:hover, .detail-diet-btn[aria-expanded="true"] {
-    filter: brightness(1.06); color: #fff;
+  :root .detail-diet-btn, [data-theme="light"] .detail-diet-btn {
+    border-color: var(--text); color: var(--text);
   }
-  .detail-diet-btn .detail-diet-caret { font-size: 0.7rem; opacity: 0.9; color: #fff; }
+  [data-theme="dark"] .detail-diet-btn {
+    border-color: #fff; color: #fff;
+  }
+  .detail-diet-btn:hover, .detail-diet-btn[aria-expanded="true"] {
+    background: rgba(255,255,255,0.08);
+  }
+  :root .detail-diet-btn:hover, [data-theme="light"] .detail-diet-btn:hover,
+  :root .detail-diet-btn[aria-expanded="true"], [data-theme="light"] .detail-diet-btn[aria-expanded="true"] {
+    background: rgba(0,0,0,0.05);
+  }
+  .detail-diet-btn .detail-diet-caret { font-size: 0.7rem; opacity: 0.9; color: inherit; }
+  .detail-diet-btn--active {
+    background: var(--info); border-color: var(--info); color: #111;
+  }
+  .detail-diet-btn--active:hover, .detail-diet-btn--active[aria-expanded="true"] {
+    background: var(--info); border-color: var(--info); color: #111; filter: brightness(1.06);
+  }
   .detail-diet-menu {
     display: none; position: absolute; right: 0; top: calc(100% + 0.35rem);
     min-width: 11rem; z-index: 40;
@@ -466,21 +483,6 @@
   .detail-diet-item-note {
     display: block; font-size: 0.6875rem; color: var(--text2); margin-top: 0.1rem;
   }
-  .detail-title .detail-diet-chip {
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    vertical-align: middle;
-    margin-left: 0.4rem; padding: 0.22rem 0.4rem 0.22rem 0.55rem;
-    border-radius: 999px; background: var(--info); color: #111;
-    font-size: 0.7rem; font-weight: 700; line-height: 1.2;
-    letter-spacing: 0; position: relative; top: -0.12em;
-  }
-  .detail-diet-chip-x {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 1.1rem; height: 1.1rem; border: 0; border-radius: 999px;
-    background: rgba(0,0,0,0.12); color: #111; cursor: pointer;
-    font: inherit; font-size: 0.7rem; line-height: 1; padding: 0;
-  }
-  .detail-diet-chip-x:hover { background: rgba(0,0,0,0.2); }
   .detail-meta-list {
     display: flex; flex-direction: column; gap: 0.55rem;
     padding: 0.85rem 0 0; margin: 0; border-top: 1px solid var(--border);

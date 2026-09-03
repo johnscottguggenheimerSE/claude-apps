@@ -1387,45 +1387,28 @@ function showDetail(id, skipHistory) {
 
   var titleEl = document.createElement('h1');
   titleEl.className = 'detail-title';
-  titleEl.appendChild(document.createTextNode(base.title));
-  if (detailDietMode && DIET_VARIANT_LABELS[detailDietMode]) {
-    var chip = mk('span', 'detail-diet-chip');
-    chip.appendChild(document.createTextNode(DIET_VARIANT_LABELS[detailDietMode]));
-    var chipX = document.createElement('button');
-    chipX.type = 'button';
-    chipX.className = 'detail-diet-chip-x';
-    chipX.setAttribute('aria-label', 'Stäng konvertering');
-    chipX.textContent = '×';
-    chipX.addEventListener('click', function() {
-      detailDietMode = null;
-      showDetail(id, true);
-    });
-    chip.appendChild(chipX);
-    titleEl.appendChild(chip);
-  }
+  titleEl.textContent = base.title;
   copy.appendChild(titleEl);
-  appendSourceLine(copy, base, { className: 'detail-source' });
-  appendTimeLine(copy, base, 'detail-time');
+
+  var afterTitle = mk('div', 'detail-after-title');
+  var afterLeft = mk('div', 'detail-after-title-main');
+  appendSourceLine(afterLeft, base, { className: 'detail-source' });
+  appendTimeLine(afterLeft, base, 'detail-time');
 
   var tagsRow = mk('div', 'detail-tags-row');
   if (base.category) {
     var tagsLine = mk('p', 'detail-tags-line');
     tagsLine.textContent = categoryLabel(base.category);
     tagsRow.appendChild(tagsLine);
-  } else {
-    tagsRow.appendChild(mk('p', 'detail-tags-line'));
   }
+  afterLeft.appendChild(tagsRow);
+  afterTitle.appendChild(afterLeft);
 
   var proteinTag = primaryProteinTag(base);
   if (proteinTag && OMNIVORE_PROTEIN_TAGS[proteinTag]) {
-    tagsRow.appendChild(buildDietConvertControl(base, proteinTag));
-  } else if (proteinTag) {
-    var proteinOnly = mk('span', 'detail-diet-btn');
-    proteinOnly.textContent = TAG_LABELS[proteinTag] || proteinTag;
-    proteinOnly.style.cursor = 'default';
-    tagsRow.appendChild(proteinOnly);
+    afterTitle.appendChild(buildDietConvertControl(base, proteinTag));
   }
-  copy.appendChild(tagsRow);
+  copy.appendChild(afterTitle);
 
   var metaList = mk('div', 'detail-meta-list');
 
@@ -1588,7 +1571,7 @@ function buildDietConvertControl(base, proteinTag) {
 
   var btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'detail-diet-btn';
+  btn.className = 'detail-diet-btn' + (detailDietMode ? ' detail-diet-btn--active' : '');
   btn.setAttribute('aria-haspopup', 'menu');
   btn.setAttribute('aria-expanded', 'false');
   var label = detailDietMode && DIET_VARIANT_LABELS[detailDietMode]
