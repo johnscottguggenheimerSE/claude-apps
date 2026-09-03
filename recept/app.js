@@ -1385,11 +1385,9 @@ function showDetail(id, skipHistory) {
   var lead = mk('div', 'detail-lead');
   var copy = mk('div', 'detail-lead-copy');
 
-  var titleRow = mk('div', 'detail-title-row');
   var titleEl = document.createElement('h1');
   titleEl.className = 'detail-title';
-  titleEl.textContent = base.title;
-  titleRow.appendChild(titleEl);
+  titleEl.appendChild(document.createTextNode(base.title));
   if (detailDietMode && DIET_VARIANT_LABELS[detailDietMode]) {
     var chip = mk('span', 'detail-diet-chip');
     chip.appendChild(document.createTextNode(DIET_VARIANT_LABELS[detailDietMode]));
@@ -1403,9 +1401,9 @@ function showDetail(id, skipHistory) {
       showDetail(id, true);
     });
     chip.appendChild(chipX);
-    titleRow.appendChild(chip);
+    titleEl.appendChild(chip);
   }
-  copy.appendChild(titleRow);
+  copy.appendChild(titleEl);
   appendSourceLine(copy, base, { className: 'detail-source' });
   appendTimeLine(copy, base, 'detail-time');
 
@@ -1584,14 +1582,18 @@ function showDetail(id, skipHistory) {
 
 function buildDietConvertControl(base, proteinTag) {
   var wrap = mk('div', 'detail-diet-wrap');
+  var lab = mk('span', 'detail-diet-label');
+  lab.textContent = 'Konvertera efter diet:';
+  wrap.appendChild(lab);
+
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'detail-diet-btn';
   btn.setAttribute('aria-haspopup', 'menu');
   btn.setAttribute('aria-expanded', 'false');
-  var label = TAG_LABELS[proteinTag] || proteinTag;
-  if (!detailDietMode) label += ' (Allt)';
-  else if (DIET_VARIANT_LABELS[detailDietMode]) label = DIET_VARIANT_LABELS[detailDietMode];
+  var label = detailDietMode && DIET_VARIANT_LABELS[detailDietMode]
+    ? DIET_VARIANT_LABELS[detailDietMode]
+    : (TAG_LABELS[proteinTag] || proteinTag);
   btn.appendChild(document.createTextNode(label));
   var caret = mk('span', 'detail-diet-caret');
   caret.textContent = '▾';
@@ -1644,7 +1646,7 @@ function buildDietConvertControl(base, proteinTag) {
     menu.appendChild(item);
   }
 
-  addItem((TAG_LABELS[proteinTag] || proteinTag) + ' (Allt)', null);
+  addItem(TAG_LABELS[proteinTag] || proteinTag, null);
 
   var variants = base.dietVariants || null;
   function fillVariantItems(vmap) {
@@ -1680,7 +1682,7 @@ function buildDietConvertControl(base, proteinTag) {
         ensureDietVariants(base).then(function(vmap) {
           if (!vmap) return;
           menu.replaceChildren();
-          addItem((TAG_LABELS[proteinTag] || proteinTag) + ' (Allt)', null);
+          addItem(TAG_LABELS[proteinTag] || proteinTag, null);
           fillVariantItems(vmap);
         }).catch(function() { /* keep generic items */ });
       }
