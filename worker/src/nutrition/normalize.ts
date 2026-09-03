@@ -9,7 +9,7 @@ const PREP_WORDS =
 const PREP_RE = new RegExp(`^(?:${PREP_WORDS})$`, 'i');
 
 const TRAILING_MODIFIER_RE =
-  /(?:,\s*)?(?:tunt\s+skivad|fint\s+tärnad|tunt\s+skivade|kärnor\s+borttagna|grön\s+del|vit\s+del|(?<![a-zåäö])i\s+olja|oljeinlagd|ej\s+tinade|med\s+lågt\s+kaloriinnehåll)\s*$/i;
+  /(?:,\s*)?(?:tunt\s+skivad|fint\s+tärnad|tunt\s+skivade|kärnor\s+borttagna|grön\s+del|vit\s+del|(?<![a-zåäö])i\s+olja|oljeinlagd|ej\s+tinade|med\s+lågt\s+kaloriinnehåll|rivet|riven|zest(?:\s*\+\s*juice)?|juice)\s*$/i;
 
 /** Conservative Swedish plural → singular for pantry matching. */
 const EXPLICIT_PLURALS: Record<string, string> = {
@@ -73,6 +73,9 @@ export function normalizeIngredientName(raw: string): string {
     const right = ellerMatch[2].trim();
     n = left.endsWith('-') || left.length < 3 ? right : left;
   }
+  // "chili/peperoncino" → first alternative
+  const slashParts = n.split(/\s*\/\s*/);
+  if (slashParts.length > 1) n = slashParts[0].trim();
   const slashIdx = n.indexOf(' / ');
   if (slashIdx > 0) n = n.slice(0, slashIdx);
 

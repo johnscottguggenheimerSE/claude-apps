@@ -2641,7 +2641,6 @@
       "density_g_per_ml": null,
       "needs_review": 0,
       "aliases": [
-        "peperoncino",
         "chili"
       ]
     },
@@ -3329,10 +3328,6 @@
       "density_g_per_ml": null,
       "needs_review": 0,
       "aliases": [
-        "citron",
-        "lemon",
-        "citronzest",
-        "citronskal",
         "pressad lime"
       ]
     },
@@ -3397,7 +3392,18 @@
         "cayennepeppar",
         "tajín",
         "tajin",
-        "salt och peppar"
+        "salt och peppar",
+        "peperoncino",
+        "torkad chili",
+        "smulad torkad chili",
+        "sichuanpepparkorn",
+        "torkad dill",
+        "vitlökspasta",
+        "milt chilipulver",
+        "salt till pastavattnet",
+        "citronskal",
+        "citronskal rivet",
+        "citronzest"
       ]
     },
     {

@@ -360,6 +360,8 @@ function fillIngMacrosCell(cell, row, scale) {
   var hasMacros = kcal != null && prot != null && carb != null && fat != null;
   var grams = gramsRaw != null && gramsRaw > 0 ? Math.round(gramsRaw * s) : null;
   if (!hasMacros) return;
+  // Dölj 0🔥-rader (salt, kryddor, nypor) — ingen utskrift alls.
+  if (Math.round(kcal * s) === 0) return;
   var kcalEl = mk('span', 'ing-mac-kcal');
   kcalEl.textContent = Math.round(kcal * s) + '🔥';
   cell.appendChild(kcalEl);
