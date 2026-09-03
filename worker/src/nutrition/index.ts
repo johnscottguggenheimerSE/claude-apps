@@ -24,7 +24,10 @@ export {
   resolveRecipeIngredients,
   applyResolutionToRecipe,
   resolveAndApplyRecipe,
+  listUnresolved,
+  nutritionGateError,
 } from './resolve';
+export type { UnresolvedIngredient } from './resolve';
 export { loadNutritionCatalog, catalogFromSeed } from './catalog';
 export {
   replaceRecipeIngredients,

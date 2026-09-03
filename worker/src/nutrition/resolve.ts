@@ -66,6 +66,41 @@ export function resolveRecipeIngredients(
   return { rows, macros, unmatchedCount, needsPieceWeightCount };
 }
 
+export type UnresolvedIngredient = {
+  name: string;
+  match_status: 'unmatched' | 'needs_piece_weight';
+  group_index: number;
+  ingredient_index: number;
+};
+
+export function listUnresolved(resolution: ResolveRecipeResult): UnresolvedIngredient[] {
+  return resolution.rows
+    .filter((r) => r.match_status === 'unmatched' || r.match_status === 'needs_piece_weight')
+    .map((r) => ({
+      name: r.raw_text,
+      match_status: r.match_status as 'unmatched' | 'needs_piece_weight',
+      group_index: r.group_index,
+      ingredient_index: r.ingredient_index,
+    }));
+}
+
+export function nutritionGateError(resolution: ResolveRecipeResult): {
+  details: string[];
+  unresolved: UnresolvedIngredient[];
+} | null {
+  const unresolved = listUnresolved(resolution);
+  if (!unresolved.length) return null;
+  const names = unresolved.map((u) => u.name).slice(0, 8);
+  const extra = unresolved.length > 8 ? ` (+${unresolved.length - 8} till)` : '';
+  const details = [
+    unresolved.length === 1
+      ? '1 ingrediens saknar näringsdata — kan inte spara'
+      : unresolved.length + ' ingredienser saknar näringsdata — kan inte spara',
+    names.join(' · ') + extra,
+  ];
+  return { details, unresolved };
+}
+
 /**
  * Mirror resolved macros onto recipe JSON (Steg A dual-write half).
  * Sets ing.macros, ing.match_status, ing.resolved_grams, ing.ingredient_id

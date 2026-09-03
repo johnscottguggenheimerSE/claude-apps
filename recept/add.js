@@ -58,6 +58,12 @@
   var VISIT_COOKIE_NAME = 'recept_seen_new';
   var VISIT_COOKIE_MAX_AGE = String(365 * 24 * 60 * 60);
   var previewForm = document.getElementById('preview-form');
+  previewForm.addEventListener('click', function(ev) {
+    previewForm.querySelectorAll('.ing-suggest.is-open').forEach(function(el) {
+      var row = el.closest('.ing-edit-row');
+      if (row && !row.contains(ev.target)) el.classList.remove('is-open');
+    });
+  });
   var previewMetaFields = document.getElementById('preview-meta-fields');
 
   var CATEGORY_ORDER = ['frukost', 'lunch', 'middag', 'tillbehor', 'fika'];
@@ -1222,6 +1228,7 @@
     var nameIn = document.createElement('input');
     nameIn.className = 'ing-name';
     nameIn.placeholder = 'ingrediens';
+    nameIn.autocomplete = 'off';
     nameIn.value = ing && ing.name ? ing.name : '';
     var amtIn = document.createElement('input');
     amtIn.className = 'ing-amount';
@@ -1241,11 +1248,184 @@
     delBtn.type = 'button';
     delBtn.textContent = '×';
     delBtn.addEventListener('click', function() { row.remove(); });
+    var errEl = mk('div', 'ing-edit-err');
+    errEl.setAttribute('role', 'alert');
+    var suggestEl = mk('div', 'ing-suggest');
+    suggestEl.setAttribute('role', 'listbox');
+
+    function clearRowError() {
+      row.classList.remove('ing-edit-row--invalid');
+      errEl.textContent = '';
+      suggestEl.classList.remove('is-open');
+      suggestEl.replaceChildren();
+    }
+
+    function openSuggestions(query) {
+      var q = String(query || nameIn.value || '').trim();
+      if (q.length < 2) {
+        suggestEl.classList.remove('is-open');
+        suggestEl.replaceChildren();
+        return;
+      }
+      fetch('/api/ingredients/search?q=' + encodeURIComponent(q) + '&limit=10', {
+        credentials: 'same-origin'
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          suggestEl.replaceChildren();
+          var results = (data && data.results) || [];
+          if (!results.length) {
+            suggestEl.classList.remove('is-open');
+            return;
+          }
+          results.forEach(function(item) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ing-suggest-item';
+            btn.setAttribute('role', 'option');
+            var label = item.alias || item.canonical_name;
+            btn.appendChild(document.createTextNode(label));
+            var meta = mk('span', 'ing-suggest-meta');
+            var bits = [item.canonical_name];
+            if (item.kcal_per_100g != null) bits.push(Math.round(item.kcal_per_100g) + ' kcal/100g');
+            if (item.piece_weight_g) bits.push('styck ≈ ' + item.piece_weight_g + 'g');
+            meta.textContent = bits.join(' · ');
+            btn.appendChild(meta);
+            btn.addEventListener('click', function() {
+              nameIn.value = label;
+              clearRowError();
+              nameIn.focus();
+            });
+            suggestEl.appendChild(btn);
+          });
+          suggestEl.classList.add('is-open');
+        })
+        .catch(function() {
+          suggestEl.classList.remove('is-open');
+        });
+    }
+
+    nameIn.addEventListener('input', function() {
+      if (row.classList.contains('ing-edit-row--invalid')) openSuggestions(nameIn.value);
+      else clearRowError();
+    });
+    nameIn.addEventListener('focus', function() {
+      if (row.classList.contains('ing-edit-row--invalid')) openSuggestions(nameIn.value);
+    });
+    nameIn.addEventListener('click', function() {
+      if (row.classList.contains('ing-edit-row--invalid')) openSuggestions(nameIn.value);
+    });
+
     row.appendChild(nameIn);
     row.appendChild(amtIn);
     row.appendChild(unitSel);
     row.appendChild(delBtn);
+    row.appendChild(errEl);
+    row.appendChild(suggestEl);
+    row._setNutritionError = function(status) {
+      row.classList.add('ing-edit-row--invalid');
+      errEl.textContent =
+        status === 'needs_piece_weight'
+          ? 'Saknar styckvikt — byt till g, eller välj en katalogingrediens med känd styckvikt.'
+          : 'Saknar näringsdata — välj ett förslag nedan eller byt namn så det matchar katalogen.';
+      openSuggestions(nameIn.value);
+    };
+    row._clearNutritionError = clearRowError;
     return row;
+  }
+
+  function clearAllIngNutritionErrors() {
+    previewForm.querySelectorAll('.ing-edit-row').forEach(function(row) {
+      if (row._clearNutritionError) row._clearNutritionError();
+    });
+  }
+
+  function markUnresolvedOnForm(unresolved) {
+    clearAllIngNutritionErrors();
+    var list = unresolved || [];
+    if (!list.length) return null;
+    var first = null;
+    var groups = previewForm.querySelectorAll('.ing-grp');
+    list.forEach(function(u) {
+      var grp = groups[u.group_index];
+      if (!grp) return;
+      var rows = [];
+      grp.querySelectorAll('.ing-edit-row').forEach(function(row) {
+        var name = row.querySelector('.ing-name');
+        if (name && name.value.trim()) rows.push(row);
+      });
+      var row = rows[u.ingredient_index];
+      if (!row) {
+        // fallback: match by name
+        rows.forEach(function(r) {
+          var n = r.querySelector('.ing-name');
+          if (n && n.value.trim() === u.name) row = r;
+        });
+      }
+      if (!row) return;
+      if (row._setNutritionError) row._setNutritionError(u.match_status);
+      if (!first) first = row;
+    });
+    return first;
+  }
+
+  function scrollToIngError(row) {
+    if (!row) return;
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var nameIn = row.querySelector('.ing-name');
+    if (nameIn) {
+      try { nameIn.focus({ preventScroll: true }); } catch (e) { nameIn.focus(); }
+    }
+  }
+
+  /** Resolve macros; reject save-style if any ingredient lacks nutrition. */
+  function validateNutritionBeforeSave(recipe) {
+    return fetch('/api/estimate-macros', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ recipe: recipe })
+    }).then(function(res) {
+      return res.json().then(function(data) {
+        if (!res.ok) throw new Error(data.error || 'Kunde inte kontrollera näringsdata');
+        return data;
+      });
+    }).then(function(data) {
+      applyMacrosToForm(data.macros);
+      if (data.recipe) currentRecipe = Object.assign({}, currentRecipe || {}, data.recipe, {
+        macros: data.macros
+      });
+      var unresolved = data.unresolved || [];
+      if (!unresolved.length && !data.unmatchedCount && !data.needsPieceWeightCount) {
+        clearAllIngNutritionErrors();
+        return data;
+      }
+      if (!unresolved.length && data.recipe && data.recipe.groups) {
+        unresolved = [];
+        data.recipe.groups.forEach(function(g, gi) {
+          (g.ingredients || []).forEach(function(ing, ii) {
+            if (ing.match_status === 'unmatched' || ing.match_status === 'needs_piece_weight') {
+              unresolved.push({
+                name: ing.name,
+                match_status: ing.match_status,
+                group_index: gi,
+                ingredient_index: ii
+              });
+            }
+          });
+        });
+      }
+      var first = markUnresolvedOnForm(unresolved);
+      scrollToIngError(first);
+      var n = unresolved.length || (data.unmatchedCount || 0) + (data.needsPieceWeightCount || 0);
+      var err = new Error(
+        n === 1
+          ? '1 ingrediens saknar näringsdata — rätta raden innan du sparar.'
+          : n + ' ingredienser saknar näringsdata — rätta raderna innan du sparar.'
+      );
+      err.nutrition = true;
+      throw err;
+    });
   }
 
   function buildIngGroup(group) {
@@ -1922,25 +2102,30 @@
       applyMacrosToForm(data.macros);
       if (data.recipe) {
         currentRecipe = data.recipe;
-        // Re-render form fields that may now include match_status / row macros
-        if (typeof renderPreviewForm === 'function') {
-          try { /* keep current form; macros fields updated */ } catch (e) {}
-        }
       }
-      var warn = '';
-      if (data.unmatchedCount || data.needsPieceWeightCount) {
-        var n = (data.unmatchedCount || 0) + (data.needsPieceWeightCount || 0);
-        warn = ' · ' + n + ' rad(er) saknar näringsdata';
+      var unresolved = data.unresolved || [];
+      if (unresolved.length || data.unmatchedCount || data.needsPieceWeightCount) {
+        var first = markUnresolvedOnForm(unresolved);
+        scrollToIngError(first);
+        var n = unresolved.length || (data.unmatchedCount || 0) + (data.needsPieceWeightCount || 0);
+        setStatus(
+          'Makron uppdaterade, men ' + n + ' rad(er) saknar näringsdata — rätta dem innan du sparar.',
+          true
+        );
+      } else {
+        clearAllIngNutritionErrors();
+        setStatus(
+          'Makron uppdaterade: ' +
+          data.macros.kcal + ' kcal · ' +
+          data.macros.prot + 'g prot · ' +
+          data.macros.carb + 'g kh · ' +
+          data.macros.fat + 'g fett'
+        );
       }
-      setStatus(
-        'Makron uppdaterade: ' +
-        data.macros.kcal + ' kcal · ' +
-        data.macros.prot + 'g prot · ' +
-        data.macros.carb + 'g kh · ' +
-        data.macros.fat + 'g fett' + warn
-      );
       var macrosSec = previewForm.querySelector('.macros');
-      if (macrosSec) macrosSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (macrosSec && !(unresolved.length || data.unmatchedCount || data.needsPieceWeightCount)) {
+        macrosSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }).catch(function(ex) {
       setStatus(ex.message, true);
     }).finally(function() { btn.disabled = false; });
@@ -1972,65 +2157,80 @@
       return;
     }
 
+    setStatus('Kontrollerar näringsdata…');
     var saveId = editingRecipeId;
-    var url = saveId
-      ? '/api/recipes/' + encodeURIComponent(saveId)
-      : '/api/recipes';
-    var method = saveId ? 'PUT' : 'POST';
+    validateNutritionBeforeSave(recipe)
+      .then(function() {
+        recipe = readRecipeFromForm();
+        var url = saveId
+          ? '/api/recipes/' + encodeURIComponent(saveId)
+          : '/api/recipes';
+        var method = saveId ? 'PUT' : 'POST';
 
-    var body = {
-      recipe: recipe,
-      featuredNew: document.getElementById('featured-new').checked
-    };
+        var body = {
+          recipe: recipe,
+          featuredNew: document.getElementById('featured-new').checked
+        };
 
-    if (saveId) {
-      setStatus('Sparar…');
-      if (pendingImageBase64 && pendingMimeType) {
-        body.uploadImage = true;
-        body.imageBase64 = pendingImageBase64;
-        body.mimeType = pendingMimeType;
-      }
-    } else {
-      setStatus('Sparar recept…');
-      body.skipImageGeneration = true;
-      if (pendingImageBase64 && pendingMimeType) {
-        body.uploadImage = true;
-        body.imageBase64 = pendingImageBase64;
-        body.mimeType = pendingMimeType;
-      }
-    }
+        if (saveId) {
+          setStatus('Sparar…');
+          if (pendingImageBase64 && pendingMimeType) {
+            body.uploadImage = true;
+            body.imageBase64 = pendingImageBase64;
+            body.mimeType = pendingMimeType;
+          }
+        } else {
+          setStatus('Sparar recept…');
+          body.skipImageGeneration = true;
+          if (pendingImageBase64 && pendingMimeType) {
+            body.uploadImage = true;
+            body.imageBase64 = pendingImageBase64;
+            body.mimeType = pendingMimeType;
+          }
+        }
 
-    fetch(url, {
-      method: method,
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(body)
-    }).then(function(res) {
-      return res.json().then(function(data) {
-        if (!res.ok) throw new Error((data.details && data.details.join(' · ')) || data.error || 'Sparning misslyckades');
-        return data;
-      });
-    }).then(function(data) {
-      var saved = data.recipe;
-      if (body.featuredNew) {
-        clearFeaturedSeen(saved.id);
-        try { sessionStorage.setItem('recept_skip_visit_' + saved.id, '1'); } catch (e) {}
-      }
-      if (saveId) {
-        recipeList = recipeList.filter(function(r) { return r.id !== saveId; });
-      }
-      recipeList.push({ id: saved.id, title: saved.title });
-      editingRecipeId = saved.id;
-      currentRecipe = saved;
-      populateEditSelect(saved.id);
-      editSelect.value = saved.id;
-      if (saved.id !== saveId) {
-        history.replaceState(null, '', ADD_BASE + '/redigera?edit=' + encodeURIComponent(saved.id));
-      }
-      goToRecipe(saved.id);
-    }).catch(function(ex) {
-      setStatus(ex.message, true);
-    }).finally(function() { btn.disabled = false; });
+        return fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(body)
+        }).then(function(res) {
+          return res.json().then(function(data) {
+            if (!res.ok) {
+              if (data.unresolved && data.unresolved.length) {
+                var first = markUnresolvedOnForm(data.unresolved);
+                scrollToIngError(first);
+              }
+              throw new Error((data.details && data.details.join(' · ')) || data.error || 'Sparning misslyckades');
+            }
+            data._featuredNew = !!body.featuredNew;
+            return data;
+          });
+        });
+      })
+      .then(function(data) {
+        var saved = data.recipe;
+        if (data._featuredNew) {
+          clearFeaturedSeen(saved.id);
+          try { sessionStorage.setItem('recept_skip_visit_' + saved.id, '1'); } catch (e) {}
+        }
+        if (saveId) {
+          recipeList = recipeList.filter(function(r) { return r.id !== saveId; });
+        }
+        recipeList.push({ id: saved.id, title: saved.title });
+        editingRecipeId = saved.id;
+        currentRecipe = saved;
+        populateEditSelect(saved.id);
+        editSelect.value = saved.id;
+        if (saved.id !== saveId) {
+          history.replaceState(null, '', ADD_BASE + '/redigera?edit=' + encodeURIComponent(saved.id));
+        }
+        goToRecipe(saved.id);
+      })
+      .catch(function(ex) {
+        setStatus(ex.message, true);
+      })
+      .finally(function() { btn.disabled = false; });
   });
 
   syncInputPanels();

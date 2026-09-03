@@ -15,7 +15,7 @@ import {
 } from './gemini';
 import { fetchImageAsBase64, fetchRecipePage, isSocialMediaUrl } from './fetch-url';
 import { getRecipe, getRecipeWithMeta, idExists, insertRecipe, listRecipes, updateRecipe, deleteRecipe, renameRecipe } from './db';
-import { resolveRecipeNutrition, replaceRecipeIngredients } from './nutrition';
+import { resolveRecipeNutrition, replaceRecipeIngredients, nutritionGateError, loadNutritionCatalog } from './nutrition';
 import {
   ensureVisitor,
   getRecipeReviewData,
@@ -202,6 +202,7 @@ async function handleEstimateMacros(request: Request, env: Env): Promise<Respons
 
   try {
     const { recipe: resolved, resolution } = await resolveRecipeNutrition(env.DB, recipe);
+    const gate = nutritionGateError(resolution);
     return json({
       ok: true,
       macros: resolved.macros,
@@ -209,10 +210,59 @@ async function handleEstimateMacros(request: Request, env: Env): Promise<Respons
       source: 'nutrition',
       unmatchedCount: resolution.unmatchedCount,
       needsPieceWeightCount: resolution.needsPieceWeightCount,
+      unresolved: gate?.unresolved || [],
     });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : 'Makroberäkning misslyckades' }, 502);
   }
+}
+
+async function handleIngredientSearch(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const q = String(url.searchParams.get('q') || '')
+    .toLowerCase()
+    .trim();
+  const limit = Math.min(20, Math.max(1, Number(url.searchParams.get('limit')) || 12));
+  if (q.length < 2) return json({ ok: true, results: [] });
+
+  const catalog = await loadNutritionCatalog(env.DB);
+  const scored: { score: number; id: number; alias: string; canonical_name: string; kcal_per_100g: number; piece_weight_g: number | null }[] = [];
+  const seen = new Set<number>();
+
+  for (const [alias, ing] of catalog.byAlias) {
+    if (!alias.includes(q) && !ing.canonical_name.toLowerCase().includes(q)) continue;
+    let score = 1000;
+    if (alias === q) score = 0;
+    else if (alias.startsWith(q)) score = 10 + alias.length;
+    else if (ing.canonical_name.toLowerCase().startsWith(q)) score = 20 + ing.canonical_name.length;
+    else score = 100 + alias.length;
+    // Prefer shorter, non-dish aliases; prefer rows with piece weight when query looks like piece use
+    if (ing.canonical_name.length > 48) score += 30;
+    scored.push({
+      score,
+      id: ing.id,
+      alias,
+      canonical_name: ing.canonical_name,
+      kcal_per_100g: ing.kcal_per_100g,
+      piece_weight_g: ing.piece_weight_g,
+    });
+  }
+
+  scored.sort((a, b) => a.score - b.score || a.alias.localeCompare(b.alias, 'sv'));
+  const results = [];
+  for (const row of scored) {
+    if (seen.has(row.id)) continue;
+    seen.add(row.id);
+    results.push({
+      id: row.id,
+      alias: row.alias,
+      canonical_name: row.canonical_name,
+      kcal_per_100g: row.kcal_per_100g,
+      piece_weight_g: row.piece_weight_g,
+    });
+    if (results.length >= limit) break;
+  }
+  return json({ ok: true, results });
 }
 
 async function handleLogin(request: Request, env: Env): Promise<Response> {
@@ -517,6 +567,20 @@ async function handleCreateRecipe(request: Request, env: Env): Promise<Response>
   }
 
   const { recipe: resolved, resolution } = await resolveRecipeNutrition(env.DB, recipe);
+  const gate = nutritionGateError(resolution);
+  if (gate) {
+    return json(
+      {
+        error: 'Validering',
+        details: gate.details,
+        unresolved: gate.unresolved,
+        unmatchedCount: resolution.unmatchedCount,
+        needsPieceWeightCount: resolution.needsPieceWeightCount,
+        recipe: resolved,
+      },
+      400
+    );
+  }
   await insertRecipe(env.DB, resolved, { featuredNew: !!body.featuredNew });
   await replaceRecipeIngredients(env.DB, String(resolved.id), resolution.rows);
   return json({ ok: true, recipe: resolved, featuredNew: !!body.featuredNew }, 201);
@@ -637,6 +701,20 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
   }
 
   const { recipe: resolved, resolution } = await resolveRecipeNutrition(env.DB, recipe);
+  const gate = nutritionGateError(resolution);
+  if (gate) {
+    return json(
+      {
+        error: 'Validering',
+        details: gate.details,
+        unresolved: gate.unresolved,
+        unmatchedCount: resolution.unmatchedCount,
+        needsPieceWeightCount: resolution.needsPieceWeightCount,
+        recipe: resolved,
+      },
+      400
+    );
+  }
   const saved = renaming
     ? await renameRecipe(env.DB, id, resolved, body.featuredNew)
     : await updateRecipe(env.DB, resolved, body.featuredNew);
@@ -747,6 +825,9 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   }
   if (path === '/api/estimate-macros' && request.method === 'POST') {
     return handleEstimateMacros(request, env);
+  }
+  if (path === '/api/ingredients/search' && request.method === 'GET') {
+    return handleIngredientSearch(request, env);
   }
 
   if (recipeMatch) {

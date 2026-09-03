@@ -166,6 +166,50 @@
   .ing-edit-row { display: grid; grid-template-columns: 1fr 4rem 3.5rem auto; gap: 0.35rem; margin-bottom: 0.35rem; align-items: center; }
   .ing-edit-row input, .ing-edit-row select { margin: 0; font-size: 0.8125rem; padding: 0.4rem 0.45rem; }
   .ing-edit-row button { padding: 0.35rem 0.5rem; font-size: 0.75rem; }
+  .ing-edit-row--invalid .ing-name {
+    border-color: #c0392b;
+    box-shadow: 0 0 0 1px #c0392b;
+  }
+  .ing-edit-err {
+    grid-column: 1 / -1;
+    font-size: 0.75rem;
+    color: #c0392b;
+    line-height: 1.35;
+    display: none;
+  }
+  .ing-edit-row--invalid .ing-edit-err { display: block; }
+  .ing-suggest {
+    grid-column: 1 / -1;
+    display: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    max-height: 11rem;
+    overflow: auto;
+    margin-top: -0.15rem;
+  }
+  .ing-suggest.is-open { display: block; }
+  .ing-suggest-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    padding: 0.45rem 0.55rem;
+    font-size: 0.8125rem;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .ing-suggest-item:hover, .ing-suggest-item:focus {
+    background: var(--surface2, rgba(127,127,127,0.12));
+    outline: none;
+  }
+  .ing-suggest-meta {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--text2);
+    margin-top: 0.1rem;
+  }
   .step-edit { margin-bottom: 0.65rem; padding: 0.5rem; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); }
   .step-edit input { margin-bottom: 0.35rem; font-size: 0.8125rem; }
   .step-edit textarea { min-height: 56px; font-size: 0.8125rem; margin: 0; }
