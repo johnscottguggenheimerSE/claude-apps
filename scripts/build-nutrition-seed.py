@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
-"""Rebuild scripts/nutrition-seed.json from worker PER_100G/PIECE_G + known gaps.
+"""DEPRECATED — use build-nutrition-seed-from-slv.py (Livsmedelsverket + USDA gaps).
 
-Does not touch D1. Run before nutrition-dry-run.mts when tables change.
+Legacy: rebuild from worker PER_100G/PIECE_G (removed from gemini.ts).
 """
 from __future__ import annotations
+
+raise SystemExit(
+    "Deprecated: run scripts/fetch-slv-catalog.py then scripts/build-nutrition-seed-from-slv.py"
+)
+
+# --- legacy body kept below for reference; unreachable ---
 
 import json
 import re

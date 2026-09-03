@@ -4,7 +4,7 @@
  */
 
 const PREP_WORDS =
-  'tärnad|tärnade|kuberad|kuberade|hackad|hackade|finhackad|finhackade|grovhackad|grovhackade|skivad|skivade|smashad|smashade|juliennad|juliennade|riven|rivna|persisk|persiska|färsk|färska|benfri|benfria|boneless|skinless|finriven|grovriven|tunt|fint|grovt|strimlad|strimlade|pressad|pressade|förstekt|blancherad|tinade|kärnor|borttagna';
+  'tärnad|tärnade|kuberad|kuberade|hackad|hackade|finhackad|finhackade|grovhackad|grovhackade|skivad|skivade|smashad|smashade|juliennad|juliennade|riven|rivna|persisk|persiska|färsk|färska|mogen|mogna|benfri|benfria|boneless|skinless|finriven|grovriven|tunt|fint|grovt|strimlad|strimlade|pressad|pressade|förstekt|blancherad|tinade|kärnor|borttagna';
 
 const PREP_RE = new RegExp(`^(?:${PREP_WORDS})$`, 'i');
 
@@ -28,12 +28,21 @@ const EXPLICIT_PLURALS: Record<string, string> = {
   schalottenlökar: 'schalottenlök',
   jalapeños: 'jalapeño',
   pickles: 'pickles',
+  majskärnor: 'majskärnor',
+  räkor: 'räka',
+  soltorkade: 'soltorkade', // not a plural token; keep phrase handling elsewhere
 };
 
 function singularizeToken(token: string): string {
   if (EXPLICIT_PLURALS[token]) return EXPLICIT_PLURALS[token];
   // Only safe automatic rule: -or plurals (champinjoner already mapped; lökar etc.)
-  if (token.endsWith('or') && token.length > 4 && !token.endsWith('tor') && !/(smör|peppar)$/.test(token)) {
+  // Skip short stems and known false positives (majskärnor, räkor handled above).
+  if (
+    token.endsWith('or') &&
+    token.length > 5 &&
+    !token.endsWith('tor') &&
+    !/(smör|peppar|kärnor)$/.test(token)
+  ) {
     return token.slice(0, -2);
   }
   return token;
@@ -72,6 +81,8 @@ export function normalizeIngredientName(raw: string): string {
     const left = ellerMatch[1].trim();
     const right = ellerMatch[2].trim();
     n = left.endsWith('-') || left.length < 3 ? right : left;
+    // "lönnsirap, honung" → first option
+    if (n.includes(',')) n = n.split(',')[0].trim();
   }
   // "chili/peperoncino" → first alternative
   const slashParts = n.split(/\s*\/\s*/);
@@ -97,6 +108,9 @@ export function normalizeIngredientName(raw: string): string {
     .split(/\s+/)
     .filter((t) => !PREP_RE.test(t))
     .join(' ')
+    // leftover "och" after prep words removed ("smashad och gurka" → "och gurka")
+    .replace(/^\s*och\s+/gi, '')
+    .replace(/\s+och\s*$/gi, '')
     .replace(/,\s*$/, '')
     .replace(/^\s*,\s*/, '')
     .replace(/\s{2,}/g, ' ')

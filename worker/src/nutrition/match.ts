@@ -1,4 +1,5 @@
 import { amountToGrams, macrosForGrams } from './grams';
+import { expandLookupKeys } from './lookup';
 import { normalizeIngredientName } from './normalize';
 import type {
   IngredientRow,
@@ -7,14 +8,30 @@ import type {
   ResolvedIngredient,
 } from './types';
 
+/** Exact alias hit for one key. */
 export function lookupAlias(catalog: NutritionCatalog, normalized: string): IngredientRow | null {
   if (!normalized) return null;
   return catalog.byAlias.get(normalized) ?? null;
 }
 
 /**
+ * Exact alias match, then broader candidate keys (suffix/token drop).
+ * Never substring-searches food names (avoids champinjon→skinka).
+ */
+export function lookupAliasBroad(
+  catalog: NutritionCatalog,
+  normalized: string
+): IngredientRow | null {
+  for (const key of expandLookupKeys(normalized)) {
+    const hit = lookupAlias(catalog, key);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/**
  * Resolve one ingredient line against the catalog.
- * Exact alias match only — never substring.
+ * Exact alias first, then conservative broader keys — never free substring.
  */
 export function resolveIngredientLine(
   catalog: NutritionCatalog,
@@ -28,7 +45,7 @@ export function resolveIngredientLine(
   const quantity = amount != null && Number.isFinite(amount) ? amount : null;
   const unitNorm = unit != null ? String(unit).trim() || null : null;
   const normalized = normalizeIngredientName(raw_text);
-  const ingredient = lookupAlias(catalog, normalized);
+  const ingredient = lookupAliasBroad(catalog, normalized);
 
   const base: ResolvedIngredient = {
     raw_text,

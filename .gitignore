@@ -3,3 +3,7 @@ recept/.claude/
 .wrangler/
 worker/node_modules/
 worker/.dev.vars
+
+scripts/nutrition-seed.sql
+scripts/nutrition-migrate.report.json
+scripts/.nutrition-migrate-chunk-*.sql

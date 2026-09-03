@@ -17,7 +17,8 @@ export {
 } from './normalize';
 
 export { amountToGrams, macrosForGrams } from './grams';
-export { lookupAlias, resolveIngredientLine } from './match';
+export { lookupAlias, lookupAliasBroad, resolveIngredientLine } from './match';
+export { expandLookupKeys } from './lookup';
 export {
   roundMacros,
   resolveRecipeIngredients,

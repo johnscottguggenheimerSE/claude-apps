@@ -1,13 +1,13 @@
 /**
- * Steg A sharp migrate: seed nutrition tables + resolve all recipes (dual-write).
+ * Seed nutrition tables from nutrition-seed.json (SLV + USDA secondary + aliases)
+ * and re-resolve all recipes (dual-write).
  *
  * Requires wrangler auth. Run from repo root:
+ *   python3 scripts/fetch-slv-catalog.py   # refresh SLV raw (optional)
+ *   python3 scripts/build-nutrition-seed-from-slv.py
  *   npx tsx scripts/nutrition-migrate.mts
  *
- * Steps:
- * 1) Apply migration 0003 if needed (wrangler d1 migrations apply --remote)
- * 2) Clear + seed ingredients/aliases from nutrition-seed.json
- * 3) For each recipe: resolve → UPDATE recipes.data + replace recipe_ingredients
+ * Attribution: Livsmedelsverkets Livsmedelsdatabas (+ USDA FoodData Central for gaps).
  */
 import fs from 'node:fs';
 import path from 'node:path';
