@@ -84,6 +84,20 @@
 
   var reviewActive = false;
 
+  function isMergeMoreOpen() {
+    var body = document.getElementById('merge-more-body');
+    return !!(body && !body.classList.contains('hidden'));
+  }
+
+  function setMergeMoreOpen(open) {
+    var mergePanel = document.getElementById('panel-merge-more');
+    var body = document.getElementById('merge-more-body');
+    var toggle = document.getElementById('btn-merge-more-toggle');
+    if (body) body.classList.toggle('hidden', !open);
+    if (mergePanel) mergePanel.classList.toggle('is-open', open);
+    if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
   function syncInputPanels() {
     var hideInputs = reviewActive && previewEl.classList.contains('visible');
     document.getElementById('panel-create').classList.toggle('hidden', hideInputs || editMode);
@@ -91,7 +105,9 @@
     if (panelEdit) panelEdit.classList.toggle('hidden', hideInputs || !editMode);
     var mergePanel = document.getElementById('panel-merge-more');
     if (mergePanel) {
-      mergePanel.classList.toggle('hidden', !(hideInputs && currentRecipe));
+      var show = hideInputs && currentRecipe;
+      mergePanel.classList.toggle('hidden', !show);
+      if (!show) setMergeMoreOpen(false);
     }
   }
 
@@ -612,7 +628,7 @@
 
   function getActiveImageDropTarget() {
     var mergePanel = document.getElementById('panel-merge-more');
-    if (mergePanel && !mergePanel.classList.contains('hidden')) {
+    if (mergePanel && !mergePanel.classList.contains('hidden') && isMergeMoreOpen()) {
       if (document.activeElement === document.getElementById('merge-text')) return null;
       return { dropId: 'drop-merge', thumbId: 'thumb-merge', merge: true };
     }
@@ -680,6 +696,7 @@
       var ae = document.activeElement;
       var inMerge = mergePanel
         && !mergePanel.classList.contains('hidden')
+        && isMergeMoreOpen()
         && ae
         && mergePanel.contains(ae);
       if (inMerge) {
@@ -1789,6 +1806,13 @@
       setStatus(ex.message, true);
     }).finally(function() { btn.disabled = false; });
   });
+
+  var btnMergeMoreToggle = document.getElementById('btn-merge-more-toggle');
+  if (btnMergeMoreToggle) {
+    btnMergeMoreToggle.addEventListener('click', function() {
+      setMergeMoreOpen(!isMergeMoreOpen());
+    });
+  }
 
   document.getElementById('btn-merge-ai').addEventListener('click', function() {
     if (!currentRecipe || !previewEl.classList.contains('visible')) {

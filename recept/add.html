@@ -211,15 +211,28 @@
   .image-drop.has-image .image-drop-hint { display: none; }
   .merge-more {
     margin: 0 0 1.25rem;
-    padding: 0.85rem 0.95rem 1rem;
+    padding: 0.55rem 0.95rem;
     border: 0.5px solid var(--border);
     border-radius: var(--radius);
     background: var(--bg);
   }
   .merge-more.hidden { display: none !important; }
-  .merge-more-heading {
-    font-size: 0.9375rem; font-weight: 650; margin: 0 0 0.35rem; color: var(--text);
+  .merge-more.is-open { padding: 0.85rem 0.95rem 1rem; }
+  .merge-more-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+    width: 100%; margin: 0; padding: 0.3rem 0; border: 0; background: transparent;
+    font: inherit; font-size: 0.9375rem; font-weight: 650; color: var(--text);
+    cursor: pointer; text-align: left;
   }
+  .merge-more-toggle:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
+  .merge-more-chevron {
+    flex-shrink: 0; width: 0.65rem; height: 0.65rem;
+    border-right: 2px solid var(--text2); border-bottom: 2px solid var(--text2);
+    transform: rotate(45deg); transition: transform 0.15s ease;
+  }
+  .merge-more.is-open .merge-more-chevron { transform: rotate(225deg); margin-top: 0.2rem; }
+  .merge-more-body { margin-top: 0.35rem; }
+  .merge-more-body.hidden { display: none !important; }
   .merge-more .flow-hint {
     margin-bottom: 0.85rem; padding: 0.55rem 0.7rem;
   }
@@ -381,26 +394,31 @@
       <p class="field-hint" id="preview-hint" style="margin-top:0;margin-bottom:0.75rem;">Redigera fält nedan och spara.</p>
 
       <div class="merge-more hidden" id="panel-merge-more">
-        <h3 class="merge-more-heading">Lägg till mer</h3>
-        <p class="flow-hint">
-          Lägg till caption, anteckningar, fler ingredienser/steg eller en skärmdump.
-          AI <strong>slår ihop</strong> med receptet nedan — ersätter det inte.
-        </p>
-        <div class="field">
-          <label for="merge-text">Fritext / caption</label>
-          <textarea id="merge-text" placeholder="Klistra in tillägg: fler ingredienser, steg, tips…"></textarea>
-        </div>
-        <div class="field">
-          <label>Bild (valfritt)</label>
-          <div class="image-drop" id="drop-merge" tabindex="0">
-            <span class="image-drop-hint">Klicka, dra eller klistra in (⌘V)</span>
-            <img id="thumb-merge" class="hidden" alt="">
+        <button type="button" class="merge-more-toggle" id="btn-merge-more-toggle" aria-expanded="false" aria-controls="merge-more-body">
+          <span>Lägg till mer</span>
+          <span class="merge-more-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="merge-more-body hidden" id="merge-more-body">
+          <p class="flow-hint">
+            Lägg till caption, anteckningar, fler ingredienser/steg eller en skärmdump.
+            AI <strong>slår ihop</strong> med receptet nedan — ersätter det inte.
+          </p>
+          <div class="field">
+            <label for="merge-text">Fritext / caption</label>
+            <textarea id="merge-text" placeholder="Klistra in tillägg: fler ingredienser, steg, tips…"></textarea>
           </div>
-          <input type="file" id="file-merge" accept="image/*" class="hidden">
-          <p class="field-hint">Skärmdump/caption — sparas inte som receptfoto.</p>
-        </div>
-        <div class="actions">
-          <button type="button" class="primary" id="btn-merge-ai">Slå ihop med receptet</button>
+          <div class="field">
+            <label>Bild (valfritt)</label>
+            <div class="image-drop" id="drop-merge" tabindex="0">
+              <span class="image-drop-hint">Klicka, dra eller klistra in (⌘V)</span>
+              <img id="thumb-merge" class="hidden" alt="">
+            </div>
+            <input type="file" id="file-merge" accept="image/*" class="hidden">
+            <p class="field-hint">Skärmdump/caption — sparas inte som receptfoto.</p>
+          </div>
+          <div class="actions">
+            <button type="button" class="primary" id="btn-merge-ai">Slå ihop med receptet</button>
+          </div>
         </div>
       </div>
 
