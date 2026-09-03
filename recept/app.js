@@ -348,6 +348,41 @@ function countUnresolvedIngredients(r) {
   return n;
 }
 
+function fillIngMacrosCell(cell, row, scale) {
+  cell.replaceChildren();
+  if (!row) return;
+  var s = scale || 1;
+  var kcal = finiteOrNull(row.kcal);
+  var prot = finiteOrNull(row.prot);
+  var carb = finiteOrNull(row.carb);
+  var fat = finiteOrNull(row.fat);
+  var gramsRaw = finiteOrNull(row.grams);
+  var hasMacros = kcal != null && prot != null && carb != null && fat != null;
+  var grams = gramsRaw != null && gramsRaw > 0 ? Math.round(gramsRaw * s) : null;
+  if (!hasMacros) return;
+  var kcalEl = mk('span', 'ing-mac-kcal');
+  kcalEl.textContent = Math.round(kcal * s) + '🔥';
+  cell.appendChild(kcalEl);
+  cell.appendChild(document.createTextNode(' '));
+  var pEl = mk('span', 'ing-mac-p');
+  pEl.textContent = Math.round(prot * s) + 'P';
+  cell.appendChild(pEl);
+  cell.appendChild(document.createTextNode(' '));
+  var fEl = mk('span', 'ing-mac-f');
+  fEl.textContent = Math.round(fat * s) + 'F';
+  cell.appendChild(fEl);
+  cell.appendChild(document.createTextNode(' '));
+  var cEl = mk('span', 'ing-mac-c');
+  cEl.textContent = Math.round(carb * s) + 'C';
+  cell.appendChild(cEl);
+  if (grams != null) {
+    cell.appendChild(document.createTextNode(' '));
+    var gEl = mk('span', 'ing-mac-g');
+    gEl.textContent = grams + 'g';
+    cell.appendChild(gEl);
+  }
+}
+
 function estimateRecipeTotalGrams(r) {
   if (!r || !r.groups) return null;
   var total = 0;
@@ -1680,7 +1715,8 @@ fetch('/api/recipes', { credentials: 'same-origin' })
   .then(function(data) {
     if (data) bootApp(data);
   })
-  .catch(function() {
+  .catch(function(err) {
+    console.error('Kunde inte ladda recept:', err);
     var banner = document.createElement('div');
     banner.className = 'recipe-validate-banner';
     banner.setAttribute('role', 'alert');
