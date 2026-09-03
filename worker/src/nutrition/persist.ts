@@ -8,6 +8,7 @@ import type { ResolveRecipeResult } from './types';
 export function stripClientMacros(recipe: Recipe): Recipe {
   const next: Recipe = { ...recipe };
   delete next.macros;
+  const dietVariants = next.dietVariants;
   const groups = (next.groups || []) as {
     name?: string;
     ingredients?: Record<string, unknown>[];
@@ -23,6 +24,7 @@ export function stripClientMacros(recipe: Recipe): Recipe {
       return copy;
     }),
   }));
+  if (dietVariants != null) next.dietVariants = dietVariants;
   return next;
 }
 

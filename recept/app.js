@@ -20,6 +20,38 @@ var TAG_LABELS = {
   vegan: 'Veganskt'
 };
 
+var PROTEIN_TAG_ORDER = ['kyckling', 'notkott', 'flask', 'fisk', 'skaldjur'];
+var OMNIVORE_PROTEIN_TAGS = { kyckling: 1, notkott: 1, flask: 1 };
+var DIET_VARIANT_LABELS = {
+  pescetarian: 'Pescetarian',
+  vegetarian: 'Vegetarian'
+};
+
+/** null | 'pescetarian' | 'vegetarian' — overlay on detail view only */
+var detailDietMode = null;
+
+function primaryProteinTag(r) {
+  if (!r || !r.tags) return null;
+  for (var i = 0; i < PROTEIN_TAG_ORDER.length; i++) {
+    if (r.tags.indexOf(PROTEIN_TAG_ORDER[i]) !== -1) return PROTEIN_TAG_ORDER[i];
+  }
+  return null;
+}
+
+function getDisplayRecipe(base) {
+  if (!base) return base;
+  if (!detailDietMode || !base.dietVariants) return base;
+  var v = base.dietVariants[detailDietMode];
+  if (!v || !v.available || !v.groups) return base;
+  var out = {};
+  for (var k in base) {
+    if (Object.prototype.hasOwnProperty.call(base, k)) out[k] = base[k];
+  }
+  out.groups = v.groups;
+  if (v.macros) out.macros = v.macros;
+  return out;
+}
+
 if (!Element.prototype.replaceChildren) {
   Element.prototype.replaceChildren = function() {
     while (this.firstChild) this.removeChild(this.firstChild);
@@ -1106,7 +1138,8 @@ document.getElementById('back-btn').addEventListener('click', function() {
 });
 
 function applyServingsScale() {
-  var r = recipes.find(function(x) { return x.id === currentId; });
+  var base = recipes.find(function(x) { return x.id === currentId; });
+  var r = getDisplayRecipe(base);
   if (!r) return;
   var scale = servingScale(r);
   document.getElementById('serv-val').textContent = String(currentServings);
@@ -1335,41 +1368,70 @@ function buildDetailIngredientsTable(r, shopMode, showMacros) {
 }
 
 function showDetail(id, skipHistory) {
-  var r = recipes.find(function(x) { return x.id === id; });
-  if (!r) return;
+  var base = recipes.find(function(x) { return x.id === id; });
+  if (!base) return;
+  if (currentId !== id) detailDietMode = null;
   if (shouldMarkRecipeVisited(id)) markRecipeVisited(id);
   currentId = id;
-  document.title = r.title + ' — Macro-friendly recipes';
+  var r = getDisplayRecipe(base);
+  document.title = base.title + ' — Macro-friendly recipes';
   if (!skipHistory) setRecipeUrl(id, false);
   else setRecipeUrl(id, true);
   updateAdminUi();
-  currentServings = getBaseServings(r);
+  currentServings = getBaseServings(base);
   var c = document.getElementById('detail-content');
   c.replaceChildren();
 
   var lead = mk('div', 'detail-lead');
   var copy = mk('div', 'detail-lead-copy');
+
+  var titleRow = mk('div', 'detail-title-row');
   var titleEl = document.createElement('h1');
   titleEl.className = 'detail-title';
-  titleEl.textContent = r.title;
-  copy.appendChild(titleEl);
-  appendSourceLine(copy, r, { className: 'detail-source' });
-  appendTimeLine(copy, r, 'detail-time');
+  titleEl.textContent = base.title;
+  titleRow.appendChild(titleEl);
+  if (detailDietMode && DIET_VARIANT_LABELS[detailDietMode]) {
+    var chip = mk('span', 'detail-diet-chip');
+    chip.appendChild(document.createTextNode(DIET_VARIANT_LABELS[detailDietMode]));
+    var chipX = document.createElement('button');
+    chipX.type = 'button';
+    chipX.className = 'detail-diet-chip-x';
+    chipX.setAttribute('aria-label', 'Stäng konvertering');
+    chipX.textContent = '×';
+    chipX.addEventListener('click', function() {
+      detailDietMode = null;
+      showDetail(id, true);
+    });
+    chip.appendChild(chipX);
+    titleRow.appendChild(chip);
+  }
+  copy.appendChild(titleRow);
+  appendSourceLine(copy, base, { className: 'detail-source' });
+  appendTimeLine(copy, base, 'detail-time');
 
-  var tagBits = [];
-  if (r.category) tagBits.push(categoryLabel(r.category));
-  if (r.tags && r.tags.length) {
-    r.tags.forEach(function(tid) { tagBits.push(TAG_LABELS[tid] || tid); });
-  }
-  if (tagBits.length) {
+  var tagsRow = mk('div', 'detail-tags-row');
+  if (base.category) {
     var tagsLine = mk('p', 'detail-tags-line');
-    tagsLine.textContent = tagBits.join(' · ');
-    copy.appendChild(tagsLine);
+    tagsLine.textContent = categoryLabel(base.category);
+    tagsRow.appendChild(tagsLine);
+  } else {
+    tagsRow.appendChild(mk('p', 'detail-tags-line'));
   }
+
+  var proteinTag = primaryProteinTag(base);
+  if (proteinTag && OMNIVORE_PROTEIN_TAGS[proteinTag]) {
+    tagsRow.appendChild(buildDietConvertControl(base, proteinTag));
+  } else if (proteinTag) {
+    var proteinOnly = mk('span', 'detail-diet-btn');
+    proteinOnly.textContent = TAG_LABELS[proteinTag] || proteinTag;
+    proteinOnly.style.cursor = 'default';
+    tagsRow.appendChild(proteinOnly);
+  }
+  copy.appendChild(tagsRow);
 
   var metaList = mk('div', 'detail-meta-list');
 
-  var rev = reviewSummaries[r.id];
+  var rev = reviewSummaries[base.id];
   if (rev && rev.count > 0) {
     var ratingVal = mk('span', 'detail-rating-value');
     var stars = mk('span', 'detail-rating-stars');
@@ -1401,9 +1463,9 @@ function showDetail(id, skipHistory) {
   copy.appendChild(metaList);
 
   var actions = mk('div', 'detail-actions');
-  actions.appendChild(createDetailFavoriteAction(r.id));
-  actions.appendChild(createDetailShareAction(r));
-  actions.appendChild(createDetailEditAction(r.id));
+  actions.appendChild(createDetailFavoriteAction(base.id));
+  actions.appendChild(createDetailShareAction(base));
+  actions.appendChild(createDetailEditAction(base.id));
   copy.appendChild(actions);
 
   var macrosWrap = mk('div', 'detail-macros-wrap');
@@ -1441,7 +1503,7 @@ function showDetail(id, skipHistory) {
   copy.appendChild(macrosWrap);
 
   var media = mk('div', 'detail-lead-media');
-  media.appendChild(buildDetailHero(r, { includeTitle: false }));
+  media.appendChild(buildDetailHero(base, { includeTitle: false }));
   lead.appendChild(copy);
   lead.appendChild(media);
   c.appendChild(lead);
@@ -1461,8 +1523,9 @@ function showDetail(id, skipHistory) {
   var ingTableHost = mk('div', 'detail-ing-host');
   ingCol.appendChild(ingTableHost);
   function syncIngredientsUi() {
-    renderDetailIngredients(r, ingTableHost);
-    renderIngredientToolbar(r, ingToolbar, syncIngredientsUi);
+    var display = getDisplayRecipe(base);
+    renderDetailIngredients(display, ingTableHost);
+    renderIngredientToolbar(display, ingToolbar, syncIngredientsUi);
     applyServingsScale();
   }
   syncIngredientsUi();
@@ -1473,7 +1536,7 @@ function showDetail(id, skipHistory) {
   stepsHead.textContent = 'Gör så här';
   stepsCol.appendChild(stepsHead);
   var prep = mk('div', 'detail-prep');
-  r.steps.forEach(function(s, i) {
+  (base.steps || []).forEach(function(s, i) {
     var step = mk('div', 'prep-step');
     var stepLabel = mk('div', 'prep-step-label');
     stepLabel.textContent = 'Steg ' + (i + 1);
@@ -1496,7 +1559,7 @@ function showDetail(id, skipHistory) {
   tipsHead.textContent = 'Tips & variationer';
   c.appendChild(tipsHead);
   var tipsGrid = mk('div', 'tips-grid');
-  r.tips.forEach(function(t) {
+  (base.tips || []).forEach(function(t) {
     var box = mk('div', 'tip-box');
     var ttitle = mk('div', 'tip-title');
     ttitle.textContent = formatTipTitle(t.title);
@@ -1517,6 +1580,137 @@ function showDetail(id, skipHistory) {
   document.getElementById('view-detail').classList.remove('hidden');
   applyServingsScale();
   window.scrollTo(0, 0);
+}
+
+function buildDietConvertControl(base, proteinTag) {
+  var wrap = mk('div', 'detail-diet-wrap');
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'detail-diet-btn';
+  btn.setAttribute('aria-haspopup', 'menu');
+  btn.setAttribute('aria-expanded', 'false');
+  var label = TAG_LABELS[proteinTag] || proteinTag;
+  if (!detailDietMode) label += ' (Allt)';
+  else if (DIET_VARIANT_LABELS[detailDietMode]) label = DIET_VARIANT_LABELS[detailDietMode];
+  btn.appendChild(document.createTextNode(label));
+  var caret = mk('span', 'detail-diet-caret');
+  caret.textContent = '▾';
+  btn.appendChild(caret);
+
+  var menu = mk('div', 'detail-diet-menu');
+  menu.setAttribute('role', 'menu');
+
+  function closeMenu() {
+    menu.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  function addItem(text, mode, opts) {
+    opts = opts || {};
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'detail-diet-item';
+    item.setAttribute('role', 'menuitem');
+    item.textContent = text;
+    if (opts.disabled) {
+      item.disabled = true;
+      if (opts.note) {
+        var note = mk('span', 'detail-diet-item-note');
+        note.textContent = opts.note;
+        item.appendChild(note);
+      }
+    } else {
+      item.addEventListener('click', function() {
+        closeMenu();
+        if (mode === detailDietMode) return;
+        if (mode === null) {
+          detailDietMode = null;
+          showDetail(base.id, true);
+          return;
+        }
+        ensureDietVariants(base).then(function(variants) {
+          var v = variants && variants[mode];
+          if (!v || !v.available) {
+            alert(v && v.reason ? v.reason : 'Ingen ' + DIET_VARIANT_LABELS[mode] + '-variant tillgänglig för detta recept.');
+            return;
+          }
+          detailDietMode = mode;
+          showDetail(base.id, true);
+        }).catch(function(ex) {
+          alert(ex.message || 'Kunde inte hämta dietvarianter');
+        });
+      });
+    }
+    menu.appendChild(item);
+  }
+
+  addItem((TAG_LABELS[proteinTag] || proteinTag) + ' (Allt)', null);
+
+  var variants = base.dietVariants || null;
+  function fillVariantItems(vmap) {
+    ['pescetarian', 'vegetarian'].forEach(function(mode) {
+      var v = vmap && vmap[mode];
+      if (v && v.available === false) {
+        addItem(DIET_VARIANT_LABELS[mode], mode, {
+          disabled: true,
+          note: v.reason || 'Inte rimligt för detta recept'
+        });
+      } else {
+        addItem(DIET_VARIANT_LABELS[mode], mode);
+      }
+    });
+  }
+
+  if (variants) fillVariantItems(variants);
+  else {
+    addItem('Pescetarian', 'pescetarian');
+    addItem('Vegetarian', 'vegetarian');
+  }
+
+  btn.addEventListener('click', function(ev) {
+    ev.stopPropagation();
+    var open = !menu.classList.contains('is-open');
+    document.querySelectorAll('.detail-diet-menu.is-open').forEach(function(el) {
+      el.classList.remove('is-open');
+    });
+    if (open) {
+      menu.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      if (!base.dietVariants) {
+        ensureDietVariants(base).then(function(vmap) {
+          if (!vmap) return;
+          menu.replaceChildren();
+          addItem((TAG_LABELS[proteinTag] || proteinTag) + ' (Allt)', null);
+          fillVariantItems(vmap);
+        }).catch(function() { /* keep generic items */ });
+      }
+    } else {
+      closeMenu();
+    }
+  });
+
+  wrap.appendChild(btn);
+  wrap.appendChild(menu);
+  return wrap;
+}
+
+function ensureDietVariants(base) {
+  if (base.dietVariants && typeof base.dietVariants === 'object') {
+    return Promise.resolve(base.dietVariants);
+  }
+  return fetch('/api/recipes/' + encodeURIComponent(base.id) + '/diet-variants', {
+    credentials: 'same-origin'
+  }).then(function(res) {
+    return res.json().then(function(data) {
+      if (!res.ok) throw new Error(data.error || 'Kunde inte skapa dietvarianter');
+      if (data.dietVariants) {
+        base.dietVariants = data.dietVariants;
+        var idx = recipes.findIndex(function(x) { return x.id === base.id; });
+        if (idx !== -1) recipes[idx].dietVariants = data.dietVariants;
+      }
+      return data.dietVariants || null;
+    });
+  });
 }
 
 function loadReviewsPanel(recipeId, host) {
@@ -1758,3 +1952,12 @@ if (favoritesToggleBtn) {
   });
   updateFavoritesToggleBtn();
 }
+
+document.addEventListener("click", function() {
+  document.querySelectorAll(".detail-diet-menu.is-open").forEach(function(el) {
+    el.classList.remove("is-open");
+  });
+  document.querySelectorAll(".detail-diet-btn[aria-expanded=\"true\"]").forEach(function(btn) {
+    btn.setAttribute("aria-expanded", "false");
+  });
+});

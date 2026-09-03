@@ -17,6 +17,10 @@ import { fetchImageAsBase64, fetchRecipePage, isSocialMediaUrl } from './fetch-u
 import { getRecipe, getRecipeWithMeta, idExists, insertRecipe, listRecipes, updateRecipe, deleteRecipe, renameRecipe } from './db';
 import { resolveRecipeNutrition, replaceRecipeIngredients, nutritionGateError, loadNutritionCatalog } from './nutrition';
 import {
+  buildDietVariantsForRecipe,
+  recipeNeedsDietConversion,
+} from './diet-variants';
+import {
   ensureVisitor,
   getRecipeReviewData,
   listReviewSummaries,
@@ -187,6 +191,50 @@ async function resolveRecipeImage(
     return enhanceRecipeImage(env, recipe, imageBase64, mimeType, existingImageRef);
   }
   return generateRecipeImage(env, recipe, null, null);
+}
+
+async function attachDietVariants(env: Env, recipe: Recipe): Promise<Recipe> {
+  const key = geminiKey(env);
+  if (!key || !recipeNeedsDietConversion(recipe)) return recipe;
+  try {
+    const catalog = await loadNutritionCatalog(env.DB);
+    const variants = await buildDietVariantsForRecipe(key, catalog, recipe);
+    if (variants) recipe.dietVariants = variants;
+  } catch (e) {
+    console.warn('dietVariants failed', e instanceof Error ? e.message : e);
+  }
+  return recipe;
+}
+
+async function handleDietVariants(env: Env, id: string, force = false): Promise<Response> {
+  const existing = await getRecipe(env.DB, id);
+  if (!existing) return json({ error: 'Hittades inte' }, 404);
+  const has =
+    existing.dietVariants &&
+    typeof existing.dietVariants === 'object' &&
+    Object.keys(existing.dietVariants as object).length > 0;
+  if (has && !force) {
+    return json({ ok: true, dietVariants: existing.dietVariants, cached: true });
+  }
+  if (!recipeNeedsDietConversion(existing)) {
+    return json({ ok: true, dietVariants: null, skipped: true });
+  }
+  const key = geminiKey(env);
+  if (!key) return json({ error: 'GEMINI_API_KEY saknas' }, 503);
+  try {
+    const catalog = await loadNutritionCatalog(env.DB);
+    const variants = await buildDietVariantsForRecipe(key, catalog, existing);
+    existing.dietVariants = variants;
+    await updateRecipe(env.DB, existing);
+    return json({ ok: true, dietVariants: variants, cached: false });
+  } catch (e) {
+    return json({ error: e instanceof Error ? e.message : 'Dietvarianter misslyckades' }, 502);
+  }
+}
+
+function geminiKey(env: Env): string | null {
+  const k = env.GEMINI_API_KEY;
+  return k && String(k).trim() ? String(k).trim() : null;
 }
 
 async function handleEstimateMacros(request: Request, env: Env): Promise<Response> {
@@ -581,6 +629,7 @@ async function handleCreateRecipe(request: Request, env: Env): Promise<Response>
       400
     );
   }
+  await attachDietVariants(env, resolved);
   await insertRecipe(env.DB, resolved, { featuredNew: !!body.featuredNew });
   await replaceRecipeIngredients(env.DB, String(resolved.id), resolution.rows);
   return json({ ok: true, recipe: resolved, featuredNew: !!body.featuredNew }, 201);
@@ -715,6 +764,7 @@ async function handleUpdateRecipe(request: Request, env: Env, id: string): Promi
       400
     );
   }
+  await attachDietVariants(env, resolved);
   const saved = renaming
     ? await renameRecipe(env.DB, id, resolved, body.featuredNew)
     : await updateRecipe(env.DB, resolved, body.featuredNew);
@@ -793,6 +843,11 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     if (request.method === 'POST') return handlePostReview(request, env, id);
   }
 
+  const dietVarMatch = path.match(/^\/api\/recipes\/([^/]+)\/diet-variants$/);
+  if (dietVarMatch && request.method === 'GET') {
+    return handleDietVariants(env, decodeURIComponent(dietVarMatch[1]!), false);
+  }
+
   const recipeMatch = path.match(/^\/api\/recipes\/([^/]+)$/);
   if (recipeMatch) {
     const id = decodeURIComponent(recipeMatch[1]);
@@ -801,6 +856,10 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
 
   const authErr = await requireAuth(request, pw);
   if (authErr) return authErr;
+
+  if (dietVarMatch && (request.method === 'POST' || request.method === 'PUT')) {
+    return handleDietVariants(env, decodeURIComponent(dietVarMatch[1]!), true);
+  }
 
   if (path.startsWith('/api/images/')) {
     const key = path.slice('/api/images/'.length);

@@ -17,7 +17,7 @@
   };
   var DIET_LABELS = {
     all: 'Allt',
-    fisk: 'Fisk',
+    fisk: 'Pescetarian',
     vegetarisk: 'Vegetarian',
     vegan: 'Vegan'
   };
@@ -78,7 +78,7 @@
         name: '',
         items: [
           { type: 'all', value: null, label: 'Allt' },
-          { type: 'diet', value: 'fisk', label: 'Fisk' },
+          { type: 'diet', value: 'fisk', label: 'Pescetarian' },
           { type: 'diet', value: 'vegetarisk', label: 'Vegetarian' },
           { type: 'diet', value: 'vegan', label: 'Vegan' }
         ]
